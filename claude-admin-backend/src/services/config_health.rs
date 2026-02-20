@@ -179,7 +179,7 @@ async fn find_duplicated_rules(claude_home: &Path, project_path: &str) -> Vec<Du
         if let Ok(mut dir) = tokio::fs::read_dir(&rules_dir).await {
             while let Ok(Some(entry)) = dir.next_entry().await {
                 let path = entry.path();
-                if path.extension().map_or(false, |e| e == "md") {
+                if path.extension().is_some_and(|e| e == "md") {
                     if let Ok(rule_content) = tokio::fs::read_to_string(&path).await {
                         // Check if significant portions overlap (simple line-based check)
                         let rule_lines: Vec<&str> = rule_content

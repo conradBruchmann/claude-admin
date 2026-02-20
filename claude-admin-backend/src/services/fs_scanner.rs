@@ -311,7 +311,7 @@ pub async fn scan_rules(
     let mut dir = tokio::fs::read_dir(&rules_dir).await?;
     while let Some(entry) = dir.next_entry().await? {
         let path = entry.path();
-        if path.extension().map_or(false, |e| e == "md") {
+        if path.extension().is_some_and(|e| e == "md") {
             let content = tokio::fs::read_to_string(&path).await?;
             let name = path
                 .file_stem()
@@ -397,7 +397,7 @@ async fn scan_project_rules(
 
         while let Some(entry) = dir_entries.next_entry().await? {
             let path = entry.path();
-            if path.extension().map_or(false, |e| e == "md") {
+            if path.extension().is_some_and(|e| e == "md") {
                 let content = tokio::fs::read_to_string(&path).await?;
                 let name = path
                     .file_stem()
@@ -431,7 +431,7 @@ async fn scan_project_memory(
     let mut dir = tokio::fs::read_dir(&memory_dir).await?;
     while let Some(entry) = dir.next_entry().await? {
         let path = entry.path();
-        if path.extension().map_or(false, |e| e == "md") {
+        if path.extension().is_some_and(|e| e == "md") {
             let content = tokio::fs::read_to_string(&path).await?;
             let name = path
                 .file_name()
@@ -457,7 +457,7 @@ async fn scan_plans(claude_home: &Path) -> Result<usize, ApiError> {
     let mut count = 0;
     if let Ok(mut dir) = tokio::fs::read_dir(&plans_dir).await {
         while let Ok(Some(entry)) = dir.next_entry().await {
-            if entry.path().extension().map_or(false, |ext| ext == "md") {
+            if entry.path().extension().is_some_and(|ext| ext == "md") {
                 count += 1;
             }
         }

@@ -19,7 +19,7 @@ pub async fn list_plans(
     let mut dir = tokio::fs::read_dir(&plans_dir).await?;
     while let Some(entry) = dir.next_entry().await? {
         let path = entry.path();
-        if path.extension().map_or(false, |e| e == "md") {
+        if path.extension().is_some_and(|e| e == "md") {
             let content = tokio::fs::read_to_string(&path).await?;
             let metadata = entry.metadata().await?;
             let modified = metadata
