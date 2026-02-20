@@ -1,7 +1,7 @@
 use crate::domain::errors::ApiError;
 
 /// Encode a filesystem path to the format used in ~/.claude/projects/
-/// e.g. /Users/conrad/Projekte24/Foo -> -Users-conrad-Projekte24-Foo
+/// e.g. /home/user/projects/my-app -> -home-user-projects-my-app
 pub fn encode_project_path(path: &str) -> String {
     path.replace('/', "-")
 }
@@ -162,7 +162,7 @@ mod tests {
 
     #[test]
     fn test_roundtrip_base64url() {
-        let path = "/Users/conrad/Projekte24/MyProject";
+        let path = "/home/user/projects/my-app";
         let encoded = encode_project_id(path);
         let decoded = decode_project_id(&encoded).unwrap();
         assert_eq!(decoded, path);
