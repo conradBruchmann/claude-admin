@@ -1,0 +1,12 @@
+[workspace]
+members = [
+    "claude-admin-backend",
+    "claude-admin-frontend",
+    "claude-admin-shared",
+]
+resolver = "2"
+
+[workspace.package]
+authors = ["Conrad Bruchmann <conrad@bruchmann-tec.de>"]
+license = "MIT"
+repository = "https://github.com/conradbruchmann/claude-admin"

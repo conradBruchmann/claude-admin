@@ -1,0 +1,17 @@
+pub mod analytics;
+pub mod dashboard;
+pub mod docs;
+pub mod github;
+pub mod global_rules;
+pub mod global_skills;
+pub mod help;
+pub mod licenses;
+pub mod mcp;
+pub mod mcp_browser;
+pub mod permissions;
+pub mod plans;
+pub mod project_detail;
+pub mod projects;
+pub mod sessions;
+pub mod settings;
+pub mod skill_browser;
