@@ -41,7 +41,7 @@ pub fn get_project_analytics(
     if let Ok(entries) = std::fs::read_dir(&session_meta_dir) {
         for entry in entries.flatten() {
             let path = entry.path();
-            if path.extension().map_or(false, |e| e == "json") {
+            if path.extension().is_some_and(|e| e == "json") {
                 if let Ok(content) = std::fs::read_to_string(&path) {
                     if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
                         let project_path = json
@@ -251,7 +251,7 @@ fn aggregate_session_meta(claude_home: &Path) -> SessionAggregation {
     if let Ok(entries) = std::fs::read_dir(&session_meta_dir) {
         for entry in entries.flatten() {
             let path = entry.path();
-            if !path.extension().map_or(false, |e| e == "json") {
+            if path.extension().is_none_or(|e| e != "json") {
                 continue;
             }
             let content = match std::fs::read_to_string(&path) {
@@ -317,7 +317,7 @@ fn parse_facets(claude_home: &Path) -> Vec<(String, u64)> {
     if let Ok(entries) = std::fs::read_dir(&facets_dir) {
         for entry in entries.flatten() {
             let path = entry.path();
-            if !path.extension().map_or(false, |e| e == "json") {
+            if path.extension().is_none_or(|e| e != "json") {
                 continue;
             }
             if let Ok(content) = std::fs::read_to_string(&path) {

@@ -15,6 +15,7 @@ use crate::routes;
 use crate::services::claude_api::AnthropicClient;
 
 #[derive(Clone)]
+#[allow(dead_code)]
 pub struct AppState {
     pub config: Config,
     pub claude_home: PathBuf,

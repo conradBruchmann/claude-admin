@@ -195,6 +195,7 @@ pub async fn install_skill(claude_home: &Path, name: &str, content: &str) -> Res
 }
 
 /// Get skill detail (parse frontmatter from content).
+#[allow(dead_code)]
 pub fn parse_skill_detail(name: &str, content: &str) -> SkillDetail {
     let (fm, body) = frontmatter::parse_frontmatter(content);
     SkillDetail {

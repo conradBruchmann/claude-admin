@@ -25,7 +25,7 @@ pub fn list_sessions(
     if let Ok(entries) = std::fs::read_dir(&session_meta_dir) {
         for entry in entries.flatten() {
             let path = entry.path();
-            if !path.extension().map_or(false, |e| e == "json") {
+            if path.extension().is_none_or(|e| e != "json") {
                 continue;
             }
 
