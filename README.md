@@ -97,6 +97,24 @@ cargo build --release -p claude-admin-backend
 
 Pre-built binaries for Linux, macOS, and Windows are available on the [Releases](https://github.com/conradBruchmann/claude-admin/releases) page.
 
+### macOS Installation
+
+Download the `.dmg` from the latest release, open it, and drag **ClaudeAdmin.app** into `/Applications`.
+
+Since the app is not signed with an Apple Developer certificate, macOS Gatekeeper will block it on first launch. To allow it, run:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/ClaudeAdmin.app
+```
+
+Then double-click the app — it starts the server and opens `http://localhost:9022` in your browser. The DMG contains a Universal Binary that runs natively on both Intel and Apple Silicon Macs.
+
+### Windows Installation
+
+Download the `ClaudeAdmin-*-Setup.exe` from the latest release and run the installer. It installs to your user profile (no admin rights needed), creates Start Menu and Desktop shortcuts, and registers in "Apps & Features" for clean uninstall.
+
+After installation, launch ClaudeAdmin from the Start Menu or Desktop — it starts the server and opens `http://localhost:9022` in your browser.
+
 ## Configuration Paths
 
 ClaudeAdmin reads and writes the standard Claude Code configuration:
