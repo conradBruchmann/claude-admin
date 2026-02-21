@@ -86,19 +86,25 @@ jobs:
 
       - name: Package (Windows Installer)
         if: matrix.archive == 'nsis'
+        shell: cmd
+        run: |
+          set VERSION=%GITHUB_REF_NAME:v=%
+          mkdir nsis-staging
+          copy "target\${{ matrix.target }}\release\claude-admin-backend.exe" "nsis-staging\claude-admin-backend.exe"
+          copy "packaging\windows\launcher.bat" "nsis-staging\"
+          copy "packaging\windows\installer.nsi" "nsis-staging\"
+          copy LICENSE "nsis-staging\"
+          copy README.md "nsis-staging\"
+          cd nsis-staging
+          "%ProgramFiles(x86)%\NSIS\makensis.exe" /DVERSION=%VERSION% installer.nsi
+          move "ClaudeAdmin-%VERSION%-Setup.exe" ..
+          cd ..
+
+      - name: Set Windows asset name
+        if: matrix.archive == 'nsis'
         shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          STAGING="nsis-staging"
-          mkdir -p "$STAGING"
-          cp "target/${{ matrix.target }}/release/claude-admin-backend.exe" "$STAGING/claude-admin-backend.exe"
-          cp packaging/windows/launcher.bat "$STAGING/"
-          cp packaging/windows/installer.nsi "$STAGING/"
-          cp LICENSE README.md "$STAGING/"
-          cd "$STAGING"
-          makensis -DVERSION="$VERSION" installer.nsi
-          mv "ClaudeAdmin-${VERSION}-Setup.exe" ../
-          cd ..
           echo "ASSET=ClaudeAdmin-${VERSION}-Setup.exe" >> $GITHUB_ENV
 
       - name: Upload artifact
