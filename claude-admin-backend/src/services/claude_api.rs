@@ -30,16 +30,42 @@ impl AnthropicClient {
         None
     }
 
-    /// Refresh the OAuth token from macOS Keychain.
+    /// Refresh the OAuth token by triggering Claude Code to do its own refresh,
+    /// then re-reading the fresh token from the Keychain.
     /// Returns true if a new token was loaded successfully.
     fn refresh_token(&self) -> bool {
         if !matches!(self.auth_mode, AuthMode::OAuthBearer) {
             return false;
         }
 
+        tracing::info!("Triggering Claude Code to refresh OAuth token...");
+
+        // Run a minimal Claude Code command to force token refresh
+        let output = std::process::Command::new("claude")
+            .args(["-p", "ping"])
+            .stdin(std::process::Stdio::null())
+            .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
+            .output();
+
+        match output {
+            Ok(o) if o.status.success() => {
+                tracing::info!("Claude Code responded, re-reading token from Keychain");
+            }
+            Ok(o) => {
+                let stderr = String::from_utf8_lossy(&o.stderr);
+                tracing::warn!("Claude Code returned error: {}", stderr);
+            }
+            Err(e) => {
+                tracing::warn!("Failed to run 'claude': {}", e);
+                return false;
+            }
+        }
+
+        // Re-read the (now hopefully refreshed) token from Keychain
         if let Some(new_token) = read_oauth_from_keychain() {
             if let Ok(mut token) = self.token.write() {
-                tracing::info!("OAuth token refreshed from macOS Keychain");
+                tracing::info!("OAuth token refreshed via Claude Code");
                 *token = new_token;
                 return true;
             }
