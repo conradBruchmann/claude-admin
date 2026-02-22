@@ -20,6 +20,9 @@ pub enum ApiError {
     #[error("YAML error: {0}")]
     Yaml(#[from] serde_yaml::Error),
 
+    #[error("Unauthorized: {0}")]
+    Unauthorized(String),
+
     #[error("Internal error: {0}")]
     Internal(String),
 }
@@ -33,6 +36,7 @@ impl IntoResponse for ApiError {
             ApiError::Json(e) => (StatusCode::BAD_REQUEST, e.to_string()),
             ApiError::Yaml(e) => (StatusCode::BAD_REQUEST, e.to_string()),
             ApiError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg.clone()),
+            ApiError::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, msg.clone()),
         };
 
         let body = json!({ "error": message });

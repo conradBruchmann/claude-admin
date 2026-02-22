@@ -1,9 +1,10 @@
 use crate::domain::errors::ApiError;
 use claude_admin_shared::{ClaudeFileType, SuggestionRequest, SuggestionResponse};
+use std::sync::{Arc, RwLock};
 
 #[derive(Clone)]
 pub struct AnthropicClient {
-    token: String,
+    token: Arc<RwLock<String>>,
     auth_mode: AuthMode,
     client: reqwest::Client,
 }
@@ -22,7 +23,7 @@ impl AnthropicClient {
         if let Ok(api_key) = std::env::var("ANTHROPIC_API_KEY") {
             tracing::info!("Using ANTHROPIC_API_KEY for Claude API");
             return Some(Self {
-                token: api_key,
+                token: Arc::new(RwLock::new(api_key)),
                 auth_mode: AuthMode::ApiKey,
                 client: reqwest::Client::new(),
             });
@@ -32,7 +33,7 @@ impl AnthropicClient {
         if let Some(oauth_token) = read_oauth_from_keychain() {
             tracing::info!("Using OAuth token from macOS Keychain for Claude API");
             return Some(Self {
-                token: oauth_token,
+                token: Arc::new(RwLock::new(oauth_token)),
                 auth_mode: AuthMode::OAuthBearer,
                 client: reqwest::Client::new(),
             });
@@ -40,6 +41,30 @@ impl AnthropicClient {
 
         tracing::warn!("No Claude API credentials found (no ANTHROPIC_API_KEY, no Keychain token)");
         None
+    }
+
+    /// Refresh the OAuth token from macOS Keychain.
+    /// Returns true if a new token was loaded successfully.
+    fn refresh_token(&self) -> bool {
+        if !matches!(self.auth_mode, AuthMode::OAuthBearer) {
+            return false;
+        }
+
+        if let Some(new_token) = read_oauth_from_keychain() {
+            if let Ok(mut token) = self.token.write() {
+                tracing::info!("OAuth token refreshed from macOS Keychain");
+                *token = new_token;
+                return true;
+            }
+        }
+
+        tracing::warn!("Failed to refresh OAuth token from Keychain");
+        false
+    }
+
+    /// Read the current token.
+    fn current_token(&self) -> String {
+        self.token.read().expect("token lock poisoned").clone()
     }
 }
 
@@ -119,6 +144,31 @@ async fn call_claude(
     system: &str,
     user: &str,
 ) -> Result<String, ApiError> {
+    // Try the request; on 401 with OAuth, refresh token and retry once.
+    match send_claude_request(client, system, user).await {
+        Ok(text) => Ok(text),
+        Err(ApiError::Unauthorized(msg)) => {
+            tracing::warn!("Got 401, attempting token refresh: {}", msg);
+            if client.refresh_token() {
+                tracing::info!("Token refreshed, retrying request...");
+                send_claude_request(client, system, user).await
+            } else {
+                Err(ApiError::Internal(
+                    "Claude API: Token abgelaufen. Refresh aus Keychain fehlgeschlagen. \
+                     Stelle sicher, dass Claude Code eingeloggt ist."
+                        .to_string(),
+                ))
+            }
+        }
+        Err(e) => Err(e),
+    }
+}
+
+async fn send_claude_request(
+    client: &AnthropicClient,
+    system: &str,
+    user: &str,
+) -> Result<String, ApiError> {
     let body = serde_json::json!({
         "model": "claude-sonnet-4-20250514",
         "max_tokens": 4096,
@@ -128,17 +178,18 @@ async fn call_claude(
         ]
     });
 
+    let token = client.current_token();
+
     let mut req = client
         .client
         .post("https://api.anthropic.com/v1/messages")
         .header("anthropic-version", "2023-06-01")
         .header("content-type", "application/json");
 
-    // Use the right auth header depending on mode
     req = match &client.auth_mode {
-        AuthMode::ApiKey => req.header("x-api-key", &client.token),
+        AuthMode::ApiKey => req.header("x-api-key", &token),
         AuthMode::OAuthBearer => req
-            .header("Authorization", format!("Bearer {}", client.token))
+            .header("Authorization", format!("Bearer {}", token))
             .header("anthropic-beta", "oauth-2025-04-20"),
     };
 
@@ -152,11 +203,11 @@ async fn call_claude(
         let status = resp.status();
         let text = resp.text().await.unwrap_or_default();
 
-        // If OAuth token expired, hint at restarting
         if status.as_u16() == 401 {
-            return Err(ApiError::Internal(
-                "Claude API: Token abgelaufen oder ungültig. Starte ClaudeAdmin neu um einen frischen Token zu laden.".to_string()
-            ));
+            return Err(ApiError::Unauthorized(format!(
+                "Claude API 401: {}",
+                text
+            )));
         }
 
         return Err(ApiError::Internal(format!(
