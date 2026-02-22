@@ -1,4 +1,5 @@
 use crate::components::language_selector::LanguageSelector;
+use crate::components::theme_toggle::ThemeToggle;
 use crate::i18n::t;
 use leptos::*;
 use leptos_router::*;
@@ -10,8 +11,9 @@ pub fn Sidebar() -> impl IntoView {
             <div class="sidebar-header">
                 <h1>{t("app.title")}</h1>
                 <div class="subtitle">{t("app.subtitle")}</div>
-                <div style="margin-top: 0.5rem;">
+                <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; align-items: center;">
                     <LanguageSelector/>
+                    <ThemeToggle/>
                 </div>
             </div>
             <nav>
@@ -54,6 +56,10 @@ pub fn Sidebar() -> impl IntoView {
                     <span class="nav-icon">"^"</span>
                     {t("sidebar.mcp_browser")}
                 </A>
+                <A href="/templates" class="nav-link">
+                    <span class="nav-icon">"T"</span>
+                    {t("sidebar.templates")}
+                </A>
 
                 <div class="nav-section">{t("sidebar.security")}</div>
                 <A href="/permissions" class="nav-link">
@@ -69,6 +75,14 @@ pub fn Sidebar() -> impl IntoView {
                 <A href="/settings" class="nav-link">
                     <span class="nav-icon">"*"</span>
                     {t("sidebar.settings")}
+                </A>
+                <A href="/backups" class="nav-link">
+                    <span class="nav-icon">"B"</span>
+                    {t("sidebar.backups")}
+                </A>
+                <A href="/search" class="nav-link">
+                    <span class="nav-icon">"/"</span>
+                    {t("sidebar.search")}
                 </A>
                 <A href="/sessions" class="nav-link">
                     <span class="nav-icon">"@"</span>

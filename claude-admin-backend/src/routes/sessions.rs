@@ -34,6 +34,14 @@ pub async fn get_session(
     Ok(Json(detail))
 }
 
+pub async fn get_transcript(
+    State(state): State<Arc<AppState>>,
+    Path(session_id): Path<String>,
+) -> Result<Json<SessionTranscript>, ApiError> {
+    let transcript = sessions::get_transcript(&state.claude_home, &session_id)?;
+    Ok(Json(transcript))
+}
+
 #[derive(serde::Deserialize)]
 pub struct SearchQuery {
     pub q: String,

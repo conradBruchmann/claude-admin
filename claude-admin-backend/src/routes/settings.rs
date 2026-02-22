@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use crate::app::AppState;
 use crate::domain::errors::ApiError;
+use crate::domain::extractors::AppJson;
 use crate::services::{claude_api, file_ops, fs_scanner, project_resolver, system_info};
 use claude_admin_shared::*;
 
@@ -16,7 +17,7 @@ pub async fn get_global_settings(
 
 pub async fn put_global_settings(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<SettingsUpdateRequest>,
+    AppJson(req): AppJson<SettingsUpdateRequest>,
 ) -> Result<Json<SettingsOverview>, ApiError> {
     let settings_path = state.claude_home.join("settings.json");
     let content = serde_json::to_string_pretty(&req.settings)?;
@@ -104,16 +105,17 @@ pub struct SetApiKeyRequest {
 
 pub async fn set_api_key(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<SetApiKeyRequest>,
+    AppJson(req): AppJson<SetApiKeyRequest>,
 ) -> Result<Json<claude_api::AuthStatus>, ApiError> {
     // 1. Persist to config file
     claude_api::save_api_key_to_config(&state.claude_home, &req.api_key)?;
 
     // 2. Update in-memory client
     {
-        let mut guard = state.anthropic_client.write().map_err(|_| {
-            ApiError::Internal("Lock poisoned".to_string())
-        })?;
+        let mut guard = state
+            .anthropic_client
+            .write()
+            .map_err(|_| ApiError::Internal("Lock poisoned".to_string()))?;
 
         if req.api_key.is_empty() {
             // Key removed → re-evaluate from other sources

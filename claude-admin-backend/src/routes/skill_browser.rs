@@ -4,6 +4,8 @@ use std::sync::Arc;
 
 use crate::app::AppState;
 use crate::domain::errors::ApiError;
+use crate::domain::extractors::AppJson;
+use crate::domain::validation::validate_resource_name;
 use crate::services::skill_browser;
 use claude_admin_shared::*;
 
@@ -23,8 +25,9 @@ pub async fn list_community_skills(
 
 pub async fn install_skill(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<SkillInstallRequest>,
+    AppJson(req): AppJson<SkillInstallRequest>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
+    validate_resource_name(&req.name, "Skill")?;
     skill_browser::install_skill(&state.claude_home, &req.name, &req.content).await?;
     Ok(Json(
         serde_json::json!({ "status": "installed", "name": req.name }),

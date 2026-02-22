@@ -1,9 +1,10 @@
 use axum::body::Body;
-use axum::http::{header, StatusCode};
+use axum::http::{header, Request, StatusCode};
+use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::{
     routing::{delete, get, post},
-    Router,
+    Json, Router,
 };
 use rust_embed::Embed;
 use std::path::PathBuf;
@@ -27,6 +28,21 @@ pub struct AppState {
 #[derive(Embed)]
 #[folder = "../claude-admin-frontend/dist/"]
 struct FrontendAssets;
+
+/// Middleware that adds security headers to every response.
+pub async fn security_headers(request: Request<Body>, next: Next) -> Response {
+    let mut response = next.run(request).await;
+    let headers = response.headers_mut();
+    headers.insert(header::X_CONTENT_TYPE_OPTIONS, "nosniff".parse().unwrap());
+    headers.insert(header::X_FRAME_OPTIONS, "DENY".parse().unwrap());
+    headers.insert(
+        header::CONTENT_SECURITY_POLICY,
+        "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'"
+            .parse()
+            .unwrap(),
+    );
+    response
+}
 
 pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Error>> {
     let claude_home = dirs_home().join(".claude");
@@ -122,7 +138,7 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
             "/api/v1/ai/validate",
             axum::routing::post(routes::ai::validate),
         )
-        // Phase 8: Permissions & Config Health
+        // Permissions & Config Health
         .route(
             "/api/v1/permissions",
             get(routes::permissions::list_permissions),
@@ -143,7 +159,7 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
             "/api/v1/health/:project_id",
             get(routes::permissions::get_project_health),
         )
-        // Phase 9: Skill Browser
+        // Skill Browser
         .route(
             "/api/v1/skill-browser/official",
             get(routes::skill_browser::list_official_skills),
@@ -156,7 +172,7 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
             "/api/v1/skill-browser/install",
             post(routes::skill_browser::install_skill),
         )
-        // Phase 10: Settings Hierarchy & Hook Builder
+        // Settings Hierarchy & Hook Builder
         .route(
             "/api/v1/settings/hierarchy/:project_id",
             get(routes::settings::get_settings_hierarchy),
@@ -174,7 +190,7 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
             "/api/v1/settings/api-key",
             get(routes::settings::get_api_key_status).put(routes::settings::set_api_key),
         )
-        // Phase 11: Analytics
+        // Analytics
         .route(
             "/api/v1/analytics/overview",
             get(routes::analytics::get_analytics_overview),
@@ -183,14 +199,18 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
             "/api/v1/analytics/projects",
             get(routes::analytics::get_project_analytics),
         )
-        // Phase 12: Sessions
+        // Sessions
         .route("/api/v1/sessions", get(routes::sessions::list_sessions))
         .route(
             "/api/v1/sessions/search",
             get(routes::sessions::search_history),
         )
         .route("/api/v1/sessions/:id", get(routes::sessions::get_session))
-        // Phase 13: System Info & GitHub
+        .route(
+            "/api/v1/sessions/:id/transcript",
+            get(routes::sessions::get_transcript),
+        )
+        // System Info & GitHub
         .route(
             "/api/v1/system/info",
             get(routes::system_info::get_system_info),
@@ -222,11 +242,38 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
         .route(
             "/api/v1/mcp-browser/install",
             post(routes::mcp::install_mcp_server),
+        )
+        // Backups
+        .route("/api/v1/backups", get(routes::backups::list_backups))
+        .route(
+            "/api/v1/backups/:name/restore",
+            post(routes::backups::restore_backup),
+        )
+        .route(
+            "/api/v1/backups/:name",
+            delete(routes::backups::delete_backup),
+        )
+        // Export/Import
+        .route("/api/v1/export", get(routes::export::export_bundle))
+        .route("/api/v1/import", post(routes::export::import_bundle))
+        // Search
+        .route("/api/v1/search", get(routes::search::search))
+        // Templates
+        .route("/api/v1/templates", get(routes::templates::list_templates))
+        .route(
+            "/api/v1/templates/:name/apply",
+            post(routes::templates::apply_template),
+        )
+        // Permission Optimizer
+        .route(
+            "/api/v1/permissions/:project_id/optimize",
+            get(routes::permissions::optimize_permissions),
         );
 
     let app = Router::new()
         .merge(api_routes)
         .fallback(serve_frontend)
+        .layer(middleware::from_fn(security_headers))
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
         .layer(create_cors_layer(&config.allowed_origins))
@@ -235,9 +282,32 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
     Ok(app)
 }
 
+/// Test-friendly version of serve_frontend that always returns JSON 404 for API paths.
+pub async fn serve_frontend_test(uri: axum::http::Uri) -> Response {
+    let path = uri.path().trim_start_matches('/');
+    if path.starts_with("api/") {
+        return (
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({ "error": "API endpoint not found" })),
+        )
+            .into_response();
+    }
+    (StatusCode::NOT_FOUND, "Not Found").into_response()
+}
+
 /// Serve embedded frontend assets, falling back to index.html for SPA routing.
+/// Returns JSON 404 for unmatched /api/ paths (BUG-004).
 async fn serve_frontend(uri: axum::http::Uri) -> Response {
     let path = uri.path().trim_start_matches('/');
+
+    // API catch-all: return JSON 404 for unmatched /api/ routes
+    if path.starts_with("api/") {
+        return (
+            StatusCode::NOT_FOUND,
+            Json(serde_json::json!({ "error": "API endpoint not found" })),
+        )
+            .into_response();
+    }
 
     // Try to serve the exact file
     if let Some(file) = FrontendAssets::get(path) {

@@ -14,11 +14,14 @@ pub async fn get_advisor_report(
     let project_path = project_resolver::decode_project_id(&id)?;
 
     let client = {
-        let guard = state.anthropic_client.read().map_err(|_| {
-            ApiError::Internal("Lock poisoned".to_string())
-        })?;
+        let guard = state
+            .anthropic_client
+            .read()
+            .map_err(|_| ApiError::Internal("Lock poisoned".to_string()))?;
         guard.as_ref().cloned().ok_or_else(|| {
-            ApiError::BadRequest("API-Key nicht konfiguriert. Bitte unter Settings → API Key eintragen.".to_string())
+            ApiError::BadRequest(
+                "API-Key nicht konfiguriert. Bitte unter Settings → API Key eintragen.".to_string(),
+            )
         })?
     };
 

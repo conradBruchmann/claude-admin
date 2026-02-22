@@ -328,3 +328,156 @@ fn load_facet(facets_dir: &Path, session_id: &str) -> Option<serde_json::Value> 
         .ok()
         .and_then(|c| serde_json::from_str(&c).ok())
 }
+
+/// Parse a session's JSONL transcript file into messages.
+pub fn get_transcript(claude_home: &Path, session_id: &str) -> Result<SessionTranscript, ApiError> {
+    // Session JSONL files are at ~/.claude/projects/<encoded>/sessions/<session_id>.jsonl
+    // But we don't know the project path. Search all project dirs.
+    let projects_dir = claude_home.join("projects");
+    if !projects_dir.exists() {
+        return Err(ApiError::NotFound("No projects directory".into()));
+    }
+
+    let mut jsonl_path = None;
+    if let Ok(entries) = std::fs::read_dir(&projects_dir) {
+        for entry in entries.flatten() {
+            let candidate = entry.path().join(format!("{}.jsonl", session_id));
+            if candidate.exists() {
+                jsonl_path = Some(candidate);
+                break;
+            }
+        }
+    }
+
+    let path = jsonl_path.ok_or_else(|| {
+        ApiError::NotFound(format!("Transcript for session {} not found", session_id))
+    })?;
+
+    let content = std::fs::read_to_string(&path)?;
+    let mut messages = Vec::new();
+
+    for line in content.lines() {
+        let line = line.trim();
+        if line.is_empty() {
+            continue;
+        }
+        let entry: serde_json::Value = match serde_json::from_str(line) {
+            Ok(v) => v,
+            Err(_) => continue,
+        };
+
+        let msg_type = entry.get("type").and_then(|v| v.as_str()).unwrap_or("");
+
+        match msg_type {
+            "human" | "user" => {
+                let text = extract_message_text(&entry);
+                if !text.is_empty() {
+                    messages.push(TranscriptMessage {
+                        role: "user".to_string(),
+                        content: text,
+                        tool_name: None,
+                        timestamp: entry
+                            .get("timestamp")
+                            .and_then(|v| v.as_str())
+                            .map(String::from),
+                    });
+                }
+            }
+            "assistant" => {
+                let text = extract_message_text(&entry);
+                if !text.is_empty() {
+                    messages.push(TranscriptMessage {
+                        role: "assistant".to_string(),
+                        content: text,
+                        tool_name: None,
+                        timestamp: entry
+                            .get("timestamp")
+                            .and_then(|v| v.as_str())
+                            .map(String::from),
+                    });
+                }
+                // Also extract tool_use blocks from assistant messages
+                if let Some(content_arr) = entry
+                    .get("message")
+                    .and_then(|m| m.get("content"))
+                    .and_then(|c| c.as_array())
+                {
+                    for block in content_arr {
+                        if block.get("type").and_then(|v| v.as_str()) == Some("tool_use") {
+                            let tool = block
+                                .get("name")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("unknown");
+                            let input = block
+                                .get("input")
+                                .map(|v| serde_json::to_string_pretty(v).unwrap_or_default())
+                                .unwrap_or_default();
+                            messages.push(TranscriptMessage {
+                                role: "tool_use".to_string(),
+                                content: input,
+                                tool_name: Some(tool.to_string()),
+                                timestamp: None,
+                            });
+                        }
+                    }
+                }
+            }
+            "tool_result" => {
+                let text = extract_message_text(&entry);
+                if !text.is_empty() {
+                    messages.push(TranscriptMessage {
+                        role: "tool_result".to_string(),
+                        content: if text.len() > 500 {
+                            format!("{}...", &text[..500])
+                        } else {
+                            text
+                        },
+                        tool_name: entry
+                            .get("tool_use_id")
+                            .and_then(|v| v.as_str())
+                            .map(String::from),
+                        timestamp: None,
+                    });
+                }
+            }
+            _ => {}
+        }
+    }
+
+    Ok(SessionTranscript {
+        session_id: session_id.to_string(),
+        messages,
+    })
+}
+
+fn extract_message_text(entry: &serde_json::Value) -> String {
+    // Try message.content as string
+    if let Some(text) = entry
+        .get("message")
+        .and_then(|m| m.get("content"))
+        .and_then(|c| c.as_str())
+    {
+        return text.to_string();
+    }
+    // Try message.content as array of blocks
+    if let Some(arr) = entry
+        .get("message")
+        .and_then(|m| m.get("content"))
+        .and_then(|c| c.as_array())
+    {
+        let texts: Vec<&str> = arr
+            .iter()
+            .filter_map(|b| {
+                if b.get("type").and_then(|v| v.as_str()) == Some("text") {
+                    b.get("text").and_then(|v| v.as_str())
+                } else {
+                    None
+                }
+            })
+            .collect();
+        if !texts.is_empty() {
+            return texts.join("\n");
+        }
+    }
+    String::new()
+}

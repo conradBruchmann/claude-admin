@@ -4,6 +4,19 @@ use crate::domain::errors::ApiError;
 use crate::domain::frontmatter;
 use claude_admin_shared::*;
 
+/// Extract a human-readable project name from a path.
+/// Handles edge cases: "/" → "/ (Root)", empty → "(unnamed)".
+fn project_name_from_path(path: &str) -> String {
+    if path == "/" {
+        return "/ (Root)".to_string();
+    }
+    Path::new(path)
+        .file_name()
+        .map(|s| s.to_string_lossy().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "(unnamed)".to_string())
+}
+
 /// Scan ~/.claude/ and ~/.claude.json to build a lightweight dashboard overview.
 /// Health score is NOT computed here - loaded lazily via separate endpoint.
 pub async fn scan_dashboard(
@@ -59,11 +72,7 @@ pub async fn scan_projects_lite(
 
     for (path_key, _value) in projects_obj {
         let path = path_key.clone();
-        let name = Path::new(&path)
-            .file_name()
-            .unwrap_or_default()
-            .to_string_lossy()
-            .to_string();
+        let name = project_name_from_path(&path);
         let encoded = crate::services::project_resolver::encode_project_id(&path);
 
         projects.push(ProjectSummaryLite {
@@ -141,11 +150,7 @@ pub async fn scan_projects(
 
     for (path_key, _value) in projects_obj {
         let path = path_key.clone();
-        let name = Path::new(&path)
-            .file_name()
-            .unwrap_or_default()
-            .to_string_lossy()
-            .to_string();
+        let name = project_name_from_path(&path);
 
         let encoded = crate::services::project_resolver::encode_project_id(&path);
 
@@ -204,11 +209,7 @@ pub async fn scan_project_detail(
     let project_fs_path = Path::new(project_path);
     let claude_project_dir = claude_home.join("projects").join(&encoded_dir_name);
 
-    let name = project_fs_path
-        .file_name()
-        .unwrap_or_default()
-        .to_string_lossy()
-        .to_string();
+    let name = project_name_from_path(project_path);
 
     let has_claude_md = tokio::fs::try_exists(project_fs_path.join("CLAUDE.md"))
         .await
@@ -494,19 +495,20 @@ fn parse_hooks(settings: &serde_json::Value) -> HooksConfig {
         None => return HooksConfig::default(),
     };
 
-    let pre = hooks_obj
-        .get("PreToolUse")
-        .and_then(|v| serde_json::from_value::<Vec<HookEntry>>(v.clone()).ok())
-        .unwrap_or_default();
-
-    let post = hooks_obj
-        .get("PostToolUse")
-        .and_then(|v| serde_json::from_value::<Vec<HookEntry>>(v.clone()).ok())
-        .unwrap_or_default();
+    let parse_event = |key: &str| -> Vec<HookEntry> {
+        hooks_obj
+            .get(key)
+            .and_then(|v| serde_json::from_value::<Vec<HookEntry>>(v.clone()).ok())
+            .unwrap_or_default()
+    };
 
     HooksConfig {
-        pre_tool_use: pre,
-        post_tool_use: post,
+        pre_tool_use: parse_event("PreToolUse"),
+        post_tool_use: parse_event("PostToolUse"),
+        notification: parse_event("Notification"),
+        stop: parse_event("Stop"),
+        user_prompt_submit: parse_event("UserPromptSubmit"),
+        session_start: parse_event("SessionStart"),
     }
 }
 

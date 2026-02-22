@@ -17,16 +17,8 @@ pub fn get_github_overview(claude_json_path: &Path) -> Result<GitHubOverview, Ap
             let combined = format!("{}{}", stdout, stderr);
 
             if output.status.success() {
-                // Extract username from output
-                let username = combined
-                    .lines()
-                    .find(|l| l.contains("Logged in to") || l.contains("account"))
-                    .and_then(|l| {
-                        l.split_whitespace()
-                            .find(|w| !w.contains('.') && !w.starts_with('(') && w.len() > 2)
-                    })
-                    .map(|s| s.trim().to_string());
-
+                // Extract username: look for "account" keyword, take next word
+                let username = extract_github_username(&combined);
                 ("authenticated".to_string(), username)
             } else {
                 ("not_authenticated".to_string(), None)
@@ -68,4 +60,62 @@ pub fn get_github_overview(claude_json_path: &Path) -> Result<GitHubOverview, Ap
         username,
         linked_repos,
     })
+}
+
+/// Extract GitHub username from `gh auth status` output.
+/// Looks for the word after "account" to get the username reliably.
+fn extract_github_username(output: &str) -> Option<String> {
+    for line in output.lines() {
+        let lower = line.to_lowercase();
+        if lower.contains("account") {
+            let words: Vec<&str> = line.split_whitespace().collect();
+            for (i, word) in words.iter().enumerate() {
+                if word.to_lowercase() == "account" {
+                    // Next word is the username
+                    if let Some(username) = words.get(i + 1) {
+                        let clean = username
+                            .trim_matches(|c: char| !c.is_alphanumeric() && c != '-' && c != '_');
+                        if !clean.is_empty() {
+                            return Some(clean.to_string());
+                        }
+                    }
+                }
+            }
+        }
+        // Also try "Logged in to github.com account <username>"
+        if lower.contains("logged in") {
+            if let Some(pos) = lower.find("account") {
+                let after = &line[pos + "account".len()..];
+                let username = after
+                    .split_whitespace()
+                    .next()
+                    .map(|w| w.trim_matches(|c: char| !c.is_alphanumeric() && c != '-' && c != '_'))
+                    .filter(|w| !w.is_empty());
+                if let Some(u) = username {
+                    return Some(u.to_string());
+                }
+            }
+        }
+    }
+    None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_extract_username_from_account() {
+        let output = "✓ Logged in to github.com account myuser (keyring)";
+        assert_eq!(extract_github_username(output), Some("myuser".to_string()));
+    }
+
+    #[test]
+    fn test_extract_username_parens() {
+        let output = "  Logged in to github.com account testuser (token)";
+        assert_eq!(
+            extract_github_username(output),
+            Some("testuser".to_string())
+        );
+    }
 }

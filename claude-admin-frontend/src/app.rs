@@ -3,6 +3,7 @@ use leptos_meta::*;
 use leptos_router::*;
 
 use crate::components::footer::Footer;
+use crate::components::keyboard_shortcuts::KeyboardShortcuts;
 use crate::components::sidebar::Sidebar;
 use crate::pages;
 
@@ -13,6 +14,7 @@ pub fn App() -> impl IntoView {
 
     view! {
         <Title text="ClaudeAdmin"/>
+        <KeyboardShortcuts/>
         <Router>
             <div class="app-layout">
                 <Sidebar/>
@@ -37,6 +39,9 @@ pub fn App() -> impl IntoView {
                         <Route path="/docs" view=pages::docs::DocsPage/>
                         <Route path="/help" view=pages::help::HelpPage/>
                         <Route path="/licenses" view=pages::licenses::LicensesPage/>
+                        <Route path="/backups" view=pages::backups::BackupsPage/>
+                        <Route path="/search" view=pages::search::SearchPage/>
+                        <Route path="/templates" view=pages::templates::TemplatesPage/>
                     </Routes>
                 </main>
                 <Footer/>

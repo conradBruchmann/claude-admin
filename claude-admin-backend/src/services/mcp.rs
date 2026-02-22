@@ -272,6 +272,7 @@ pub async fn health_check_server(
             duration_ms: start.elapsed().as_millis() as u64,
             error: Some("No command configured".to_string()),
             source: source.to_string(),
+            stderr_output: None,
         };
     }
 
@@ -281,7 +282,7 @@ pub async fn health_check_server(
     )
     .await
     {
-        Ok(Ok((server_info, tools))) => McpHealthResult {
+        Ok(Ok((server_info, tools, stderr))) => McpHealthResult {
             name: name.to_string(),
             status: McpServerStatus::Running,
             server_info: Some(server_info),
@@ -289,6 +290,11 @@ pub async fn health_check_server(
             duration_ms: start.elapsed().as_millis() as u64,
             error: None,
             source: source.to_string(),
+            stderr_output: if stderr.is_empty() {
+                None
+            } else {
+                Some(stderr)
+            },
         },
         Ok(Err(e)) => McpHealthResult {
             name: name.to_string(),
@@ -298,6 +304,7 @@ pub async fn health_check_server(
             duration_ms: start.elapsed().as_millis() as u64,
             error: Some(e),
             source: source.to_string(),
+            stderr_output: None,
         },
         Err(_) => McpHealthResult {
             name: name.to_string(),
@@ -307,17 +314,19 @@ pub async fn health_check_server(
             duration_ms: start.elapsed().as_millis() as u64,
             error: Some("Health check timed out after 10s".to_string()),
             source: source.to_string(),
+            stderr_output: None,
         },
     }
 }
 
 /// Spawn the MCP process and run JSON-RPC initialize + tools/list.
+/// Returns (server_info, tools, stderr_output).
 async fn spawn_and_check(
     command: &str,
     args: &[String],
     env_vars: &HashMap<String, String>,
-) -> Result<(String, Vec<McpToolInfo>), String> {
-    use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+) -> Result<(String, Vec<McpToolInfo>, String), String> {
+    use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
     use tokio::process::Command;
 
     let mut child = Command::new(command)
@@ -325,7 +334,7 @@ async fn spawn_and_check(
         .envs(env_vars)
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::null())
+        .stderr(std::process::Stdio::piped())
         .spawn()
         .map_err(|e| format!("Failed to spawn '{}': {}", command, e))?;
 
@@ -438,10 +447,19 @@ async fn spawn_and_check(
         })
         .unwrap_or_default();
 
+    // Read stderr (non-blocking, take up to 4KB)
+    let mut stderr_output = String::new();
+    if let Some(mut stderr) = child.stderr.take() {
+        let mut buf = vec![0u8; 4096];
+        if let Ok(n) = stderr.read(&mut buf).await {
+            stderr_output = String::from_utf8_lossy(&buf[..n]).to_string();
+        }
+    }
+
     // Clean up: kill the process
     let _ = child.kill().await;
 
-    Ok((server_info, tools))
+    Ok((server_info, tools, stderr_output))
 }
 
 /// Health check all configured MCP servers in parallel (all sources).

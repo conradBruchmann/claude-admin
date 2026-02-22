@@ -4,6 +4,8 @@ use std::sync::Arc;
 
 use crate::app::AppState;
 use crate::domain::errors::ApiError;
+use crate::domain::extractors::AppJson;
+use crate::domain::validation::validate_resource_name;
 use crate::services::{file_ops, fs_scanner};
 use claude_admin_shared::{ConfigScope, RuleCreateRequest, RuleFile, RuleUpdateRequest};
 
@@ -18,6 +20,7 @@ pub async fn get_rule(
     State(state): State<Arc<AppState>>,
     Path((scope, name)): Path<(String, String)>,
 ) -> Result<Json<RuleFile>, ApiError> {
+    validate_resource_name(&name, "Rule")?;
     let scope = parse_scope(&scope)?;
     let rule_path = rule_path(&state.claude_home, &scope, &name);
     let content = tokio::fs::read_to_string(&rule_path)
@@ -34,8 +37,9 @@ pub async fn get_rule(
 
 pub async fn create_rule(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<RuleCreateRequest>,
+    AppJson(req): AppJson<RuleCreateRequest>,
 ) -> Result<Json<RuleFile>, ApiError> {
+    validate_resource_name(&req.name, "Rule")?;
     let rules_dir = rules_dir(&state.claude_home, &req.scope);
     tokio::fs::create_dir_all(&rules_dir).await?;
 
@@ -58,8 +62,9 @@ pub async fn create_rule(
 pub async fn update_rule(
     State(state): State<Arc<AppState>>,
     Path((scope, name)): Path<(String, String)>,
-    Json(req): Json<RuleUpdateRequest>,
+    AppJson(req): AppJson<RuleUpdateRequest>,
 ) -> Result<Json<RuleFile>, ApiError> {
+    validate_resource_name(&name, "Rule")?;
     let scope = parse_scope(&scope)?;
     let rule_path = rule_path(&state.claude_home, &scope, &name);
 
@@ -81,6 +86,7 @@ pub async fn delete_rule(
     State(state): State<Arc<AppState>>,
     Path((scope, name)): Path<(String, String)>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
+    validate_resource_name(&name, "Rule")?;
     let scope = parse_scope(&scope)?;
     let rule_path = rule_path(&state.claude_home, &scope, &name);
 

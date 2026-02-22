@@ -368,6 +368,13 @@ fn HealthCheckTab() -> impl IntoView {
                                                     </td>
                                                 </tr>
                                             })}
+                                            {r.stderr_output.map(|s| view! {
+                                                <tr>
+                                                    <td colspan="6">
+                                                        <div class="mcp-stderr">{s}</div>
+                                                    </td>
+                                                </tr>
+                                            })}
                                         }
                                     }).collect_view()}
                                 </tbody>

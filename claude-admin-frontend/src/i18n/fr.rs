@@ -748,6 +748,60 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("common.error_prefix", "Erreur : ");
         m.insert("common.invalid_json", "JSON invalide : ");
 
+        // -- New features --
+        m.insert("sidebar.backups", "Backups");
+        m.insert("backups.title", "Backups");
+        m.insert("backups.subtitle", "Browse and restore configuration backups");
+        m.insert("backups.loading", "Loading backups");
+        m.insert("backups.no_backups", "No backups found");
+        m.insert("backups.col_name", "Backup");
+        m.insert("backups.col_size", "Size");
+        m.insert("backups.col_created", "Created");
+        m.insert("backups.col_original", "Original File");
+        m.insert("backups.col_actions", "Actions");
+        m.insert("backups.restore", "Restore");
+        m.insert("backups.delete", "Delete");
+        m.insert("backups.restored", "Restored!");
+        m.insert("backups.deleted", "Deleted!");
+        m.insert("backups.confirm_restore", "Are you sure you want to restore this backup?");
+        m.insert("backups.confirm_delete", "Are you sure you want to delete this backup?");
+        m.insert("settings.tab_export", "Export/Import");
+        m.insert("settings.export_title", "Configuration Export");
+        m.insert("settings.export_desc", "Export all global configuration as a JSON bundle.");
+        m.insert("settings.export_btn", "Export Configuration");
+        m.insert("settings.export_loading", "Exporting...");
+        m.insert("settings.import_title", "Configuration Import");
+        m.insert("settings.import_desc", "Import a previously exported configuration bundle.");
+        m.insert("settings.import_btn", "Import Configuration");
+        m.insert("settings.import_success", "Import successful!");
+        m.insert("settings.import_skills", "Skills imported");
+        m.insert("settings.import_rules", "Rules imported");
+        m.insert("settings.import_mcp", "MCP servers imported");
+        m.insert("sidebar.search", "Search");
+        m.insert("search.title", "Search");
+        m.insert("search.subtitle", "Search across all configuration");
+        m.insert("search.placeholder", "Search skills, rules, settings...");
+        m.insert("search.loading", "Searching...");
+        m.insert("search.no_results", "No results found");
+        m.insert("search.col_type", "Type");
+        m.insert("search.col_name", "Name");
+        m.insert("search.col_snippet", "Match");
+        m.insert("sidebar.templates", "Templates");
+        m.insert("templates.title", "Config Templates");
+        m.insert("templates.subtitle", "Pre-built configuration starter packs");
+        m.insert("templates.loading", "Loading templates");
+        m.insert("templates.apply", "Apply");
+        m.insert("templates.applied", "Applied!");
+        m.insert("templates.confirm", "Apply this template?");
+        m.insert("theme.toggle", "Toggle theme");
+        m.insert("theme.light", "Light");
+        m.insert("theme.dark", "Dark");
+        m.insert("settings.notification", "Notification");
+        m.insert("settings.stop", "Stop");
+        m.insert("settings.user_prompt_submit", "UserPromptSubmit");
+        m.insert("settings.session_start", "SessionStart");
+
+
         m
     })
 }

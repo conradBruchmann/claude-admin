@@ -1,4 +1,4 @@
-use claude_admin_shared::{HistoryEntry, SessionDetail, SessionListResponse};
+use claude_admin_shared::{HistoryEntry, SessionDetail, SessionListResponse, SessionTranscript};
 use leptos::*;
 
 use crate::api;
@@ -180,6 +180,8 @@ pub fn SessionsPage() -> impl IntoView {
                                 <span class="badge badge-success">{t("sessions.outcome_prefix")} {o}</span>
                             </div>
                         })}
+
+                        <TranscriptViewer session_id=detail.session_id.clone() />
                     </div>
                 }
             })}
@@ -256,6 +258,85 @@ pub fn SessionsPage() -> impl IntoView {
                 }.into_view(),
             })}
         </Suspense>
+    }
+}
+
+#[component]
+fn TranscriptViewer(session_id: String) -> impl IntoView {
+    let show_transcript = create_rw_signal(false);
+    let transcript = create_rw_signal::<Option<Result<SessionTranscript, String>>>(None);
+    let sid = session_id.clone();
+
+    let load_transcript = move |_| {
+        let id = sid.clone();
+        if show_transcript.get() {
+            show_transcript.set(false);
+            return;
+        }
+        show_transcript.set(true);
+        if transcript.get().is_none() {
+            spawn_local(async move {
+                let result =
+                    api::get::<SessionTranscript>(&format!("/sessions/{}/transcript", id)).await;
+                transcript.set(Some(result));
+            });
+        }
+    };
+
+    view! {
+        <div style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 0.75rem;">
+            <button
+                class="btn btn-secondary btn-sm"
+                on:click=load_transcript
+            >
+                {move || if show_transcript.get() { "Hide Transcript" } else { "Show Transcript" }}
+            </button>
+
+            {move || if show_transcript.get() {
+                match transcript.get() {
+                    Some(Ok(t)) => {
+                        if t.messages.is_empty() {
+                            view! { <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.85rem;">"No transcript data available."</p> }.into_view()
+                        } else {
+                            view! {
+                                <div class="transcript-viewer">
+                                    {t.messages.into_iter().map(|msg| {
+                                        let (class, label) = match msg.role.as_str() {
+                                            "user" => ("transcript-msg user", "User"),
+                                            "assistant" => ("transcript-msg assistant", "Assistant"),
+                                            "tool_use" => ("transcript-msg tool-use", "Tool"),
+                                            "tool_result" => ("transcript-msg tool-result", "Result"),
+                                            _ => ("transcript-msg", "System"),
+                                        };
+                                        view! {
+                                            <div class=class>
+                                                <div class="transcript-msg-header">
+                                                    <span class="transcript-role">{label}</span>
+                                                    {msg.tool_name.map(|tn| view! {
+                                                        <span class="badge badge-muted" style="font-size: 0.65rem; margin-left: 0.25rem;">{tn}</span>
+                                                    })}
+                                                </div>
+                                                <div class="transcript-msg-content">
+                                                    <pre>{msg.content}</pre>
+                                                </div>
+                                            </div>
+                                        }
+                                    }).collect_view()}
+                                </div>
+                            }.into_view()
+                        }
+                    }
+                    Some(Err(e)) => view! {
+                        <p style="color: var(--error); margin-top: 0.5rem; font-size: 0.85rem;">"Transcript unavailable: " {e}</p>
+                    }.into_view(),
+                    None => view! {
+                        <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.85rem;">"Loading transcript..."</p>
+                    }.into_view(),
+                }
+            } else {
+                view! {}.into_view()
+            }}
+        </div>
     }
 }
 

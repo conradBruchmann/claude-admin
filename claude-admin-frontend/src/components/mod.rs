@@ -1,9 +1,13 @@
 pub mod file_tree;
 pub mod footer;
 pub mod frontmatter_form;
+pub mod hook_pipeline;
 pub mod json_editor;
+pub mod keyboard_shortcuts;
 pub mod language_selector;
 pub mod markdown_editor;
 pub mod modal;
+pub mod onboarding;
 pub mod project_tabs;
 pub mod sidebar;
+pub mod theme_toggle;

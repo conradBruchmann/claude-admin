@@ -46,6 +46,10 @@ pub fn AnalyticsPage() -> impl IntoView {
                                 <div class="card-value">{format_number(data.total_lines_added)}</div>
                                 <div class="card-label">{t("analytics.lines_added")}</div>
                             </div>
+                            <div class="card">
+                                <div class="card-value">{format!("${:.2}", data.estimated_total_cost_usd)}</div>
+                                <div class="card-label">"Est. Cost"</div>
+                            </div>
                         </div>
 
                         // Activity Heatmap

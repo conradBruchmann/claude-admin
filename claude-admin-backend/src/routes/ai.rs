@@ -4,19 +4,23 @@ use std::sync::Arc;
 
 use crate::app::AppState;
 use crate::domain::errors::ApiError;
+use crate::domain::extractors::AppJson;
 use crate::services::claude_api;
 use claude_admin_shared::{SuggestionRequest, SuggestionResponse};
 
 pub async fn suggest(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<SuggestionRequest>,
+    AppJson(req): AppJson<SuggestionRequest>,
 ) -> Result<Json<SuggestionResponse>, ApiError> {
     let client = {
-        let guard = state.anthropic_client.read().map_err(|_| {
-            ApiError::Internal("Lock poisoned".to_string())
-        })?;
+        let guard = state
+            .anthropic_client
+            .read()
+            .map_err(|_| ApiError::Internal("Lock poisoned".to_string()))?;
         guard.as_ref().cloned().ok_or_else(|| {
-            ApiError::BadRequest("API-Key nicht konfiguriert. Bitte unter Settings → API Key eintragen.".to_string())
+            ApiError::BadRequest(
+                "API-Key nicht konfiguriert. Bitte unter Settings → API Key eintragen.".to_string(),
+            )
         })?
     };
 
@@ -26,14 +30,17 @@ pub async fn suggest(
 
 pub async fn validate(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<SuggestionRequest>,
+    AppJson(req): AppJson<SuggestionRequest>,
 ) -> Result<Json<SuggestionResponse>, ApiError> {
     let client = {
-        let guard = state.anthropic_client.read().map_err(|_| {
-            ApiError::Internal("Lock poisoned".to_string())
-        })?;
+        let guard = state
+            .anthropic_client
+            .read()
+            .map_err(|_| ApiError::Internal("Lock poisoned".to_string()))?;
         guard.as_ref().cloned().ok_or_else(|| {
-            ApiError::BadRequest("API-Key nicht konfiguriert. Bitte unter Settings → API Key eintragen.".to_string())
+            ApiError::BadRequest(
+                "API-Key nicht konfiguriert. Bitte unter Settings → API Key eintragen.".to_string(),
+            )
         })?
     };
 

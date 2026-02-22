@@ -4,7 +4,9 @@ use std::sync::Arc;
 
 use crate::app::AppState;
 use crate::domain::errors::ApiError;
+use crate::domain::extractors::AppJson;
 use crate::domain::frontmatter;
+use crate::domain::validation::validate_resource_name;
 use crate::services::{file_ops, fs_scanner};
 use claude_admin_shared::{ConfigScope, SkillCreateRequest, SkillFile, SkillUpdateRequest};
 
@@ -19,6 +21,7 @@ pub async fn get_skill(
     State(state): State<Arc<AppState>>,
     Path((scope, name)): Path<(String, String)>,
 ) -> Result<Json<SkillFile>, ApiError> {
+    validate_resource_name(&name, "Skill")?;
     let scope = parse_scope(&scope)?;
     let skill_path = skill_path(&state.claude_home, &scope, &name);
     let content = tokio::fs::read_to_string(&skill_path)
@@ -38,8 +41,9 @@ pub async fn get_skill(
 
 pub async fn create_skill(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<SkillCreateRequest>,
+    AppJson(req): AppJson<SkillCreateRequest>,
 ) -> Result<Json<SkillFile>, ApiError> {
+    validate_resource_name(&req.name, "Skill")?;
     let skill_dir = skill_dir(&state.claude_home, &req.scope, &req.name);
     tokio::fs::create_dir_all(&skill_dir).await?;
 
@@ -59,8 +63,9 @@ pub async fn create_skill(
 pub async fn update_skill(
     State(state): State<Arc<AppState>>,
     Path((scope, name)): Path<(String, String)>,
-    Json(req): Json<SkillUpdateRequest>,
+    AppJson(req): AppJson<SkillUpdateRequest>,
 ) -> Result<Json<SkillFile>, ApiError> {
+    validate_resource_name(&name, "Skill")?;
     let scope = parse_scope(&scope)?;
     let skill_path = skill_path(&state.claude_home, &scope, &name);
 
@@ -84,6 +89,7 @@ pub async fn delete_skill(
     State(state): State<Arc<AppState>>,
     Path((scope, name)): Path<(String, String)>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
+    validate_resource_name(&name, "Skill")?;
     let scope = parse_scope(&scope)?;
     let dir = skill_dir(&state.claude_home, &scope, &name);
 

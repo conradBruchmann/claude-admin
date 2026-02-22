@@ -329,10 +329,7 @@ async fn send_claude_request(
         let text = resp.text().await.unwrap_or_default();
 
         if status.as_u16() == 401 {
-            return Err(ApiError::Unauthorized(format!(
-                "Claude API 401: {}",
-                text
-            )));
+            return Err(ApiError::Unauthorized(format!("Claude API 401: {}", text)));
         }
 
         return Err(ApiError::Internal(format!(

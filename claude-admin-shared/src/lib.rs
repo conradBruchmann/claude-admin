@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 // === Enums ===
 
@@ -165,6 +165,14 @@ pub struct SettingsOverview {
 pub struct HooksConfig {
     pub pre_tool_use: Vec<HookEntry>,
     pub post_tool_use: Vec<HookEntry>,
+    #[serde(default)]
+    pub notification: Vec<HookEntry>,
+    #[serde(default)]
+    pub stop: Vec<HookEntry>,
+    #[serde(default)]
+    pub user_prompt_submit: Vec<HookEntry>,
+    #[serde(default)]
+    pub session_start: Vec<HookEntry>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -225,6 +233,8 @@ pub struct McpHealthResult {
     pub duration_ms: u64,
     pub error: Option<String>,
     pub source: String,
+    #[serde(default)]
+    pub stderr_output: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -233,10 +243,51 @@ pub struct McpToolInfo {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Accepts both wrapper format `{"name":"x","config":{...}}` and
+/// flat format `{"name":"x","command":"...","args":[...],"env":{}}`.
+#[derive(Debug, Clone, Serialize)]
 pub struct McpServerCreateRequest {
     pub name: String,
     pub config: serde_json::Value,
+}
+
+impl<'de> Deserialize<'de> for McpServerCreateRequest {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let raw: serde_json::Value = serde_json::Value::deserialize(deserializer)?;
+        let obj = raw
+            .as_object()
+            .ok_or_else(|| serde::de::Error::custom("expected JSON object"))?;
+
+        let name = obj
+            .get("name")
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| serde::de::Error::missing_field("name"))?
+            .to_string();
+
+        // If "config" key is present, use wrapper format
+        if let Some(config) = obj.get("config") {
+            return Ok(McpServerCreateRequest {
+                name,
+                config: config.clone(),
+            });
+        }
+
+        // Flat format: collect all fields except "name" into config
+        let mut config_map = serde_json::Map::new();
+        for (key, value) in obj {
+            if key != "name" {
+                config_map.insert(key.clone(), value.clone());
+            }
+        }
+
+        Ok(McpServerCreateRequest {
+            name,
+            config: serde_json::Value::Object(config_map),
+        })
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -524,6 +575,8 @@ pub struct AnalyticsOverview {
     pub total_git_commits: u64,
     pub total_lines_added: u64,
     pub total_lines_removed: u64,
+    #[serde(default)]
+    pub estimated_total_cost_usd: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -603,6 +656,23 @@ pub struct HistoryEntry {
     pub session_id: String,
 }
 
+// === Session Transcript ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TranscriptMessage {
+    pub role: String, // "user", "assistant", "tool_use", "tool_result"
+    pub content: String,
+    #[serde(default)]
+    pub tool_name: Option<String>,
+    pub timestamp: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionTranscript {
+    pub session_id: String,
+    pub messages: Vec<TranscriptMessage>,
+}
+
 // === Phase 13: System Info & GitHub ===
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -671,4 +741,74 @@ pub struct DependencyInfo {
 pub struct LicenseSummary {
     pub license: String,
     pub count: usize,
+}
+
+// === Backups ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BackupEntry {
+    pub name: String,
+    pub size_bytes: u64,
+    pub created: String,
+    pub original_path: String,
+}
+
+// === Export/Import ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExportBundle {
+    pub version: String,
+    pub exported_at: String,
+    pub skills: Vec<SkillFile>,
+    pub rules: Vec<RuleFile>,
+    pub settings: serde_json::Value,
+    pub mcp_servers: Vec<McpServerDetail>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportResult {
+    pub skills_imported: usize,
+    pub rules_imported: usize,
+    pub settings_imported: bool,
+    pub mcp_servers_imported: usize,
+}
+
+// === Search ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SearchResult {
+    pub resource_type: String,
+    pub name: String,
+    pub path: String,
+    pub snippet: String,
+    pub score: f64,
+}
+
+// === Config Templates ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConfigTemplate {
+    pub name: String,
+    pub description: String,
+    pub category: String,
+    pub rules: Vec<String>,
+    pub skills: Vec<String>,
+    pub claude_md_snippet: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TemplateApplyResult {
+    pub rules_created: usize,
+    pub skills_created: usize,
+    pub claude_md_updated: bool,
+}
+
+// === Permission Optimizer ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PermissionOptimization {
+    pub description: String,
+    pub current_entries: Vec<String>,
+    pub suggested_entry: String,
+    pub entries_saved: usize,
 }

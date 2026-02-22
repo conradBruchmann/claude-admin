@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use crate::app::AppState;
 use crate::domain::errors::ApiError;
+use crate::domain::extractors::AppJson;
 use crate::services::{file_ops, fs_scanner, project_resolver};
 use claude_admin_shared::{
     ClaudeMdContent, ClaudeMdUpdateRequest, ProjectDetail, ProjectStatus, ProjectSummaryLite,
@@ -63,7 +64,7 @@ pub async fn get_claude_md(
 pub async fn put_claude_md(
     State(state): State<Arc<AppState>>,
     Path(id): Path<String>,
-    Json(req): Json<ClaudeMdUpdateRequest>,
+    AppJson(req): AppJson<ClaudeMdUpdateRequest>,
 ) -> Result<Json<ClaudeMdContent>, ApiError> {
     let project_path = project_resolver::decode_project_id(&id)?;
     let claude_md_path = std::path::Path::new(&project_path).join("CLAUDE.md");

@@ -4,6 +4,8 @@ use std::sync::Arc;
 
 use crate::app::AppState;
 use crate::domain::errors::ApiError;
+use crate::domain::extractors::AppJson;
+use crate::domain::validation::validate_resource_name;
 use crate::services::mcp;
 use claude_admin_shared::*;
 
@@ -23,8 +25,9 @@ pub async fn list_mcp_servers(
 /// POST /api/v1/mcp — Create a new MCP server (in ~/.claude.json).
 pub async fn create_mcp_server(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<McpServerCreateRequest>,
+    AppJson(req): AppJson<McpServerCreateRequest>,
 ) -> Result<Json<McpServerDetail>, ApiError> {
+    validate_resource_name(&req.name, "MCP server")?;
     let detail = mcp::create_mcp_server(
         &state.claude_home,
         &state.claude_json_path,
@@ -54,6 +57,7 @@ pub async fn get_mcp_server(
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
 ) -> Result<Json<McpServerDetail>, ApiError> {
+    validate_resource_name(&name, "MCP server")?;
     let detail = mcp::get_mcp_server(
         &state.claude_json_path,
         state.claude_desktop_config_path.as_deref(),
@@ -68,8 +72,9 @@ pub async fn get_mcp_server(
 pub async fn update_mcp_server(
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
-    Json(req): Json<McpServerUpdateRequest>,
+    AppJson(req): AppJson<McpServerUpdateRequest>,
 ) -> Result<Json<McpServerDetail>, ApiError> {
+    validate_resource_name(&name, "MCP server")?;
     let detail = mcp::update_mcp_server(
         &state.claude_home,
         &state.claude_json_path,
@@ -85,6 +90,7 @@ pub async fn delete_mcp_server(
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
+    validate_resource_name(&name, "MCP server")?;
     mcp::delete_mcp_server(&state.claude_home, &state.claude_json_path, &name).await?;
     Ok(Json(
         serde_json::json!({ "status": "deleted", "name": name }),
@@ -96,6 +102,7 @@ pub async fn health_check_server(
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
 ) -> Result<Json<McpHealthResult>, ApiError> {
+    validate_resource_name(&name, "MCP server")?;
     let detail = mcp::get_mcp_server(
         &state.claude_json_path,
         state.claude_desktop_config_path.as_deref(),
@@ -123,8 +130,9 @@ pub async fn get_mcp_catalog(
 /// POST /api/v1/mcp-browser/install — Install an MCP server from the catalog.
 pub async fn install_mcp_server(
     State(state): State<Arc<AppState>>,
-    Json(req): Json<McpInstallRequest>,
+    AppJson(req): AppJson<McpInstallRequest>,
 ) -> Result<Json<McpServerDetail>, ApiError> {
+    validate_resource_name(&req.name, "MCP server")?;
     let detail = mcp::create_mcp_server(
         &state.claude_home,
         &state.claude_json_path,

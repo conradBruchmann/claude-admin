@@ -4,6 +4,8 @@ use std::sync::Arc;
 
 use crate::app::AppState;
 use crate::domain::errors::ApiError;
+use crate::domain::extractors::AppJson;
+use crate::domain::validation::validate_resource_name;
 use crate::services::{file_ops, project_resolver};
 use claude_admin_shared::{MemoryFile, MemoryUpdateRequest};
 
@@ -46,7 +48,7 @@ pub async fn get_memory(
 pub async fn put_memory(
     State(state): State<Arc<AppState>>,
     Path(project): Path<String>,
-    Json(req): Json<MemoryUpdateRequest>,
+    AppJson(req): AppJson<MemoryUpdateRequest>,
 ) -> Result<Json<MemoryFile>, ApiError> {
     let project_path = project_resolver::decode_project_id(&project)?;
     let memory_dir = state
@@ -70,6 +72,7 @@ pub async fn get_topic(
     State(state): State<Arc<AppState>>,
     Path((project, name)): Path<(String, String)>,
 ) -> Result<Json<MemoryFile>, ApiError> {
+    validate_resource_name(&name, "Memory topic")?;
     let project_path = project_resolver::decode_project_id(&project)?;
     let filename = if name.ends_with(".md") {
         name.clone()
@@ -97,8 +100,9 @@ pub async fn get_topic(
 pub async fn put_topic(
     State(state): State<Arc<AppState>>,
     Path((project, name)): Path<(String, String)>,
-    Json(req): Json<MemoryUpdateRequest>,
+    AppJson(req): AppJson<MemoryUpdateRequest>,
 ) -> Result<Json<MemoryFile>, ApiError> {
+    validate_resource_name(&name, "Memory topic")?;
     let project_path = project_resolver::decode_project_id(&project)?;
     let filename = if name.ends_with(".md") {
         name.clone()

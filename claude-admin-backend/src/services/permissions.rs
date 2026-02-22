@@ -259,6 +259,58 @@ fn detect_security_issue(command: &str) -> Option<String> {
     None
 }
 
+/// Analyze permission entries and suggest consolidation optimizations.
+pub fn optimize_permissions(perms: &ProjectPermissions) -> Vec<PermissionOptimization> {
+    let mut optimizations = Vec::new();
+
+    // Group entries by tool prefix
+    let mut tool_groups: std::collections::HashMap<String, Vec<&PermissionEntry>> =
+        std::collections::HashMap::new();
+    for entry in &perms.entries {
+        let tool = entry.tool.clone();
+        tool_groups.entry(tool).or_default().push(entry);
+    }
+
+    for (tool, entries) in &tool_groups {
+        if entries.len() < 3 {
+            continue;
+        }
+
+        // Check if commands share common prefixes
+        let commands: Vec<&str> = entries.iter().map(|e| e.command.as_str()).collect();
+
+        // Find common prefix
+        if let Some(first) = commands.first() {
+            let first_word = first.split_whitespace().next().unwrap_or("");
+            let matching: Vec<&&str> = commands
+                .iter()
+                .filter(|c| c.starts_with(first_word))
+                .collect();
+
+            if matching.len() >= 3 {
+                let current: Vec<String> = matching
+                    .iter()
+                    .map(|c| format!("{}({})", tool, c))
+                    .collect();
+                let saved = matching.len() - 1;
+                optimizations.push(PermissionOptimization {
+                    description: format!(
+                        "Consolidate {} {} entries starting with '{}'",
+                        matching.len(),
+                        tool,
+                        first_word
+                    ),
+                    current_entries: current,
+                    suggested_entry: format!("{}({}:*)", tool, first_word),
+                    entries_saved: saved,
+                });
+            }
+        }
+    }
+
+    optimizations
+}
+
 /// Simple pattern matching (not full regex, but sufficient for our patterns).
 fn simple_regex_match(text: &str, pattern: &str) -> bool {
     // Handle patterns with \s* and \S+

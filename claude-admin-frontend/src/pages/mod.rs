@@ -1,4 +1,5 @@
 pub mod analytics;
+pub mod backups;
 pub mod dashboard;
 pub mod docs;
 pub mod github;
@@ -12,6 +13,8 @@ pub mod permissions;
 pub mod plans;
 pub mod project_detail;
 pub mod projects;
+pub mod search;
 pub mod sessions;
 pub mod settings;
 pub mod skill_browser;
+pub mod templates;

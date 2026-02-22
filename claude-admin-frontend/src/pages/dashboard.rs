@@ -4,6 +4,7 @@ use claude_admin_shared::{
 use leptos::*;
 
 use crate::api;
+use crate::components::onboarding::OnboardingBanner;
 use crate::i18n::t;
 
 #[component]
@@ -80,6 +81,9 @@ pub fn DashboardPage() -> impl IntoView {
                             }.into_view(),
                         }}
                     </div>
+
+                    // Onboarding banner for new users
+                    <OnboardingBanner rules_count=data.global_rules_count skills_count=data.global_skills_count />
 
                     <h3 style="margin-bottom: 1rem;">{t("dashboard.recent_projects")}</h3>
                     <div class="table-container">

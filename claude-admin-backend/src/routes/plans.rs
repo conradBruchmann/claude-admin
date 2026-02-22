@@ -4,6 +4,8 @@ use std::sync::Arc;
 
 use crate::app::AppState;
 use crate::domain::errors::ApiError;
+use crate::domain::extractors::AppJson;
+use crate::domain::validation::validate_resource_name;
 use crate::services::file_ops;
 use claude_admin_shared::{PlanFile, PlanUpdateRequest};
 
@@ -54,6 +56,7 @@ pub async fn get_plan(
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
 ) -> Result<Json<PlanFile>, ApiError> {
+    validate_resource_name(&name, "Plan")?;
     let plan_path = state.claude_home.join("plans").join(format!("{}.md", name));
 
     let content = tokio::fs::read_to_string(&plan_path)
@@ -87,8 +90,9 @@ pub async fn get_plan(
 pub async fn update_plan(
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
-    Json(req): Json<PlanUpdateRequest>,
+    AppJson(req): AppJson<PlanUpdateRequest>,
 ) -> Result<Json<PlanFile>, ApiError> {
+    validate_resource_name(&name, "Plan")?;
     let plan_path = state.claude_home.join("plans").join(format!("{}.md", name));
 
     if !tokio::fs::try_exists(&plan_path).await.unwrap_or(false) {
@@ -109,6 +113,7 @@ pub async fn delete_plan(
     State(state): State<Arc<AppState>>,
     Path(name): Path<String>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
+    validate_resource_name(&name, "Plan")?;
     let plan_path = state.claude_home.join("plans").join(format!("{}.md", name));
 
     if !tokio::fs::try_exists(&plan_path).await.unwrap_or(false) {

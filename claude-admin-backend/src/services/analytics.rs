@@ -10,6 +10,25 @@ pub fn get_analytics_overview(claude_home: &Path) -> Result<AnalyticsOverview, A
     let session_data = aggregate_session_meta(claude_home);
     let facets = parse_facets(claude_home);
 
+    // Calculate total cost with model-specific pricing
+    let estimated_total_cost_usd = stats_cache
+        .model_usage
+        .iter()
+        .map(|m| {
+            let model_lower = m.model.to_lowercase();
+            let (input_rate, output_rate) = if model_lower.contains("opus") {
+                (15.0, 75.0) // $/M tokens
+            } else if model_lower.contains("haiku") {
+                (0.80, 4.0)
+            } else {
+                // Sonnet (default)
+                (3.0, 15.0)
+            };
+            ((m.input_tokens as f64 * input_rate) + (m.output_tokens as f64 * output_rate))
+                / 1_000_000.0
+        })
+        .sum();
+
     Ok(AnalyticsOverview {
         total_sessions: stats_cache.total_sessions + session_data.session_count,
         total_messages: stats_cache.total_messages,
@@ -23,6 +42,7 @@ pub fn get_analytics_overview(claude_home: &Path) -> Result<AnalyticsOverview, A
         total_git_commits: session_data.total_git_commits,
         total_lines_added: session_data.total_lines_added,
         total_lines_removed: session_data.total_lines_removed,
+        estimated_total_cost_usd,
     })
 }
 
@@ -90,7 +110,9 @@ pub fn get_project_analytics(
         }
     }
 
-    // Calculate estimated costs (rough: $3/M input, $15/M output for Sonnet)
+    // Calculate estimated costs using blended rate
+    // Opus: $15/M input, $75/M output; Sonnet: $3/M input, $15/M output; Haiku: $0.80/M input, $4/M output
+    // Use Sonnet as default rate (most common in Claude Code usage)
     let mut projects: Vec<ProjectAnalytics> = project_stats
         .into_values()
         .map(|mut p| {

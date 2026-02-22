@@ -1,13 +1,17 @@
 pub mod advisor;
 pub mod analytics;
+pub mod backups;
 pub mod claude_api;
 pub mod config_health;
+pub mod export;
 pub mod file_ops;
 pub mod fs_scanner;
 pub mod github;
 pub mod mcp;
 pub mod permissions;
 pub mod project_resolver;
+pub mod search;
 pub mod sessions;
 pub mod skill_browser;
 pub mod system_info;
+pub mod templates;

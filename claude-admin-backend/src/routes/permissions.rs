@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use crate::app::AppState;
 use crate::domain::errors::ApiError;
+use crate::domain::extractors::AppJson;
 use crate::services::{config_health, permissions, project_resolver};
 use claude_admin_shared::*;
 
@@ -28,7 +29,7 @@ pub async fn get_project_permissions(
 pub async fn delete_permission_entries(
     State(state): State<Arc<AppState>>,
     Path(project_id): Path<String>,
-    Json(req): Json<PermissionDeleteRequest>,
+    AppJson(req): AppJson<PermissionDeleteRequest>,
 ) -> Result<Json<ProjectPermissions>, ApiError> {
     let project_path = project_resolver::decode_project_id(&project_id)?;
     permissions::remove_permissions(&state.claude_home, &project_path, &req.indices).await?;
@@ -51,4 +52,15 @@ pub async fn get_project_health(
     let project_path = project_resolver::decode_project_id(&project_id)?;
     let health = config_health::compute_health_score(&state.claude_home, &project_path).await?;
     Ok(Json(health))
+}
+
+pub async fn optimize_permissions(
+    State(state): State<Arc<AppState>>,
+    Path(project_id): Path<String>,
+) -> Result<Json<Vec<PermissionOptimization>>, ApiError> {
+    let project_path = project_resolver::decode_project_id(&project_id)?;
+    let _ = &state.claude_home;
+    let perms = permissions::scan_project_permissions(&project_path).await?;
+    let optimizations = permissions::optimize_permissions(&perms);
+    Ok(Json(optimizations))
 }

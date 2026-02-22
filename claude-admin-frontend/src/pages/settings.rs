@@ -1,8 +1,12 @@
-use claude_admin_shared::{HookTemplate, SettingsOverview, SettingsUpdateRequest, StorageInfo};
+use claude_admin_shared::{
+    ExportBundle, HookEntry, HookTemplate, ImportResult, SettingsOverview, SettingsUpdateRequest,
+    StorageInfo,
+};
 use leptos::*;
 use serde::{Deserialize, Serialize};
 
 use crate::api;
+use crate::components::hook_pipeline::HookPipeline;
 use crate::i18n::t;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -41,15 +45,20 @@ pub fn SettingsPage() -> impl IntoView {
                 on:click=move |_| active_tab.set("storage".to_string())
             >{t("settings.tab_storage")}</button>
             <button
+                class=move || if active_tab.get() == "export" { "tab active" } else { "tab" }
+                on:click=move |_| active_tab.set("export".to_string())
+            >{t("settings.tab_export")}</button>
+            <button
                 class=move || if active_tab.get() == "api_key" { "tab active" } else { "tab" }
                 on:click=move |_| active_tab.set("api_key".to_string())
-            >"🔑 API Key"</button>
+            >"API Key"</button>
         </div>
 
         {move || match active_tab.get().as_str() {
             "overview" => view! { <SettingsOverviewTab/> }.into_view(),
             "hooks" => view! { <HookBuilderTab/> }.into_view(),
             "storage" => view! { <StorageTab/> }.into_view(),
+            "export" => view! { <ExportImportTab/> }.into_view(),
             "api_key" => view! { <ApiKeyTab/> }.into_view(),
             _ => view! { <SettingsOverviewTab/> }.into_view(),
         }}
@@ -71,67 +80,19 @@ fn SettingsOverviewTab() -> impl IntoView {
                         .unwrap_or_default();
 
                     view! {
-                        // Hooks section
-                        <h3 style="margin-bottom: 1rem;">{t("settings.hooks_title")}</h3>
+                        // Visual Hook Pipeline
+                        <h3 style="margin-bottom: 1rem;">"Hook Pipeline"</h3>
+                        <HookPipeline hooks=data.hooks.clone() />
 
-                        <div style="margin-bottom: 1.5rem;">
-                            <h4 style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">{t("settings.pre_tool_use")}</h4>
-                            {if data.hooks.pre_tool_use.is_empty() {
-                                view! { <p style="color: var(--text-muted);">{t("settings.no_hooks")}</p> }.into_view()
-                            } else {
-                                view! {
-                                    <div class="table-container">
-                                        <table>
-                                            <thead><tr><th>{t("settings.matcher")}</th><th>{t("settings.command")}</th></tr></thead>
-                                            <tbody>
-                                                {data.hooks.pre_tool_use.into_iter().map(|h| {
-                                                    let cmds = h.hooks.iter()
-                                                        .map(|c| c.command.clone())
-                                                        .collect::<Vec<_>>()
-                                                        .join("; ");
-                                                    view! {
-                                                        <tr>
-                                                            <td><code>{h.matcher}</code></td>
-                                                            <td style="font-size: 0.75rem; font-family: monospace; word-break: break-all;">{cmds}</td>
-                                                        </tr>
-                                                    }
-                                                }).collect_view()}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                }.into_view()
-                            }}
-                        </div>
+                        // Hooks detail section
+                        <h3 style="margin-top: 2rem; margin-bottom: 1rem;">{t("settings.hooks_title")}</h3>
 
-                        <div style="margin-bottom: 1.5rem;">
-                            <h4 style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">{t("settings.post_tool_use")}</h4>
-                            {if data.hooks.post_tool_use.is_empty() {
-                                view! { <p style="color: var(--text-muted);">{t("settings.no_hooks")}</p> }.into_view()
-                            } else {
-                                view! {
-                                    <div class="table-container">
-                                        <table>
-                                            <thead><tr><th>{t("settings.matcher")}</th><th>{t("settings.command")}</th><th>"Timeout"</th></tr></thead>
-                                            <tbody>
-                                                {data.hooks.post_tool_use.into_iter().map(|h| {
-                                                    let matcher = h.matcher.clone();
-                                                    h.hooks.into_iter().map(move |c| {
-                                                        let m = matcher.clone();
-                                                        view! {
-                                                            <tr>
-                                                                <td><code>{m}</code></td>
-                                                                <td style="font-size: 0.75rem; font-family: monospace; word-break: break-all;">{c.command}</td>
-                                                                <td>{c.timeout.map(|t| format!("{}s", t)).unwrap_or("-".into())}</td>
-                                                            </tr>
-                                                        }
-                                                    }).collect_view()
-                                                }).collect_view()}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                }.into_view()
-                            }}
-                        </div>
+                        <HookEventSection label=t("settings.pre_tool_use").get() entries=data.hooks.pre_tool_use.clone() />
+                        <HookEventSection label=t("settings.post_tool_use").get() entries=data.hooks.post_tool_use.clone() />
+                        <HookEventSection label=t("settings.notification").get() entries=data.hooks.notification.clone() />
+                        <HookEventSection label=t("settings.stop").get() entries=data.hooks.stop.clone() />
+                        <HookEventSection label=t("settings.user_prompt_submit").get() entries=data.hooks.user_prompt_submit.clone() />
+                        <HookEventSection label=t("settings.session_start").get() entries=data.hooks.session_start.clone() />
 
                         <h3 style="margin-bottom: 1rem;">"Raw Settings"</h3>
                         <div class="editor-container">
@@ -329,7 +290,10 @@ fn ApiKeyTab() -> impl IntoView {
             let req = SetApiKeyRequest { api_key: key };
             match api::put::<AuthStatus, _>("/settings/api-key", &req).await {
                 Ok(_status) => {
-                    save_status.set(Some((true, "API Key gespeichert und aktiviert!".to_string())));
+                    save_status.set(Some((
+                        true,
+                        "API Key gespeichert und aktiviert!".to_string(),
+                    )));
                     api_key_input.set(String::new());
                     status.refetch();
                 }
@@ -345,7 +309,9 @@ fn ApiKeyTab() -> impl IntoView {
         is_saving.set(true);
         save_status.set(None);
         spawn_local(async move {
-            let req = SetApiKeyRequest { api_key: String::new() };
+            let req = SetApiKeyRequest {
+                api_key: String::new(),
+            };
             match api::put::<AuthStatus, _>("/settings/api-key", &req).await {
                 Ok(_) => {
                     save_status.set(Some((true, "API Key entfernt.".to_string())));
@@ -446,6 +412,180 @@ fn ApiKeyTab() -> impl IntoView {
             </div>
         </div>
     }
+}
+
+#[component]
+fn HookEventSection(label: String, entries: Vec<HookEntry>) -> impl IntoView {
+    view! {
+        <div style="margin-bottom: 1.5rem;">
+            <h4 style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">{label}</h4>
+            {if entries.is_empty() {
+                view! { <p style="color: var(--text-muted);">{t("settings.no_hooks")}</p> }.into_view()
+            } else {
+                view! {
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>{t("settings.matcher")}</th><th>{t("settings.command")}</th><th>"Timeout"</th></tr></thead>
+                            <tbody>
+                                {entries.into_iter().map(|h| {
+                                    let matcher = h.matcher.clone();
+                                    h.hooks.into_iter().map(move |c| {
+                                        let m = matcher.clone();
+                                        view! {
+                                            <tr>
+                                                <td><code>{m}</code></td>
+                                                <td style="font-size: 0.75rem; font-family: monospace; word-break: break-all;">{c.command}</td>
+                                                <td>{c.timeout.map(|t| format!("{}s", t)).unwrap_or("-".into())}</td>
+                                            </tr>
+                                        }
+                                    }).collect_view()
+                                }).collect_view()}
+                            </tbody>
+                        </table>
+                    </div>
+                }.into_view()
+            }}
+        </div>
+    }
+}
+
+#[component]
+fn ExportImportTab() -> impl IntoView {
+    let export_status = create_rw_signal::<Option<String>>(None);
+    let import_status = create_rw_signal::<Option<(bool, String)>>(None);
+    let is_exporting = create_rw_signal(false);
+
+    let on_export = move |_| {
+        is_exporting.set(true);
+        export_status.set(None);
+        spawn_local(async move {
+            match api::get::<ExportBundle>("/export").await {
+                Ok(bundle) => {
+                    // Trigger download via JS
+                    if let Ok(json) = serde_json::to_string_pretty(&bundle) {
+                        let _ = download_json(&json, "claude-admin-export.json");
+                        export_status.set(Some("Export downloaded!".to_string()));
+                    }
+                }
+                Err(e) => export_status.set(Some(format!("Error: {}", e))),
+            }
+            is_exporting.set(false);
+        });
+    };
+
+    let on_import = move |ev: web_sys::Event| {
+        use wasm_bindgen::JsCast;
+        let input: web_sys::HtmlInputElement = ev.target().unwrap().unchecked_into();
+        if let Some(files) = input.files() {
+            if let Some(file) = files.get(0) {
+                let reader = web_sys::FileReader::new().unwrap();
+                let reader_clone = reader.clone();
+                let onload = wasm_bindgen::closure::Closure::wrap(Box::new(
+                    move |_: web_sys::Event| {
+                        if let Ok(result) = reader_clone.result() {
+                            if let Some(text) = result.as_string() {
+                                let text_clone = text.clone();
+                                spawn_local(async move {
+                                    match serde_json::from_str::<ExportBundle>(&text_clone) {
+                                        Ok(bundle) => {
+                                            match api::post::<ImportResult, _>("/import", &bundle)
+                                                .await
+                                            {
+                                                Ok(r) => {
+                                                    import_status.set(Some((true, format!(
+                                                    "{}: {} skills, {} rules, {} MCP servers",
+                                                    t("settings.import_success").get(),
+                                                    r.skills_imported, r.rules_imported, r.mcp_servers_imported
+                                                ))));
+                                                }
+                                                Err(e) => import_status
+                                                    .set(Some((false, format!("Error: {}", e)))),
+                                            }
+                                        }
+                                        Err(e) => import_status
+                                            .set(Some((false, format!("Invalid bundle: {}", e)))),
+                                    }
+                                });
+                            }
+                        }
+                    },
+                )
+                    as Box<dyn FnMut(_)>);
+                reader.set_onload(Some(onload.as_ref().unchecked_ref()));
+                onload.forget();
+                let _ = reader.read_as_text(&file);
+            }
+        }
+    };
+
+    view! {
+        // Export section
+        <h3 style="margin-bottom: 1rem;">{t("settings.export_title")}</h3>
+        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">
+            {t("settings.export_desc")}
+        </p>
+
+        {move || export_status.get().map(|s| view! {
+            <div class="card" style="margin-bottom: 1rem; border-left: 3px solid var(--success);">
+                <span style="font-size: 0.875rem;">{s}</span>
+            </div>
+        })}
+
+        <button
+            class="btn btn-primary"
+            prop:disabled=move || is_exporting.get()
+            on:click=on_export
+        >{move || if is_exporting.get() { t("settings.export_loading") } else { t("settings.export_btn") }}</button>
+
+        // Import section
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem;">{t("settings.import_title")}</h3>
+        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1rem;">
+            {t("settings.import_desc")}
+        </p>
+
+        {move || import_status.get().map(|(success, msg)| {
+            let color = if success { "var(--success)" } else { "var(--danger)" };
+            view! {
+                <div class="card" style=format!("margin-bottom: 1rem; border-left: 3px solid {};", color)>
+                    <span style="font-size: 0.875rem;">{msg}</span>
+                </div>
+            }
+        })}
+
+        <div class="card" style="padding: 1.5rem;">
+            <input
+                type="file"
+                accept=".json"
+                on:change=on_import
+                style="font-size: 0.875rem;"
+            />
+        </div>
+    }
+}
+
+fn download_json(json: &str, filename: &str) -> Result<(), String> {
+    use wasm_bindgen::JsCast;
+    let window = web_sys::window().ok_or("No window")?;
+    let document = window.document().ok_or("No document")?;
+    let blob_parts = js_sys::Array::new();
+    blob_parts.push(&wasm_bindgen::JsValue::from_str(json));
+    let opts = web_sys::BlobPropertyBag::new();
+    opts.set_type("application/json");
+    let blob = web_sys::Blob::new_with_str_sequence_and_options(&blob_parts, &opts)
+        .map_err(|_| "Blob creation failed")?;
+    let url =
+        web_sys::Url::create_object_url_with_blob(&blob).map_err(|_| "URL creation failed")?;
+    let a: web_sys::HtmlElement = document
+        .create_element("a")
+        .map_err(|_| "Element creation failed")?
+        .unchecked_into();
+    a.set_attribute("href", &url)
+        .map_err(|_| "Set href failed")?;
+    a.set_attribute("download", filename)
+        .map_err(|_| "Set download failed")?;
+    a.click();
+    let _ = web_sys::Url::revoke_object_url(&url);
+    Ok(())
 }
 
 fn format_bytes(bytes: u64) -> String {
