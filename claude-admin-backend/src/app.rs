@@ -7,7 +7,7 @@ use axum::{
 };
 use rust_embed::Embed;
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
 
 use crate::infra::{config::Config, cors::create_cors_layer};
@@ -21,7 +21,7 @@ pub struct AppState {
     pub claude_home: PathBuf,
     pub claude_json_path: PathBuf,
     pub claude_desktop_config_path: Option<PathBuf>,
-    pub anthropic_client: Option<AnthropicClient>,
+    pub anthropic_client: Arc<RwLock<Option<AnthropicClient>>>,
 }
 
 #[derive(Embed)]
@@ -40,14 +40,14 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
         None
     };
 
-    let anthropic_client = AnthropicClient::from_env();
+    let anthropic_client = AnthropicClient::from_env_or_config(&claude_home);
 
     let state = Arc::new(AppState {
         config: config.clone(),
         claude_home,
         claude_json_path,
         claude_desktop_config_path,
-        anthropic_client,
+        anthropic_client: Arc::new(RwLock::new(anthropic_client)),
     });
 
     let api_routes = Router::new()
@@ -168,6 +168,11 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
         .route(
             "/api/v1/settings/storage",
             get(routes::settings::get_storage),
+        )
+        // API Key management
+        .route(
+            "/api/v1/settings/api-key",
+            get(routes::settings::get_api_key_status).put(routes::settings::set_api_key),
         )
         // Phase 11: Analytics
         .route(

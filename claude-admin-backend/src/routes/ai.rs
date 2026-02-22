@@ -11,12 +11,16 @@ pub async fn suggest(
     State(state): State<Arc<AppState>>,
     Json(req): Json<SuggestionRequest>,
 ) -> Result<Json<SuggestionResponse>, ApiError> {
-    let client = state
-        .anthropic_client
-        .as_ref()
-        .ok_or_else(|| ApiError::BadRequest("ANTHROPIC_API_KEY not configured".to_string()))?;
+    let client = {
+        let guard = state.anthropic_client.read().map_err(|_| {
+            ApiError::Internal("Lock poisoned".to_string())
+        })?;
+        guard.as_ref().cloned().ok_or_else(|| {
+            ApiError::BadRequest("API-Key nicht konfiguriert. Bitte unter Settings → API Key eintragen.".to_string())
+        })?
+    };
 
-    let response = claude_api::get_suggestions(client, &req).await?;
+    let response = claude_api::get_suggestions(&client, &req).await?;
     Ok(Json(response))
 }
 
@@ -24,11 +28,15 @@ pub async fn validate(
     State(state): State<Arc<AppState>>,
     Json(req): Json<SuggestionRequest>,
 ) -> Result<Json<SuggestionResponse>, ApiError> {
-    let client = state
-        .anthropic_client
-        .as_ref()
-        .ok_or_else(|| ApiError::BadRequest("ANTHROPIC_API_KEY not configured".to_string()))?;
+    let client = {
+        let guard = state.anthropic_client.read().map_err(|_| {
+            ApiError::Internal("Lock poisoned".to_string())
+        })?;
+        guard.as_ref().cloned().ok_or_else(|| {
+            ApiError::BadRequest("API-Key nicht konfiguriert. Bitte unter Settings → API Key eintragen.".to_string())
+        })?
+    };
 
-    let response = claude_api::validate_content(client, &req).await?;
+    let response = claude_api::validate_content(&client, &req).await?;
     Ok(Json(response))
 }

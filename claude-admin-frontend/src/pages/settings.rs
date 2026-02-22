@@ -1,8 +1,21 @@
 use claude_admin_shared::{HookTemplate, SettingsOverview, SettingsUpdateRequest, StorageInfo};
 use leptos::*;
+use serde::{Deserialize, Serialize};
 
 use crate::api;
 use crate::i18n::t;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct AuthStatus {
+    configured: bool,
+    source: String,
+    has_config_key: bool,
+}
+
+#[derive(Clone, Serialize)]
+struct SetApiKeyRequest {
+    api_key: String,
+}
 
 #[component]
 pub fn SettingsPage() -> impl IntoView {
@@ -27,12 +40,17 @@ pub fn SettingsPage() -> impl IntoView {
                 class=move || if active_tab.get() == "storage" { "tab active" } else { "tab" }
                 on:click=move |_| active_tab.set("storage".to_string())
             >{t("settings.tab_storage")}</button>
+            <button
+                class=move || if active_tab.get() == "api_key" { "tab active" } else { "tab" }
+                on:click=move |_| active_tab.set("api_key".to_string())
+            >"🔑 API Key"</button>
         </div>
 
         {move || match active_tab.get().as_str() {
             "overview" => view! { <SettingsOverviewTab/> }.into_view(),
             "hooks" => view! { <HookBuilderTab/> }.into_view(),
             "storage" => view! { <StorageTab/> }.into_view(),
+            "api_key" => view! { <ApiKeyTab/> }.into_view(),
             _ => view! { <SettingsOverviewTab/> }.into_view(),
         }}
     }
@@ -289,6 +307,144 @@ fn StorageTab() -> impl IntoView {
                 }.into_view(),
             })}
         </Suspense>
+    }
+}
+
+#[component]
+fn ApiKeyTab() -> impl IntoView {
+    let status = create_resource(
+        || (),
+        |_| async move { api::get::<AuthStatus>("/settings/api-key").await },
+    );
+
+    let api_key_input = create_rw_signal(String::new());
+    let save_status = create_rw_signal::<Option<(bool, String)>>(None);
+    let is_saving = create_rw_signal(false);
+
+    let on_save = move |_| {
+        let key = api_key_input.get();
+        is_saving.set(true);
+        save_status.set(None);
+        spawn_local(async move {
+            let req = SetApiKeyRequest { api_key: key };
+            match api::put::<AuthStatus, _>("/settings/api-key", &req).await {
+                Ok(_status) => {
+                    save_status.set(Some((true, "API Key gespeichert und aktiviert!".to_string())));
+                    api_key_input.set(String::new());
+                    status.refetch();
+                }
+                Err(e) => {
+                    save_status.set(Some((false, format!("Fehler: {}", e))));
+                }
+            }
+            is_saving.set(false);
+        });
+    };
+
+    let on_remove = move |_| {
+        is_saving.set(true);
+        save_status.set(None);
+        spawn_local(async move {
+            let req = SetApiKeyRequest { api_key: String::new() };
+            match api::put::<AuthStatus, _>("/settings/api-key", &req).await {
+                Ok(_) => {
+                    save_status.set(Some((true, "API Key entfernt.".to_string())));
+                    status.refetch();
+                }
+                Err(e) => {
+                    save_status.set(Some((false, format!("Fehler: {}", e))));
+                }
+            }
+            is_saving.set(false);
+        });
+    };
+
+    view! {
+        <h3 style="margin-bottom: 1rem;">"Anthropic API Key"</h3>
+        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.5rem;">
+            "Konfiguriere deinen Anthropic API Key für AI-Features (Suggestions, Validierung, Project Advisor). "
+            "Auf macOS wird alternativ der OAuth-Token aus Claude Code verwendet."
+        </p>
+
+        // Status display
+        <Suspense fallback=move || view! { <div class="loading">"Lade Status..."</div> }>
+            {move || status.get().map(|result| match result {
+                Ok(data) => {
+                    let (icon, label, detail) = match data.source.as_str() {
+                        "env" => ("✅", "Aktiv via Umgebungsvariable", "ANTHROPIC_API_KEY ist gesetzt. Diese hat Vorrang vor allen anderen Quellen."),
+                        "config" => ("✅", "Aktiv via gespeichertem Key", "API Key wurde in den ClaudeAdmin-Einstellungen hinterlegt."),
+                        "keychain" => ("✅", "Aktiv via macOS Keychain", "OAuth-Token von Claude Code wird verwendet."),
+                        _ => ("❌", "Nicht konfiguriert", "Kein API Key gefunden. Bitte unten eingeben."),
+                    };
+
+                    view! {
+                        <div class="card" style="margin-bottom: 1.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <span style="font-size: 1.25rem;">{icon}</span>
+                                <div>
+                                    <div style="font-weight: 600;">{label}</div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">{detail}</div>
+                                </div>
+                            </div>
+                        </div>
+                    }.into_view()
+                }
+                Err(e) => view! {
+                    <div class="card" style="margin-bottom: 1.5rem; border-left: 3px solid var(--danger);">
+                        <span style="font-size: 0.875rem; color: var(--danger);">"Fehler: " {e}</span>
+                    </div>
+                }.into_view(),
+            })}
+        </Suspense>
+
+        // Save status message
+        {move || save_status.get().map(|(success, msg)| {
+            let border_color = if success { "var(--success)" } else { "var(--danger)" };
+            view! {
+                <div class="card" style=format!("margin-bottom: 1rem; border-left: 3px solid {};", border_color)>
+                    <span style="font-size: 0.875rem;">{msg}</span>
+                </div>
+            }
+        })}
+
+        // Input form
+        <div class="card">
+            <h4 style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                "API Key eingeben"
+            </h4>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+                <input
+                    type="password"
+                    class="editor-textarea"
+                    placeholder="sk-ant-..."
+                    style="flex: 1; padding: 0.5rem 0.75rem; font-family: monospace; font-size: 0.85rem;"
+                    prop:value=move || api_key_input.get()
+                    on:input=move |ev| api_key_input.set(event_target_value(&ev))
+                />
+                <button
+                    class="btn btn-primary"
+                    prop:disabled=move || api_key_input.get().is_empty() || is_saving.get()
+                    on:click=on_save
+                >"Speichern"</button>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <p style="font-size: 0.75rem; color: var(--text-muted);">
+                    "Der Key wird in ~/.claude/claude-admin.json gespeichert."
+                </p>
+                {move || {
+                    status.get().and_then(|r| r.ok()).filter(|s| s.has_config_key).map(|_| {
+                        view! {
+                            <button
+                                class="btn btn-sm"
+                                style="color: var(--danger); border-color: var(--danger);"
+                                prop:disabled=move || is_saving.get()
+                                on:click=on_remove
+                            >"Key entfernen"</button>
+                        }
+                    })
+                }}
+            </div>
+        </div>
     }
 }
 

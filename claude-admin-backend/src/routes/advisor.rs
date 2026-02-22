@@ -13,11 +13,15 @@ pub async fn get_advisor_report(
 ) -> Result<Json<AdvisorReport>, ApiError> {
     let project_path = project_resolver::decode_project_id(&id)?;
 
-    let client = state
-        .anthropic_client
-        .as_ref()
-        .ok_or_else(|| ApiError::BadRequest("ANTHROPIC_API_KEY nicht konfiguriert. Setze die Umgebungsvariable ANTHROPIC_API_KEY um den Project Advisor zu nutzen.".to_string()))?;
+    let client = {
+        let guard = state.anthropic_client.read().map_err(|_| {
+            ApiError::Internal("Lock poisoned".to_string())
+        })?;
+        guard.as_ref().cloned().ok_or_else(|| {
+            ApiError::BadRequest("API-Key nicht konfiguriert. Bitte unter Settings → API Key eintragen.".to_string())
+        })?
+    };
 
-    let report = advisor::analyze_project(&state, client, &project_path).await?;
+    let report = advisor::analyze_project(&state, &client, &project_path).await?;
     Ok(Json(report))
 }

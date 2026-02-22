@@ -1,5 +1,6 @@
 use crate::domain::errors::ApiError;
 use claude_admin_shared::{ClaudeFileType, SuggestionRequest, SuggestionResponse};
+use std::path::Path;
 use std::sync::{Arc, RwLock};
 
 #[derive(Clone)]
@@ -16,10 +17,8 @@ enum AuthMode {
 }
 
 impl AnthropicClient {
-    /// Try to create a client: first check ANTHROPIC_API_KEY env var,
-    /// then fall back to reading the OAuth token from the macOS Keychain.
-    pub fn from_env() -> Option<Self> {
-        // 1. Explicit API key
+    /// Try to create a client from ANTHROPIC_API_KEY env var only.
+    fn from_env() -> Option<Self> {
         if let Ok(api_key) = std::env::var("ANTHROPIC_API_KEY") {
             tracing::info!("Using ANTHROPIC_API_KEY for Claude API");
             return Some(Self {
@@ -28,18 +27,6 @@ impl AnthropicClient {
                 client: reqwest::Client::new(),
             });
         }
-
-        // 2. OAuth token from macOS Keychain (Claude Code subscription)
-        if let Some(oauth_token) = read_oauth_from_keychain() {
-            tracing::info!("Using OAuth token from macOS Keychain for Claude API");
-            return Some(Self {
-                token: Arc::new(RwLock::new(oauth_token)),
-                auth_mode: AuthMode::OAuthBearer,
-                client: reqwest::Client::new(),
-            });
-        }
-
-        tracing::warn!("No Claude API credentials found (no ANTHROPIC_API_KEY, no Keychain token)");
         None
     }
 
@@ -65,6 +52,42 @@ impl AnthropicClient {
     /// Read the current token.
     fn current_token(&self) -> String {
         self.token.read().expect("token lock poisoned").clone()
+    }
+
+    /// Try all sources: env var → config file → macOS Keychain.
+    pub fn from_env_or_config(claude_home: &Path) -> Option<Self> {
+        // 1. env var (highest priority)
+        if let Some(c) = Self::from_env() {
+            return Some(c);
+        }
+
+        // 2. Config file (~/.claude/claude-admin.json)
+        if let Some(key) = read_api_key_from_config(claude_home) {
+            tracing::info!("Using API key from claude-admin.json");
+            return Some(Self::from_api_key(key));
+        }
+
+        // 3. macOS Keychain
+        if let Some(oauth_token) = read_oauth_from_keychain() {
+            tracing::info!("Using OAuth token from macOS Keychain for Claude API");
+            return Some(Self {
+                token: Arc::new(RwLock::new(oauth_token)),
+                auth_mode: AuthMode::OAuthBearer,
+                client: reqwest::Client::new(),
+            });
+        }
+
+        tracing::warn!("No Claude API credentials found");
+        None
+    }
+
+    /// Create a client from an explicit API key.
+    pub fn from_api_key(key: String) -> Self {
+        Self {
+            token: Arc::new(RwLock::new(key)),
+            auth_mode: AuthMode::ApiKey,
+            client: reqwest::Client::new(),
+        }
     }
 }
 
@@ -96,6 +119,82 @@ fn read_oauth_from_keychain() -> Option<String> {
         .and_then(|t| t.as_str())?;
 
     Some(access_token.to_string())
+}
+
+/// Read API key from ~/.claude/claude-admin.json
+fn read_api_key_from_config(claude_home: &Path) -> Option<String> {
+    let config_path = claude_home.join("claude-admin.json");
+    let content = std::fs::read_to_string(&config_path).ok()?;
+    let json: serde_json::Value = serde_json::from_str(&content).ok()?;
+    json.get("api_key")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+        .map(String::from)
+}
+
+/// Save API key to ~/.claude/claude-admin.json
+pub fn save_api_key_to_config(claude_home: &Path, api_key: &str) -> Result<(), ApiError> {
+    let config_path = claude_home.join("claude-admin.json");
+
+    // Read existing config or create new
+    let mut json: serde_json::Value = if config_path.exists() {
+        let content = std::fs::read_to_string(&config_path)
+            .map_err(|e| ApiError::Internal(format!("Failed to read config: {}", e)))?;
+        serde_json::from_str(&content).unwrap_or(serde_json::json!({}))
+    } else {
+        serde_json::json!({})
+    };
+
+    // Set or remove key
+    if api_key.is_empty() {
+        json.as_object_mut().map(|o| o.remove("api_key"));
+    } else {
+        json["api_key"] = serde_json::Value::String(api_key.to_string());
+    }
+
+    let content = serde_json::to_string_pretty(&json)
+        .map_err(|e| ApiError::Internal(format!("Failed to serialize config: {}", e)))?;
+    std::fs::write(&config_path, content)
+        .map_err(|e| ApiError::Internal(format!("Failed to write config: {}", e)))?;
+
+    Ok(())
+}
+
+/// Check what auth source is currently active.
+pub fn get_auth_status(claude_home: &Path) -> AuthStatus {
+    if std::env::var("ANTHROPIC_API_KEY").is_ok() {
+        return AuthStatus {
+            configured: true,
+            source: "env".to_string(),
+            has_config_key: read_api_key_from_config(claude_home).is_some(),
+        };
+    }
+    if read_api_key_from_config(claude_home).is_some() {
+        return AuthStatus {
+            configured: true,
+            source: "config".to_string(),
+            has_config_key: true,
+        };
+    }
+    if read_oauth_from_keychain().is_some() {
+        return AuthStatus {
+            configured: true,
+            source: "keychain".to_string(),
+            has_config_key: false,
+        };
+    }
+    AuthStatus {
+        configured: false,
+        source: "none".to_string(),
+        has_config_key: false,
+    }
+}
+
+#[derive(serde::Serialize)]
+pub struct AuthStatus {
+    pub configured: bool,
+    pub source: String,
+    pub has_config_key: bool,
 }
 
 pub async fn get_suggestions(
