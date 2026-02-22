@@ -5,6 +5,7 @@ use leptos::*;
 use leptos_router::*;
 
 use crate::api;
+use crate::components::confirm_dialog::ConfirmDialog;
 use crate::i18n::t;
 
 #[component]
@@ -99,6 +100,7 @@ pub fn PermissionDetailPage() -> impl IntoView {
 
     let selected = create_rw_signal::<Vec<usize>>(vec![]);
     let delete_status = create_rw_signal::<Option<String>>(None);
+    let confirm_delete = create_rw_signal(false);
 
     view! {
         <div class="page-header">
@@ -137,22 +139,7 @@ pub fn PermissionDetailPage() -> impl IntoView {
                                 class="btn btn-danger btn-sm"
                                 disabled=move || selected.get().is_empty()
                                 on:click=move |_| {
-                                    let indices = selected.get();
-                                    let pid = project_id();
-                                    delete_status.set(Some("Deleting...".to_string()));
-                                    spawn_local(async move {
-                                        let req = PermissionDeleteRequest { indices };
-                                        match api::delete_with_body::<ProjectPermissions, _>(
-                                            &format!("/permissions/{}/entries", pid),
-                                            &req
-                                        ).await {
-                                            Ok(_) => {
-                                                delete_status.set(Some("Deleted! Reloading...".to_string()));
-                                                selected.set(vec![]);
-                                            }
-                                            Err(e) => delete_status.set(Some(format!("Error: {}", e))),
-                                        }
-                                    });
+                                    confirm_delete.set(true);
                                 }
                             >
                                 {t("permissions.detail_delete_count")} " (" {move || selected.get().len()} ")"
@@ -225,6 +212,31 @@ pub fn PermissionDetailPage() -> impl IntoView {
                 }.into_view(),
             })}
         </Suspense>
+
+        <ConfirmDialog
+            show=confirm_delete
+            title="Delete Permission Entries"
+            message="Are you sure you want to delete the selected permission entries? This action cannot be undone."
+            confirm_label="Delete"
+            on_confirm=Callback::new(move |_| {
+                let indices = selected.get();
+                let pid = project_id();
+                delete_status.set(Some("Deleting...".to_string()));
+                spawn_local(async move {
+                    let req = PermissionDeleteRequest { indices };
+                    match api::delete_with_body::<ProjectPermissions, _>(
+                        &format!("/permissions/{}/entries", pid),
+                        &req
+                    ).await {
+                        Ok(_) => {
+                            delete_status.set(Some("Deleted! Reloading...".to_string()));
+                            selected.set(vec![]);
+                        }
+                        Err(e) => delete_status.set(Some(format!("Error: {}", e))),
+                    }
+                });
+            })
+        />
     }
 }
 

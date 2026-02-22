@@ -2,6 +2,7 @@ use claude_admin_shared::BackupEntry;
 use leptos::*;
 
 use crate::api;
+use crate::components::confirm_dialog::ConfirmDialog;
 use crate::i18n::t;
 
 fn format_size(bytes: u64) -> String {
@@ -22,6 +23,8 @@ pub fn BackupsPage() -> impl IntoView {
     );
 
     let action_status = create_rw_signal::<Option<(String, bool)>>(None); // (message, is_error)
+    let confirm_delete = create_rw_signal(false);
+    let delete_target = create_rw_signal::<Option<String>>(None);
 
     view! {
         <div class="page-header">
@@ -114,22 +117,8 @@ pub fn BackupsPage() -> impl IntoView {
                                                         <button
                                                             class="btn btn-sm btn-danger"
                                                             on:click=move |_| {
-                                                                let name = name_delete.clone();
-                                                                action_status.set(None);
-                                                                spawn_local(async move {
-                                                                    match api::delete(
-                                                                        &format!("/backups/{}", name),
-                                                                    ).await {
-                                                                        Ok(_) => action_status.set(Some((
-                                                                            t("backups.deleted").get_untracked(),
-                                                                            false,
-                                                                        ))),
-                                                                        Err(e) => action_status.set(Some((
-                                                                            format!("{} {}", t("common.error_prefix").get_untracked(), e),
-                                                                            true,
-                                                                        ))),
-                                                                    }
-                                                                });
+                                                                delete_target.set(Some(name_delete.clone()));
+                                                                confirm_delete.set(true);
                                                             }
                                                         >
                                                             {t("backups.delete")}
@@ -149,5 +138,32 @@ pub fn BackupsPage() -> impl IntoView {
                 }.into_view(),
             })}
         </Suspense>
+
+        <ConfirmDialog
+            show=confirm_delete
+            title="Delete Backup"
+            message="Are you sure you want to delete this backup? This action cannot be undone."
+            confirm_label="Delete"
+            on_confirm=Callback::new(move |_| {
+                if let Some(name) = delete_target.get() {
+                    action_status.set(None);
+                    spawn_local(async move {
+                        match api::delete(&format!("/backups/{}", name)).await {
+                            Ok(_) => {
+                                action_status.set(Some((
+                                    t("backups.deleted").get_untracked(),
+                                    false,
+                                )));
+                                backups.refetch();
+                            }
+                            Err(e) => action_status.set(Some((
+                                format!("{} {}", t("common.error_prefix").get_untracked(), e),
+                                true,
+                            ))),
+                        }
+                    });
+                }
+            })
+        />
     }
 }

@@ -29,6 +29,57 @@ pub struct AppState {
 #[folder = "../claude-admin-frontend/dist/"]
 struct FrontendAssets;
 
+/// Middleware that blocks requests containing ".." path segments (path traversal).
+pub async fn block_path_traversal(request: Request<Body>, next: Next) -> Response {
+    let path = request.uri().path();
+    if path.contains("..") {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({ "error": "Invalid path: directory traversal not allowed" })),
+        )
+            .into_response();
+    }
+    next.run(request).await
+}
+
+/// Middleware that enforces Bearer token authentication when CLAUDE_ADMIN_TOKEN is set.
+pub async fn auth_middleware(request: Request<Body>, next: Next) -> Response {
+    let token = std::env::var("CLAUDE_ADMIN_TOKEN").unwrap_or_default();
+    if token.is_empty() {
+        return next.run(request).await;
+    }
+
+    // Exempt health check endpoint
+    if request.uri().path() == "/api/v1/health" {
+        return next.run(request).await;
+    }
+
+    // Exempt non-API paths (frontend assets)
+    if !request.uri().path().starts_with("/api/") {
+        return next.run(request).await;
+    }
+
+    match request.headers().get(header::AUTHORIZATION) {
+        Some(auth_value) => {
+            if let Ok(auth_str) = auth_value.to_str() {
+                if auth_str == format!("Bearer {}", token) {
+                    return next.run(request).await;
+                }
+            }
+            (
+                StatusCode::UNAUTHORIZED,
+                Json(serde_json::json!({ "error": "Invalid authentication token" })),
+            )
+                .into_response()
+        }
+        None => (
+            StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({ "error": "Authentication required. Set Authorization: Bearer <token> header." })),
+        )
+            .into_response(),
+    }
+}
+
 /// Middleware that adds security headers to every response.
 pub async fn security_headers(request: Request<Body>, next: Next) -> Response {
     let mut response = next.run(request).await;
@@ -273,6 +324,8 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
     let app = Router::new()
         .merge(api_routes)
         .fallback(serve_frontend)
+        .layer(middleware::from_fn(block_path_traversal))
+        .layer(middleware::from_fn(auth_middleware))
         .layer(middleware::from_fn(security_headers))
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())

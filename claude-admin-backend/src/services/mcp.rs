@@ -277,7 +277,7 @@ pub async fn health_check_server(
     }
 
     match tokio::time::timeout(
-        std::time::Duration::from_secs(10),
+        std::time::Duration::from_secs(3),
         spawn_and_check(&command, &args, &env_vars),
     )
     .await
@@ -312,7 +312,7 @@ pub async fn health_check_server(
             server_info: None,
             tools: vec![],
             duration_ms: start.elapsed().as_millis() as u64,
-            error: Some("Health check timed out after 10s".to_string()),
+            error: Some("Health check timed out after 3s".to_string()),
             source: source.to_string(),
             stderr_output: None,
         },

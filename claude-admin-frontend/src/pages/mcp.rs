@@ -4,6 +4,7 @@ use claude_admin_shared::{
 use leptos::*;
 
 use crate::api;
+use crate::components::confirm_dialog::ConfirmDialog;
 use crate::i18n::t;
 
 #[component]
@@ -78,6 +79,8 @@ fn ServersTab() -> impl IntoView {
     let selected_source = create_rw_signal::<Option<String>>(None);
     let editor_content = create_rw_signal(String::new());
     let save_status = create_rw_signal::<Option<(String, bool)>>(None);
+    let confirm_delete = create_rw_signal(false);
+    let delete_target = create_rw_signal::<Option<String>>(None);
 
     view! {
         <Suspense fallback=move || view! { <div class="loading">{t("mcp.loading")}</div> }>
@@ -194,17 +197,8 @@ fn ServersTab() -> impl IntoView {
                                                                     class="btn btn-sm"
                                                                     style="color: var(--error);"
                                                                     on:click=move |_| {
-                                                                        let n = name_delete.clone();
-                                                                        spawn_local(async move {
-                                                                            match api::delete(&format!("/mcp/{}", n)).await {
-                                                                                Ok(_) => {
-                                                                                    selected.set(None);
-                                                                                    save_status.set(Some(("Deleted!".to_string(), true)));
-                                                                                    servers.refetch();
-                                                                                }
-                                                                                Err(e) => save_status.set(Some((format!("Error: {}", e), false))),
-                                                                            }
-                                                                        });
+                                                                        delete_target.set(Some(name_delete.clone()));
+                                                                        confirm_delete.set(true);
                                                                     }
                                                                 >{t("mcp.delete")}</button>
                                                             }.into_view()
@@ -275,6 +269,27 @@ fn ServersTab() -> impl IntoView {
                 }.into_view(),
             })}
         </Suspense>
+
+        <ConfirmDialog
+            show=confirm_delete
+            title="Delete MCP Server"
+            message="Are you sure you want to delete this MCP server? This action cannot be undone."
+            confirm_label="Delete"
+            on_confirm=Callback::new(move |_| {
+                if let Some(name) = delete_target.get() {
+                    spawn_local(async move {
+                        match api::delete(&format!("/mcp/{}", name)).await {
+                            Ok(_) => {
+                                selected.set(None);
+                                save_status.set(Some(("Deleted!".to_string(), true)));
+                                servers.refetch();
+                            }
+                            Err(e) => save_status.set(Some((format!("Error: {}", e), false))),
+                        }
+                    });
+                }
+            })
+        />
     }
 }
 

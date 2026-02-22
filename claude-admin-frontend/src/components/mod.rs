@@ -1,3 +1,4 @@
+pub mod confirm_dialog;
 pub mod file_tree;
 pub mod footer;
 pub mod frontmatter_form;
