@@ -9,11 +9,15 @@ use axum::{
 use rust_embed::Embed;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
+use tokio::sync::broadcast;
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
 
+use crate::infra::auth::TokenStore;
+use crate::infra::rate_limit::{create_rate_limiter, RateLimiter};
 use crate::infra::{config::Config, cors::create_cors_layer};
 use crate::routes;
 use crate::services::claude_api::AnthropicClient;
+use crate::services::watcher::FileChangeEvent;
 
 #[derive(Clone)]
 #[allow(dead_code)]
@@ -23,6 +27,9 @@ pub struct AppState {
     pub claude_json_path: PathBuf,
     pub claude_desktop_config_path: Option<PathBuf>,
     pub anthropic_client: Arc<RwLock<Option<AnthropicClient>>>,
+    pub token_store: TokenStore,
+    pub rate_limiter: RateLimiter,
+    pub file_change_tx: Arc<broadcast::Sender<FileChangeEvent>>,
 }
 
 #[derive(Embed)]
@@ -43,6 +50,7 @@ pub async fn block_path_traversal(request: Request<Body>, next: Next) -> Respons
 }
 
 /// Middleware that enforces Bearer token authentication when CLAUDE_ADMIN_TOKEN is set.
+/// Supports both master tokens and session tokens.
 pub async fn auth_middleware(request: Request<Body>, next: Next) -> Response {
     let token = std::env::var("CLAUDE_ADMIN_TOKEN").unwrap_or_default();
     if token.is_empty() {
@@ -59,11 +67,34 @@ pub async fn auth_middleware(request: Request<Body>, next: Next) -> Response {
         return next.run(request).await;
     }
 
+    // Exempt login endpoint
+    if request.uri().path() == "/api/v1/auth/login" {
+        return next.run(request).await;
+    }
+
+    // Exempt docs endpoints
+    if request.uri().path().starts_with("/api/v1/docs") {
+        return next.run(request).await;
+    }
+
+    // Get token store from extensions
+    let token_store = request.extensions().get::<TokenStore>().cloned();
+
     match request.headers().get(header::AUTHORIZATION) {
         Some(auth_value) => {
             if let Ok(auth_str) = auth_value.to_str() {
-                if auth_str == format!("Bearer {}", token) {
+                let bearer = auth_str.strip_prefix("Bearer ").unwrap_or(auth_str);
+
+                // Check master token
+                if bearer == token {
                     return next.run(request).await;
+                }
+
+                // Check session token
+                if let Some(ref store) = token_store {
+                    if store.validate(bearer) {
+                        return next.run(request).await;
+                    }
                 }
             }
             (
@@ -88,11 +119,32 @@ pub async fn security_headers(request: Request<Body>, next: Next) -> Response {
     headers.insert(header::X_FRAME_OPTIONS, "DENY".parse().unwrap());
     headers.insert(
         header::CONTENT_SECURITY_POLICY,
-        "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'"
+        "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self' https://unpkg.com"
             .parse()
             .unwrap(),
     );
     response
+}
+
+/// Login route: exchange master token for a session token with TTL.
+pub async fn login(
+    axum::extract::State(state): axum::extract::State<Arc<AppState>>,
+    crate::domain::extractors::AppJson(req): crate::domain::extractors::AppJson<
+        claude_admin_shared::LoginRequest,
+    >,
+) -> Result<Json<claude_admin_shared::LoginResponse>, crate::domain::errors::ApiError> {
+    let master_token = std::env::var("CLAUDE_ADMIN_TOKEN").unwrap_or_default();
+    if master_token.is_empty() || req.token != master_token {
+        return Err(crate::domain::errors::ApiError::Unauthorized(
+            "Invalid token".to_string(),
+        ));
+    }
+
+    let (session_token, expires_at) = state.token_store.create_session();
+    Ok(Json(claude_admin_shared::LoginResponse {
+        session_token,
+        expires_at: expires_at.to_rfc3339(),
+    }))
 }
 
 pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Error>> {
@@ -108,6 +160,22 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
     };
 
     let anthropic_client = AnthropicClient::from_env_or_config(&claude_home);
+    let token_store = TokenStore::new(8); // 8 hour TTL
+    let rate_limiter = create_rate_limiter();
+
+    // File watcher broadcast channel
+    let (file_change_tx, _) = broadcast::channel::<FileChangeEvent>(100);
+    let file_change_tx = Arc::new(file_change_tx);
+
+    // Start file watcher
+    let _watcher = crate::services::watcher::start_watcher(
+        claude_home.clone(),
+        file_change_tx.clone(),
+    );
+
+    // Spawn background tasks
+    crate::infra::auth::spawn_token_purge_task(token_store.clone());
+    crate::services::backups::spawn_backup_prune_task(claude_home.clone());
 
     let state = Arc::new(AppState {
         config: config.clone(),
@@ -115,6 +183,9 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
         claude_json_path,
         claude_desktop_config_path,
         anthropic_client: Arc::new(RwLock::new(anthropic_client)),
+        token_store,
+        rate_limiter,
+        file_change_tx,
     });
 
     let api_routes = Router::new()
@@ -250,6 +321,10 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
             "/api/v1/analytics/projects",
             get(routes::analytics::get_project_analytics),
         )
+        .route(
+            "/api/v1/analytics/export",
+            get(routes::analytics::export_analytics),
+        )
         // Sessions
         .route("/api/v1/sessions", get(routes::sessions::list_sessions))
         .route(
@@ -297,8 +372,16 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
         // Backups
         .route("/api/v1/backups", get(routes::backups::list_backups))
         .route(
+            "/api/v1/backups/prune",
+            post(routes::backups::prune_backups),
+        )
+        .route(
             "/api/v1/backups/:name/restore",
             post(routes::backups::restore_backup),
+        )
+        .route(
+            "/api/v1/backups/:name/diff",
+            get(routes::backups::get_backup_diff),
         )
         .route(
             "/api/v1/backups/:name",
@@ -319,6 +402,55 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
         .route(
             "/api/v1/permissions/:project_id/optimize",
             get(routes::permissions::optimize_permissions),
+        )
+        // === New routes ===
+        // Auth (login for session tokens)
+        .route("/api/v1/auth/login", post(login))
+        // Audit Log
+        .route("/api/v1/audit", get(routes::audit::get_audit_log))
+        // Budgets
+        .route(
+            "/api/v1/budgets",
+            get(routes::budgets::get_budget_status).put(routes::budgets::update_budget),
+        )
+        // Preview (Markdown + Syntax Highlighting)
+        .route(
+            "/api/v1/preview/markdown",
+            post(routes::preview::render_markdown),
+        )
+        .route(
+            "/api/v1/preview/highlight",
+            post(routes::preview::highlight_code),
+        )
+        // SSE Events
+        .route("/api/v1/events", get(routes::events::sse_events))
+        // Webhooks
+        .route(
+            "/api/v1/webhooks",
+            get(routes::webhooks::list_webhooks).post(routes::webhooks::create_webhook),
+        )
+        .route(
+            "/api/v1/webhooks/:id",
+            axum::routing::put(routes::webhooks::update_webhook)
+                .delete(routes::webhooks::delete_webhook),
+        )
+        // Sync
+        .route(
+            "/api/v1/sync/manifest",
+            get(routes::sync::get_manifest),
+        )
+        .route("/api/v1/sync/push", post(routes::sync::push_files))
+        .route("/api/v1/sync/pull", post(routes::sync::pull_files))
+        .route("/api/v1/sync/file", get(routes::sync::get_file))
+        .route(
+            "/api/v1/sync/receive",
+            post(routes::sync::receive_file),
+        )
+        // API Docs
+        .route("/api/v1/docs", get(routes::docs::swagger_ui))
+        .route(
+            "/api/v1/docs/openapi.json",
+            get(routes::docs::openapi_spec),
         );
 
     let app = Router::new()

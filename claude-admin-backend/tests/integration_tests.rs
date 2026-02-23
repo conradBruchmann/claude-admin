@@ -19,6 +19,8 @@ async fn create_test_app() -> (axum::Router, TempDir) {
     )
     .unwrap();
 
+    let (file_change_tx, _) = tokio::sync::broadcast::channel(100);
+
     let state = Arc::new(claude_admin_backend::app::AppState {
         config: claude_admin_backend::infra::config::Config {
             host: "127.0.0.1".to_string(),
@@ -30,6 +32,9 @@ async fn create_test_app() -> (axum::Router, TempDir) {
         claude_json_path: claude_json,
         claude_desktop_config_path: None,
         anthropic_client: Arc::new(RwLock::new(None)),
+        token_store: claude_admin_backend::infra::auth::TokenStore::new(8),
+        rate_limiter: claude_admin_backend::infra::rate_limit::create_rate_limiter(),
+        file_change_tx: Arc::new(file_change_tx),
     });
 
     // Build the router the same way as production but with test state

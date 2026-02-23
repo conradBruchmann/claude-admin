@@ -1,6 +1,8 @@
 pub mod advisor;
 pub mod analytics;
+pub mod audit;
 pub mod backups;
+pub mod budgets;
 pub mod claude_api;
 pub mod config_health;
 pub mod export;
@@ -13,5 +15,8 @@ pub mod project_resolver;
 pub mod search;
 pub mod sessions;
 pub mod skill_browser;
+pub mod sync;
 pub mod system_info;
 pub mod templates;
+pub mod watcher;
+pub mod webhooks;

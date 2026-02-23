@@ -1,4 +1,7 @@
+pub mod code_viewer;
 pub mod confirm_dialog;
+pub mod diff_viewer;
+pub mod editor_history;
 pub mod file_tree;
 pub mod footer;
 pub mod frontmatter_form;
@@ -6,6 +9,7 @@ pub mod hook_pipeline;
 pub mod json_editor;
 pub mod keyboard_shortcuts;
 pub mod language_selector;
+pub mod live_reload;
 pub mod markdown_editor;
 pub mod modal;
 pub mod onboarding;

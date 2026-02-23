@@ -1,5 +1,182 @@
 use serde::{Deserialize, Deserializer, Serialize};
 
+// === Audit ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditEntry {
+    pub timestamp: String,
+    pub action: String,
+    pub resource_type: String,
+    pub resource_name: String,
+    #[serde(default)]
+    pub details: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuditLogResponse {
+    pub entries: Vec<AuditEntry>,
+    pub total: u64,
+}
+
+// === Budget ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BudgetConfig {
+    #[serde(default)]
+    pub daily_budget_usd: Option<f64>,
+    #[serde(default)]
+    pub weekly_budget_usd: Option<f64>,
+    #[serde(default)]
+    pub monthly_budget_usd: Option<f64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BudgetStatus {
+    pub config: BudgetConfig,
+    pub current_daily_cost: f64,
+    pub current_weekly_cost: f64,
+    pub current_monthly_cost: f64,
+    pub alerts: Vec<String>,
+}
+
+// === Webhooks ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebhookConfig {
+    pub id: String,
+    pub url: String,
+    pub events: Vec<String>,
+    pub secret: Option<String>,
+    pub active: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebhookCreateRequest {
+    pub url: String,
+    pub events: Vec<String>,
+    #[serde(default)]
+    pub secret: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebhookUpdateRequest {
+    pub url: Option<String>,
+    pub events: Option<Vec<String>>,
+    pub secret: Option<String>,
+    pub active: Option<bool>,
+}
+
+// === Sync ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SyncManifest {
+    pub instance_id: String,
+    pub files: Vec<SyncFileEntry>,
+    pub generated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SyncFileEntry {
+    pub path: String,
+    pub hash: String,
+    pub size: u64,
+    pub modified: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SyncPushRequest {
+    pub target_url: String,
+    pub files: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SyncPullRequest {
+    pub source_url: String,
+    pub files: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SyncResult {
+    pub transferred: usize,
+    pub skipped: usize,
+    pub errors: Vec<String>,
+}
+
+// === RBAC ===
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum UserRole {
+    Admin,
+    Editor,
+    Viewer,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UserEntry {
+    pub username: String,
+    pub role: UserRole,
+    pub token: String,
+}
+
+// === Diff ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiffResult {
+    pub lines: Vec<DiffLine>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiffLine {
+    pub kind: String, // "add", "remove", "context"
+    pub content: String,
+    pub line_number: Option<usize>,
+}
+
+// === Backup Prune ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PruneResult {
+    pub deleted_count: usize,
+    pub remaining_count: usize,
+}
+
+// === Login ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoginRequest {
+    pub token: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoginResponse {
+    pub session_token: String,
+    pub expires_at: String,
+}
+
+// === Preview ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkdownPreviewRequest {
+    pub content: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MarkdownPreviewResponse {
+    pub html: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HighlightRequest {
+    pub code: String,
+    pub language: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HighlightResponse {
+    pub html: String,
+}
+
 // === Enums ===
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

@@ -106,6 +106,98 @@ pub async fn delete_backup(claude_home: &Path, backup_name: &str) -> Result<(), 
     Ok(())
 }
 
+/// Prune old backups. Keeps at most `max_files` and removes files older than `max_days`.
+pub async fn prune_backups(
+    claude_home: &Path,
+    max_files: usize,
+    max_days: u64,
+) -> Result<claude_admin_shared::PruneResult, ApiError> {
+    let backup_dir = claude_home.join("backups");
+    if !tokio::fs::try_exists(&backup_dir).await.unwrap_or(false) {
+        return Ok(claude_admin_shared::PruneResult {
+            deleted_count: 0,
+            remaining_count: 0,
+        });
+    }
+
+    let mut entries: Vec<(String, std::time::SystemTime)> = Vec::new();
+    let mut dir = tokio::fs::read_dir(&backup_dir).await?;
+    while let Some(entry) = dir.next_entry().await? {
+        let path = entry.path();
+        if !path.is_file() {
+            continue;
+        }
+        let name = path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string();
+        let modified = entry
+            .metadata()
+            .await
+            .ok()
+            .and_then(|m| m.modified().ok())
+            .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
+        entries.push((name, modified));
+    }
+
+    // Sort by modified time, newest first
+    entries.sort_by(|a, b| b.1.cmp(&a.1));
+
+    let now = std::time::SystemTime::now();
+    let max_age = std::time::Duration::from_secs(max_days * 86400);
+    let mut deleted_count = 0;
+
+    for (i, (name, modified)) in entries.iter().enumerate() {
+        let too_old = now
+            .duration_since(*modified)
+            .map(|d| d > max_age)
+            .unwrap_or(false);
+        let over_limit = i >= max_files;
+
+        if too_old || over_limit {
+            let path = backup_dir.join(name);
+            if tokio::fs::remove_file(&path).await.is_ok() {
+                deleted_count += 1;
+            }
+        }
+    }
+
+    let remaining_count = entries.len() - deleted_count;
+    Ok(claude_admin_shared::PruneResult {
+        deleted_count,
+        remaining_count,
+    })
+}
+
+/// Spawn background task to prune backups every 6 hours.
+pub fn spawn_backup_prune_task(claude_home: std::path::PathBuf) {
+    tokio::spawn(async move {
+        let mut interval =
+            tokio::time::interval(std::time::Duration::from_secs(6 * 3600));
+        loop {
+            interval.tick().await;
+            match prune_backups(&claude_home, 100, 30).await {
+                Ok(result) => {
+                    if result.deleted_count > 0 {
+                        tracing::info!(
+                            "Auto-pruned {} backups, {} remaining",
+                            result.deleted_count,
+                            result.remaining_count
+                        );
+                    }
+                }
+                Err(e) => tracing::warn!("Backup auto-prune failed: {}", e),
+            }
+        }
+    });
+}
+
+/// Extract relative path from backup name (public version).
+pub fn parse_original_path_pub(name: &str) -> String {
+    parse_original_path(name)
+}
+
 /// Extract relative path from backup name.
 /// Format: YYYYMMDD_HHMMSS_relative_path
 fn parse_original_path(name: &str) -> String {

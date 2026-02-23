@@ -1,6 +1,11 @@
 use gloo_net::http::Request;
 use serde::{de::DeserializeOwned, Serialize};
 
+/// Public accessor for the API base URL (used by LiveReload and other components).
+pub fn api_base_url() -> String {
+    api_base()
+}
+
 /// Returns the API base URL. In dev (trunk on :9023), points to backend on :9022.
 /// In production (embedded frontend), uses relative path.
 fn api_base() -> String {

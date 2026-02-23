@@ -1,8 +1,9 @@
-use claude_admin_shared::BackupEntry;
+use claude_admin_shared::{BackupEntry, DiffResult, PruneResult};
 use leptos::*;
 
 use crate::api;
 use crate::components::confirm_dialog::ConfirmDialog;
+use crate::components::diff_viewer::DiffViewer;
 use crate::i18n::t;
 
 fn format_size(bytes: u64) -> String {
@@ -22,14 +23,40 @@ pub fn BackupsPage() -> impl IntoView {
         |_| async move { api::get::<Vec<BackupEntry>>("/backups").await },
     );
 
-    let action_status = create_rw_signal::<Option<(String, bool)>>(None); // (message, is_error)
+    let action_status = create_rw_signal::<Option<(String, bool)>>(None);
     let confirm_delete = create_rw_signal(false);
     let delete_target = create_rw_signal::<Option<String>>(None);
+    let diff_data = create_rw_signal::<Option<DiffResult>>(None);
+    let diff_name = create_rw_signal::<Option<String>>(None);
 
     view! {
         <div class="page-header">
-            <h2>{t("backups.title")}</h2>
-            <p>{t("backups.subtitle")}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2>{t("backups.title")}</h2>
+                    <p>{t("backups.subtitle")}</p>
+                </div>
+                <button
+                    class="btn btn-secondary"
+                    on:click=move |_| {
+                        action_status.set(None);
+                        spawn_local(async move {
+                            match api::post::<PruneResult, ()>("/backups/prune", &()).await {
+                                Ok(result) => {
+                                    action_status.set(Some((
+                                        format!("Pruned {} backups, {} remaining", result.deleted_count, result.remaining_count),
+                                        false,
+                                    )));
+                                    backups.refetch();
+                                }
+                                Err(e) => action_status.set(Some((format!("Prune failed: {}", e), true))),
+                            }
+                        });
+                    }
+                >
+                    "Prune Old Backups"
+                </button>
+            </div>
         </div>
 
         {move || action_status.get().map(|(msg, is_error)| view! {
@@ -43,6 +70,20 @@ pub fn BackupsPage() -> impl IntoView {
             )>
                 {msg}
             </div>
+        })}
+
+        // Diff viewer
+        {move || diff_data.get().map(|diff| {
+            let name = diff_name.get().unwrap_or_default();
+            view! {
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h3 style="margin: 0;">{format!("Diff: {}", name)}</h3>
+                        <button class="btn btn-sm btn-ghost" on:click=move |_| diff_data.set(None)>"Close"</button>
+                    </div>
+                    <DiffViewer diff=diff/>
+                </div>
+            }
         })}
 
         <Suspense fallback=move || view! { <div class="loading">{t("backups.loading")}</div> }>
@@ -72,6 +113,7 @@ pub fn BackupsPage() -> impl IntoView {
                                     {data.into_iter().map(|entry| {
                                         let name_restore = entry.name.clone();
                                         let name_delete = entry.name.clone();
+                                        let name_diff = entry.name.clone();
                                         let size_display = format_size(entry.size_bytes);
 
                                         view! {
@@ -90,6 +132,24 @@ pub fn BackupsPage() -> impl IntoView {
                                                 </td>
                                                 <td style="white-space: nowrap;">
                                                     <div style="display: flex; gap: 0.5rem;">
+                                                        <button
+                                                            class="btn btn-sm btn-ghost"
+                                                            on:click=move |_| {
+                                                                let name = name_diff.clone();
+                                                                diff_data.set(None);
+                                                                spawn_local(async move {
+                                                                    match api::get::<DiffResult>(&format!("/backups/{}/diff", name)).await {
+                                                                        Ok(diff) => {
+                                                                            diff_name.set(Some(name));
+                                                                            diff_data.set(Some(diff));
+                                                                        }
+                                                                        Err(e) => action_status.set(Some((format!("Diff failed: {}", e), true))),
+                                                                    }
+                                                                });
+                                                            }
+                                                        >
+                                                            "Diff"
+                                                        </button>
                                                         <button
                                                             class="btn btn-sm btn-secondary"
                                                             on:click=move |_| {

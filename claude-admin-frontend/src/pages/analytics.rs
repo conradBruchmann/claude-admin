@@ -6,15 +6,78 @@ use crate::i18n::t;
 
 #[component]
 pub fn AnalyticsPage() -> impl IntoView {
+    let from_date = create_rw_signal(String::new());
+    let to_date = create_rw_signal(String::new());
+
     let analytics = create_resource(
-        || (),
-        |_| async move { api::get::<AnalyticsOverview>("/analytics/overview").await },
+        move || (from_date.get(), to_date.get()),
+        move |(from, to)| async move {
+            let mut path = "/analytics/overview".to_string();
+            let mut params = Vec::new();
+            if !from.is_empty() {
+                params.push(format!("from={}", from));
+            }
+            if !to.is_empty() {
+                params.push(format!("to={}", to));
+            }
+            if !params.is_empty() {
+                path = format!("{}?{}", path, params.join("&"));
+            }
+            api::get::<AnalyticsOverview>(&path).await
+        },
     );
+
+    let export_base = move || {
+        let base = crate::api::api_base_url();
+        format!("{}/analytics/export", base)
+    };
 
     view! {
         <div class="page-header">
             <h2>{t("analytics.title")}</h2>
             <p>{t("analytics.subtitle")}</p>
+        </div>
+
+        // Date filter controls
+        <div class="card" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            <label style="font-size: 0.875rem; font-weight: 500;">"Filter:"</label>
+            <input
+                type="date"
+                style="padding: 0.375rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-secondary); color: var(--text);"
+                prop:value=move || from_date.get()
+                on:input=move |ev| from_date.set(event_target_value(&ev))
+            />
+            <span style="color: var(--text-muted);">"to"</span>
+            <input
+                type="date"
+                style="padding: 0.375rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-secondary); color: var(--text);"
+                prop:value=move || to_date.get()
+                on:input=move |ev| to_date.set(event_target_value(&ev))
+            />
+            <button
+                class="btn btn-sm btn-ghost"
+                on:click=move |_| { from_date.set(String::new()); to_date.set(String::new()); }
+            >
+                "Clear"
+            </button>
+            <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+                <a
+                    class="btn btn-sm btn-secondary"
+                    href=move || format!("{}?format=csv", export_base())
+                    target="_blank"
+                    download="analytics.csv"
+                >
+                    "Export CSV"
+                </a>
+                <a
+                    class="btn btn-sm btn-secondary"
+                    href=move || format!("{}?format=json", export_base())
+                    target="_blank"
+                    download="analytics.json"
+                >
+                    "Export JSON"
+                </a>
+            </div>
         </div>
 
         <Suspense fallback=move || view! { <div class="loading">{t("analytics.loading")}</div> }>
