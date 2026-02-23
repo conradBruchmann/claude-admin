@@ -277,7 +277,7 @@ pub async fn health_check_server(
     }
 
     match tokio::time::timeout(
-        std::time::Duration::from_secs(15),
+        std::time::Duration::from_secs(10),
         spawn_and_check(&command, &args, &env_vars),
     )
     .await
@@ -312,7 +312,7 @@ pub async fn health_check_server(
             server_info: None,
             tools: vec![],
             duration_ms: start.elapsed().as_millis() as u64,
-            error: Some("Health check timed out after 15s".to_string()),
+            error: Some("Health check timed out after 10s".to_string()),
             source: source.to_string(),
             stderr_output: None,
         },
@@ -380,9 +380,6 @@ async fn spawn_and_check(
         .stderr(std::process::Stdio::piped())
         .spawn()
         .map_err(|e| format!("Failed to spawn '{}': {}", command, e))?;
-
-    // Wait for the server to start up (npx-based servers need time to load)
-    tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
 
     let stdin = child.stdin.as_mut().ok_or("No stdin")?;
     let stdout = child.stdout.take().ok_or("No stdout")?;
@@ -491,11 +488,16 @@ async fn spawn_and_check(
         })
         .unwrap_or_default();
 
-    // Read stderr (non-blocking, take up to 4KB)
+    // Read stderr with short timeout (don't block if empty)
     let mut stderr_output = String::new();
     if let Some(mut stderr) = child.stderr.take() {
         let mut buf = vec![0u8; 4096];
-        if let Ok(n) = stderr.read(&mut buf).await {
+        if let Ok(Ok(n)) = tokio::time::timeout(
+            std::time::Duration::from_millis(500),
+            stderr.read(&mut buf),
+        )
+        .await
+        {
             stderr_output = String::from_utf8_lossy(&buf[..n]).to_string();
         }
     }
