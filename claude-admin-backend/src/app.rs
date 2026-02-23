@@ -200,7 +200,7 @@ pub async fn security_headers(request: Request<Body>, next: Next) -> Response {
     headers.insert(header::X_FRAME_OPTIONS, "DENY".parse().unwrap());
     headers.insert(
         header::CONTENT_SECURITY_POLICY,
-        "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self' https://unpkg.com"
+        "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; img-src 'self' data:; connect-src 'self' https://unpkg.com"
             .parse()
             .unwrap(),
     );

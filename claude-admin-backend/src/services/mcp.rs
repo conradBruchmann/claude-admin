@@ -277,7 +277,7 @@ pub async fn health_check_server(
     }
 
     match tokio::time::timeout(
-        std::time::Duration::from_secs(3),
+        std::time::Duration::from_secs(10),
         spawn_and_check(&command, &args, &env_vars),
     )
     .await
@@ -312,11 +312,54 @@ pub async fn health_check_server(
             server_info: None,
             tools: vec![],
             duration_ms: start.elapsed().as_millis() as u64,
-            error: Some("Health check timed out after 3s".to_string()),
+            error: Some("Health check timed out after 10s".to_string()),
             source: source.to_string(),
             stderr_output: None,
         },
     }
+}
+
+/// Read lines from the MCP server until we find a JSON-RPC response with the given `id`.
+/// Skips empty lines, non-JSON output, and notifications (messages without `id`).
+async fn read_jsonrpc_response(
+    reader: &mut tokio::io::BufReader<tokio::process::ChildStdout>,
+    expected_id: u64,
+) -> Result<serde_json::Value, String> {
+    use tokio::io::AsyncBufReadExt;
+
+    for _ in 0..50 {
+        let mut line = String::new();
+        let bytes_read = reader
+            .read_line(&mut line)
+            .await
+            .map_err(|e| format!("Read error: {}", e))?;
+
+        if bytes_read == 0 {
+            return Err("Server closed stdout (EOF)".to_string());
+        }
+
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        let parsed: serde_json::Value = match serde_json::from_str(trimmed) {
+            Ok(v) => v,
+            Err(_) => continue, // skip non-JSON output (banners, logs)
+        };
+
+        // Skip notifications (no "id" field)
+        if parsed.get("id").is_none() {
+            continue;
+        }
+
+        // Check if this is the response we're waiting for
+        if parsed.get("id").and_then(|v| v.as_u64()) == Some(expected_id) {
+            return Ok(parsed);
+        }
+    }
+
+    Err("No matching JSON-RPC response after 50 lines".to_string())
 }
 
 /// Spawn the MCP process and run JSON-RPC initialize + tools/list.
@@ -326,7 +369,7 @@ async fn spawn_and_check(
     args: &[String],
     env_vars: &HashMap<String, String>,
 ) -> Result<(String, Vec<McpToolInfo>, String), String> {
-    use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
+    use tokio::io::{AsyncReadExt, AsyncWriteExt, BufReader};
     use tokio::process::Command;
 
     let mut child = Command::new(command)
@@ -367,15 +410,8 @@ async fn spawn_and_check(
         .await
         .map_err(|e| format!("Write error: {}", e))?;
 
-    // Read initialize response
-    let mut line = String::new();
-    reader
-        .read_line(&mut line)
-        .await
-        .map_err(|e| format!("Read error: {}", e))?;
-
-    let init_resp: serde_json::Value =
-        serde_json::from_str(line.trim()).map_err(|e| format!("Invalid JSON response: {}", e))?;
+    // Read initialize response (skip empty lines, notifications, non-JSON)
+    let init_resp = read_jsonrpc_response(&mut reader, 1).await?;
 
     let server_info = init_resp
         .pointer("/result/serverInfo/name")
@@ -417,15 +453,8 @@ async fn spawn_and_check(
         .await
         .map_err(|e| format!("Write error: {}", e))?;
 
-    // Read tools/list response
-    let mut tools_line = String::new();
-    reader
-        .read_line(&mut tools_line)
-        .await
-        .map_err(|e| format!("Read error: {}", e))?;
-
-    let tools_resp: serde_json::Value = serde_json::from_str(tools_line.trim())
-        .map_err(|e| format!("Invalid JSON tools response: {}", e))?;
+    // Read tools/list response (skip empty lines, notifications, non-JSON)
+    let tools_resp = read_jsonrpc_response(&mut reader, 2).await?;
 
     let tools = tools_resp
         .pointer("/result/tools")
