@@ -23,7 +23,7 @@ pub async fn run(client: &ApiClient, action: RuleAction) -> Result<(), String> {
                 println!("No rules found.");
                 return Ok(());
             }
-            println!("{:<10} {}", "Scope", "Name");
+            println!("{:<10} Name", "Scope");
             println!("{}", "-".repeat(50));
             for rule in rules {
                 let scope = format!("{:?}", rule.scope).to_lowercase();

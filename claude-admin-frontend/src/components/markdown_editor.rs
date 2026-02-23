@@ -27,8 +27,8 @@ pub fn MarkdownEditor(
     };
 
     // Debounced preview rendering
-    let content_for_preview = content.clone();
-    let preview_html_setter = preview_html.clone();
+    let content_for_preview = content;
+    let preview_html_setter = preview_html;
     create_effect(move |_| {
         let showing = show_preview.get();
         if showing {

@@ -114,10 +114,10 @@ fn compute_diff(old: &str, new: &str) -> claude_admin_shared::DiffResult {
                 match (old_match, new_match) {
                     (Some(om), Some(nm)) if om <= nm => {
                         // Add new lines first
-                        for j in ni..ni + om {
+                        for (j, line) in new_lines.iter().enumerate().skip(ni).take(om) {
                             lines.push(claude_admin_shared::DiffLine {
                                 kind: "add".to_string(),
-                                content: new_lines[j].to_string(),
+                                content: line.to_string(),
                                 line_number: Some(j + 1),
                             });
                         }
@@ -125,30 +125,30 @@ fn compute_diff(old: &str, new: &str) -> claude_admin_shared::DiffResult {
                     }
                     (Some(_), Some(nm)) => {
                         // Remove old lines first
-                        for j in oi..oi + nm {
+                        for (j, line) in old_lines.iter().enumerate().skip(oi).take(nm) {
                             lines.push(claude_admin_shared::DiffLine {
                                 kind: "remove".to_string(),
-                                content: old_lines[j].to_string(),
+                                content: line.to_string(),
                                 line_number: Some(j + 1),
                             });
                         }
                         oi += nm;
                     }
                     (Some(om), None) => {
-                        for j in ni..ni + om {
+                        for (j, line) in new_lines.iter().enumerate().skip(ni).take(om) {
                             lines.push(claude_admin_shared::DiffLine {
                                 kind: "add".to_string(),
-                                content: new_lines[j].to_string(),
+                                content: line.to_string(),
                                 line_number: Some(j + 1),
                             });
                         }
                         ni += om;
                     }
                     (None, Some(nm)) => {
-                        for j in oi..oi + nm {
+                        for (j, line) in old_lines.iter().enumerate().skip(oi).take(nm) {
                             lines.push(claude_admin_shared::DiffLine {
                                 kind: "remove".to_string(),
-                                content: old_lines[j].to_string(),
+                                content: line.to_string(),
                                 line_number: Some(j + 1),
                             });
                         }

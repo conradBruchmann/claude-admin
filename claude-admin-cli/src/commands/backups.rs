@@ -23,7 +23,7 @@ pub async fn run(client: &ApiClient, action: BackupAction) -> Result<(), String>
                 println!("No backups found.");
                 return Ok(());
             }
-            println!("{:<50} {:<10} {}", "Name", "Size", "Created");
+            println!("{:<50} {:<10} Created", "Name", "Size");
             println!("{}", "-".repeat(80));
             for b in backups {
                 let size = if b.size_bytes >= 1024 {

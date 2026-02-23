@@ -38,7 +38,7 @@ pub async fn run(client: &ApiClient, action: SkillAction) -> Result<(), String> 
                 println!("No skills found.");
                 return Ok(());
             }
-            println!("{:<10} {:<30} {}", "Scope", "Name", "Description");
+            println!("{:<10} {:<30} Description", "Scope", "Name");
             println!("{}", "-".repeat(70));
             for skill in skills {
                 let scope = format!("{:?}", skill.scope).to_lowercase();

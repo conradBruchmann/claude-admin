@@ -11,7 +11,7 @@ pub fn LiveReload(#[prop(into)] on_change: Callback<String>) -> impl IntoView {
         let url = format!("{}/events", base);
 
         if let Ok(es) = web_sys::EventSource::new(&url) {
-            let on_change = on_change.clone();
+            let on_change = on_change;
             let callback = Closure::<dyn Fn(web_sys::MessageEvent)>::new(
                 move |event: web_sys::MessageEvent| {
                     if let Some(data) = event.data().as_string() {
