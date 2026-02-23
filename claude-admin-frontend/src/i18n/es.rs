@@ -59,6 +59,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.tab_servers", "Servidores");
         m.insert("mcp.tab_health", "Verificaci\u{f3}n de estado");
         m.insert("mcp.tab_add", "Nuevo servidor");
+        m.insert("mcp.tab_browse", "Explorar catálogo");
         m.insert("mcp.loading", "Cargando servidores MCP");
         m.insert("mcp.no_servers", "No hay servidores MCP configurados");
         m.insert("mcp.no_servers_hint", "A\u{f1}ade servidores usando la pesta\u{f1}a \u{2018}Nuevo servidor\u{2019} o el Explorador MCP.");
@@ -93,6 +94,18 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.add.config_label", "Configuraci\u{f3}n del servidor (JSON)");
         m.insert("mcp.add.submit", "A\u{f1}adir servidor");
         m.insert("mcp.add.name_required", "Por favor, introduce un nombre de servidor");
+        m.insert("mcp.browse.title", "Catálogo de servidores MCP");
+        m.insert("mcp.browse.description", "Explora servidores MCP populares e instálalos con un clic. Revisa la configuración antes de instalar.");
+        m.insert("mcp.browse.installed", "Instalado");
+        m.insert("mcp.browse.install", "Instalar");
+        m.insert("mcp.browse.show_config", "Mostrar configuración");
+        m.insert("mcp.browse.hide_config", "Ocultar configuración");
+        m.insert("mcp.browse.config_hint", "Revisa y edita la configuración antes de instalar. Completa las claves API y rutas requeridas.");
+        m.insert("mcp.browse.cat_system", "Sistema y Archivos");
+        m.insert("mcp.browse.cat_database", "Bases de datos");
+        m.insert("mcp.browse.cat_api", "APIs");
+        m.insert("mcp.browse.cat_specialized", "Especializado");
+        m.insert("mcp.browse.npm", "npm");
         m.insert("mcp.source.claude_code", "Claude Code");
         m.insert("mcp.source.claude_desktop", "Claude Desktop");
 

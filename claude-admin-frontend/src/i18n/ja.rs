@@ -59,6 +59,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.tab_servers", "サーバー");
         m.insert("mcp.tab_health", "ヘルスチェック");
         m.insert("mcp.tab_add", "新規サーバー");
+        m.insert("mcp.tab_browse", "カタログを閲覧");
         m.insert("mcp.loading", "MCP サーバーを読み込み中");
         m.insert("mcp.no_servers", "MCP サーバーが構成されていません");
         m.insert("mcp.no_servers_hint", "「新規サーバー」タブまたは MCP ブラウザからサーバーを追加してください。");
@@ -93,6 +94,18 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.add.config_label", "サーバー構成 (JSON)");
         m.insert("mcp.add.submit", "サーバーを追加");
         m.insert("mcp.add.name_required", "サーバー名を入力してください");
+        m.insert("mcp.browse.title", "MCP サーバーカタログ");
+        m.insert("mcp.browse.description", "人気のMCPサーバーを閲覧し、ワンクリックでインストール。インストール前に設定を確認できます。");
+        m.insert("mcp.browse.installed", "インストール済み");
+        m.insert("mcp.browse.install", "インストール");
+        m.insert("mcp.browse.show_config", "設定を表示");
+        m.insert("mcp.browse.hide_config", "設定を非表示");
+        m.insert("mcp.browse.config_hint", "インストール前に設定を確認・編集してください。必要なAPIキーとパスを入力してください。");
+        m.insert("mcp.browse.cat_system", "システム & ファイル");
+        m.insert("mcp.browse.cat_database", "データベース");
+        m.insert("mcp.browse.cat_api", "API");
+        m.insert("mcp.browse.cat_specialized", "専門ツール");
+        m.insert("mcp.browse.npm", "npm");
         m.insert("mcp.source.claude_code", "Claude Code");
         m.insert("mcp.source.claude_desktop", "Claude Desktop");
 

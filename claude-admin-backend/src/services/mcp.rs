@@ -277,7 +277,7 @@ pub async fn health_check_server(
     }
 
     match tokio::time::timeout(
-        std::time::Duration::from_secs(10),
+        std::time::Duration::from_secs(15),
         spawn_and_check(&command, &args, &env_vars),
     )
     .await
@@ -296,24 +296,15 @@ pub async fn health_check_server(
                 Some(stderr)
             },
         },
-        Ok(Err(e)) => {
-            let is_unsupported = e.contains("EOF")
-                || e.contains("closed stdout")
-                || e.contains("No matching JSON-RPC response");
-            McpHealthResult {
-                name: name.to_string(),
-                status: if is_unsupported {
-                    McpServerStatus::Unsupported
-                } else {
-                    McpServerStatus::Error
-                },
-                server_info: None,
-                tools: vec![],
-                duration_ms: start.elapsed().as_millis() as u64,
-                error: Some(e),
-                source: source.to_string(),
-                stderr_output: None,
-            }
+        Ok(Err(e)) => McpHealthResult {
+            name: name.to_string(),
+            status: McpServerStatus::Error,
+            server_info: None,
+            tools: vec![],
+            duration_ms: start.elapsed().as_millis() as u64,
+            error: Some(e),
+            source: source.to_string(),
+            stderr_output: None,
         },
         Err(_) => McpHealthResult {
             name: name.to_string(),
@@ -321,7 +312,7 @@ pub async fn health_check_server(
             server_info: None,
             tools: vec![],
             duration_ms: start.elapsed().as_millis() as u64,
-            error: Some("Health check timed out after 10s".to_string()),
+            error: Some("Health check timed out after 15s".to_string()),
             source: source.to_string(),
             stderr_output: None,
         },
@@ -390,6 +381,9 @@ async fn spawn_and_check(
         .spawn()
         .map_err(|e| format!("Failed to spawn '{}': {}", command, e))?;
 
+    // Wait for the server to start up (npx-based servers need time to load)
+    tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
+
     let stdin = child.stdin.as_mut().ok_or("No stdin")?;
     let stdout = child.stdout.take().ok_or("No stdout")?;
     let mut reader = BufReader::new(stdout);
@@ -418,6 +412,10 @@ async fn spawn_and_check(
         .write_all(b"\n")
         .await
         .map_err(|e| format!("Write error: {}", e))?;
+    stdin
+        .flush()
+        .await
+        .map_err(|e| format!("Flush error: {}", e))?;
 
     // Read initialize response (skip empty lines, notifications, non-JSON)
     let init_resp = read_jsonrpc_response(&mut reader, 1).await?;
@@ -443,6 +441,10 @@ async fn spawn_and_check(
         .write_all(b"\n")
         .await
         .map_err(|e| format!("Write error: {}", e))?;
+    stdin
+        .flush()
+        .await
+        .map_err(|e| format!("Flush error: {}", e))?;
 
     // Send tools/list request
     let tools_request = serde_json::json!({
@@ -461,6 +463,10 @@ async fn spawn_and_check(
         .write_all(b"\n")
         .await
         .map_err(|e| format!("Write error: {}", e))?;
+    stdin
+        .flush()
+        .await
+        .map_err(|e| format!("Flush error: {}", e))?;
 
     // Read tools/list response (skip empty lines, notifications, non-JSON)
     let tools_resp = read_jsonrpc_response(&mut reader, 2).await?;
@@ -533,6 +539,37 @@ pub async fn get_mcp_catalog(
     let installed_names: Vec<String> = all.into_iter().map(|(name, _, _)| name).collect();
 
     let catalog = vec![
+        // System & Files
+        (
+            "filesystem",
+            "Secure file system access — read, write, search, and manage files within allowed directories",
+            "system",
+            "@modelcontextprotocol/server-filesystem",
+            serde_json::json!({
+                "command": "npx",
+                "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/you/projects"]
+            }),
+        ),
+        (
+            "desktop-commander",
+            "Desktop automation — execute commands, manage processes, read/write files, and diff editing",
+            "system",
+            "@wonderwhy-er/desktop-commander",
+            serde_json::json!({
+                "command": "npx",
+                "args": ["-y", "@wonderwhy-er/desktop-commander@latest"]
+            }),
+        ),
+        (
+            "fetch",
+            "Web content fetching — retrieve and convert web pages to markdown for AI consumption",
+            "system",
+            "@modelcontextprotocol/server-fetch",
+            serde_json::json!({
+                "command": "npx",
+                "args": ["-y", "@modelcontextprotocol/server-fetch"]
+            }),
+        ),
         // Databases
         (
             "postgres",

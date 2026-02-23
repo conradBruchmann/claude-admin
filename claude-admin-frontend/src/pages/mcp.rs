@@ -1,5 +1,6 @@
 use claude_admin_shared::{
-    McpHealthResult, McpServerCreateRequest, McpServerDetail, McpServerUpdateRequest,
+    BrowsableMcpServer, McpHealthResult, McpInstallRequest, McpServerCreateRequest,
+    McpServerDetail, McpServerUpdateRequest,
 };
 use leptos::*;
 
@@ -30,12 +31,17 @@ pub fn McpServersPage() -> impl IntoView {
                 class=move || if active_tab.get() == "add" { "tab active" } else { "tab" }
                 on:click=move |_| active_tab.set("add".to_string())
             >{t("mcp.tab_add")}</button>
+            <button
+                class=move || if active_tab.get() == "browse" { "tab active" } else { "tab" }
+                on:click=move |_| active_tab.set("browse".to_string())
+            >{t("mcp.tab_browse")}</button>
         </div>
 
         {move || match active_tab.get().as_str() {
             "servers" => view! { <ServersTab/> }.into_view(),
             "health" => view! { <HealthCheckTab/> }.into_view(),
             "add" => view! { <AddServerTab/> }.into_view(),
+            "browse" => view! { <BrowseCatalogTab/> }.into_view(),
             _ => view! { <ServersTab/> }.into_view(),
         }}
     }
@@ -487,5 +493,206 @@ fn AddServerTab() -> impl IntoView {
                 }
             >{t("mcp.add.submit")}</button>
         </div>
+    }
+}
+
+// ─────────────────────────────────────────────
+// Browse Catalog Tab
+// ─────────────────────────────────────────────
+
+fn category_label(cat: &str) -> Signal<String> {
+    match cat {
+        "system" => t("mcp.browse.cat_system"),
+        "database" => t("mcp.browse.cat_database"),
+        "api" => t("mcp.browse.cat_api"),
+        "specialized" => t("mcp.browse.cat_specialized"),
+        _ => t("mcp.browse.cat_specialized"),
+    }
+}
+
+fn category_color(cat: &str) -> &'static str {
+    match cat {
+        "system" => "background: var(--info); color: #fff;",
+        "database" => "background: var(--warning); color: #000;",
+        "api" => "background: var(--success); color: #fff;",
+        "specialized" => "background: var(--text-muted); color: #fff;",
+        _ => "background: var(--text-muted); color: #fff;",
+    }
+}
+
+#[component]
+fn BrowseCatalogTab() -> impl IntoView {
+    let catalog = create_resource(
+        || (),
+        |_| async move { api::get::<Vec<BrowsableMcpServer>>("/mcp-browser").await },
+    );
+    let expanded = create_rw_signal::<Option<String>>(None);
+    let edit_config = create_rw_signal(String::new());
+    let install_status = create_rw_signal::<Option<(String, bool)>>(None);
+
+    view! {
+        <h3 style="margin-bottom: 0.5rem;">{t("mcp.browse.title")}</h3>
+        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.5rem;">
+            {t("mcp.browse.description")}
+        </p>
+
+        {move || install_status.get().map(|(msg, ok)| view! {
+            <div class="card" style=format!(
+                "margin-bottom: 1rem; padding: 0.5rem 1rem; border-left: 3px solid {};",
+                if ok { "var(--success)" } else { "var(--error)" }
+            )>
+                <span style="font-size: 0.875rem;">{msg}</span>
+            </div>
+        })}
+
+        <Suspense fallback=move || view! { <div class="loading">{t("mcp.loading")}</div> }>
+            {move || catalog.get().map(|result| match result {
+                Ok(servers) => {
+                    let categories = vec!["system", "database", "api", "specialized"];
+                    view! {
+                        {categories.into_iter().map(|cat| {
+                            let cat_servers: Vec<_> = servers.iter()
+                                .filter(|s| s.category == cat)
+                                .cloned()
+                                .collect();
+                            if cat_servers.is_empty() {
+                                return view! { <div></div> }.into_view();
+                            }
+                            view! {
+                                <div style="margin-bottom: 1.5rem;">
+                                    <h4 style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span class="badge" style=format!("font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px; {}", category_color(cat))>
+                                            {category_label(cat)}
+                                        </span>
+                                    </h4>
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1rem;">
+                                        {cat_servers.into_iter().map(|server| {
+                                            let name = server.name.clone();
+                                            let name_expand = server.name.clone();
+                                            let name_install = server.name.clone();
+                                            let config_json = serde_json::to_string_pretty(&server.default_config).unwrap_or_default();
+                                            let config_for_expand = config_json.clone();
+                                            let installed = server.installed;
+
+                                            view! {
+                                                <div class="card" style="padding: 1rem; position: relative;">
+                                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                                        <div>
+                                                            <div style="font-weight: 600; font-size: 0.95rem;">{&server.name}</div>
+                                                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem;">
+                                                                <span class="badge badge-muted" style="font-size: 0.65rem; padding: 0.1rem 0.3rem;">
+                                                                    {t("mcp.browse.npm")}
+                                                                </span>
+                                                                " "
+                                                                {&server.npm_package}
+                                                            </div>
+                                                        </div>
+                                                        {if installed {
+                                                            view! {
+                                                                <span class="badge badge-success" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
+                                                                    {t("mcp.browse.installed")}
+                                                                </span>
+                                                            }.into_view()
+                                                        } else {
+                                                            view! { <span></span> }.into_view()
+                                                        }}
+                                                    </div>
+                                                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0.5rem 0 0.75rem 0; line-height: 1.4;">
+                                                        {&server.description}
+                                                    </p>
+                                                    <div style="display: flex; gap: 0.5rem;">
+                                                        <button
+                                                            class="btn btn-sm"
+                                                            on:click=move |_| {
+                                                                if expanded.get().as_deref() == Some(&name_expand) {
+                                                                    expanded.set(None);
+                                                                } else {
+                                                                    edit_config.set(config_for_expand.clone());
+                                                                    expanded.set(Some(name_expand.clone()));
+                                                                    install_status.set(None);
+                                                                }
+                                                            }
+                                                        >
+                                                            {move || {
+                                                                if expanded.get().as_deref() == Some(&name) {
+                                                                    t("mcp.browse.hide_config").get()
+                                                                } else {
+                                                                    t("mcp.browse.show_config").get()
+                                                                }
+                                                            }}
+                                                        </button>
+                                                    </div>
+
+                                                    // Expandable config panel
+                                                    {move || {
+                                                        if expanded.get().as_deref() == Some(&name_install) {
+                                                            let n = name_install.clone();
+                                                            Some(view! {
+                                                                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
+                                                                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                                                        {t("mcp.browse.config_hint")}
+                                                                    </p>
+                                                                    <div class="editor-container">
+                                                                        <textarea
+                                                                            class="editor-textarea"
+                                                                            style="min-height: 140px; font-family: monospace; font-size: 0.8rem;"
+                                                                            prop:value=move || edit_config.get()
+                                                                            on:input=move |ev| edit_config.set(event_target_value(&ev))
+                                                                        />
+                                                                    </div>
+                                                                    <div style="margin-top: 0.5rem;">
+                                                                        <button
+                                                                            class="btn btn-primary btn-sm"
+                                                                            prop:disabled=installed
+                                                                            on:click=move |_| {
+                                                                                let server_name = n.clone();
+                                                                                let config_str = edit_config.get();
+                                                                                spawn_local(async move {
+                                                                                    match serde_json::from_str::<serde_json::Value>(&config_str) {
+                                                                                        Ok(config) => {
+                                                                                            let req = McpInstallRequest {
+                                                                                                name: server_name.clone(),
+                                                                                                config,
+                                                                                            };
+                                                                                            match api::post::<McpServerDetail, _>("/mcp-browser/install", &req).await {
+                                                                                                Ok(_) => {
+                                                                                                    install_status.set(Some((format!("'{}' installed!", server_name), true)));
+                                                                                                    catalog.refetch();
+                                                                                                }
+                                                                                                Err(e) => install_status.set(Some((format!("Error: {}", e), false))),
+                                                                                            }
+                                                                                        }
+                                                                                        Err(e) => install_status.set(Some((format!("Invalid JSON: {}", e), false))),
+                                                                                    }
+                                                                                });
+                                                                            }
+                                                                        >
+                                                                            {if installed {
+                                                                                t("mcp.browse.installed")
+                                                                            } else {
+                                                                                t("mcp.browse.install")
+                                                                            }}
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            })
+                                                        } else {
+                                                            None
+                                                        }
+                                                    }}
+                                                </div>
+                                            }
+                                        }).collect_view()}
+                                    </div>
+                                </div>
+                            }.into_view()
+                        }).collect_view()}
+                    }.into_view()
+                }
+                Err(e) => view! {
+                    <div class="empty-state"><p>{t("common.error_prefix")} {e}</p></div>
+                }.into_view(),
+            })}
+        </Suspense>
     }
 }

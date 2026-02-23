@@ -59,6 +59,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.tab_servers", "服务器");
         m.insert("mcp.tab_health", "健康检查");
         m.insert("mcp.tab_add", "新建服务器");
+        m.insert("mcp.tab_browse", "浏览目录");
         m.insert("mcp.loading", "加载 MCP 服务器中");
         m.insert("mcp.no_servers", "未配置 MCP 服务器");
         m.insert("mcp.no_servers_hint", "使用\u{201c}新建服务器\u{201d}标签页或 MCP 浏览器添加服务器。");
@@ -93,6 +94,18 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.add.config_label", "服务器配置 (JSON)");
         m.insert("mcp.add.submit", "添加服务器");
         m.insert("mcp.add.name_required", "请输入服务器名称");
+        m.insert("mcp.browse.title", "MCP 服务器目录");
+        m.insert("mcp.browse.description", "浏览热门 MCP 服务器，一键安装。安装前可查看配置。");
+        m.insert("mcp.browse.installed", "已安装");
+        m.insert("mcp.browse.install", "安装");
+        m.insert("mcp.browse.show_config", "显示配置");
+        m.insert("mcp.browse.hide_config", "隐藏配置");
+        m.insert("mcp.browse.config_hint", "安装前检查并编辑配置。填写所需的 API 密钥和路径。");
+        m.insert("mcp.browse.cat_system", "系统与文件");
+        m.insert("mcp.browse.cat_database", "数据库");
+        m.insert("mcp.browse.cat_api", "API");
+        m.insert("mcp.browse.cat_specialized", "专业工具");
+        m.insert("mcp.browse.npm", "npm");
         m.insert("mcp.source.claude_code", "Claude Code");
         m.insert("mcp.source.claude_desktop", "Claude Desktop");
 

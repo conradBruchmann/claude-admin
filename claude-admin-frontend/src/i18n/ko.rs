@@ -59,6 +59,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.tab_servers", "서버");
         m.insert("mcp.tab_health", "상태 점검");
         m.insert("mcp.tab_add", "새 서버");
+        m.insert("mcp.tab_browse", "카탈로그 찾아보기");
         m.insert("mcp.loading", "MCP 서버 로딩 중");
         m.insert("mcp.no_servers", "구성된 MCP 서버가 없습니다");
         m.insert("mcp.no_servers_hint", "'새 서버' 탭이나 MCP 브라우저에서 서버를 추가하세요.");
@@ -93,6 +94,18 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.add.config_label", "서버 구성 (JSON)");
         m.insert("mcp.add.submit", "서버 추가");
         m.insert("mcp.add.name_required", "서버 이름을 입력하세요");
+        m.insert("mcp.browse.title", "MCP 서버 카탈로그");
+        m.insert("mcp.browse.description", "인기 MCP 서버를 찾아보고 한 번의 클릭으로 설치하세요. 설치 전 구성을 확인할 수 있습니다.");
+        m.insert("mcp.browse.installed", "설치됨");
+        m.insert("mcp.browse.install", "설치");
+        m.insert("mcp.browse.show_config", "구성 보기");
+        m.insert("mcp.browse.hide_config", "구성 숨기기");
+        m.insert("mcp.browse.config_hint", "설치 전에 구성을 확인하고 편집하세요. 필요한 API 키와 경로를 입력하세요.");
+        m.insert("mcp.browse.cat_system", "시스템 & 파일");
+        m.insert("mcp.browse.cat_database", "데이터베이스");
+        m.insert("mcp.browse.cat_api", "API");
+        m.insert("mcp.browse.cat_specialized", "전문 도구");
+        m.insert("mcp.browse.npm", "npm");
         m.insert("mcp.source.claude_code", "Claude Code");
         m.insert("mcp.source.claude_desktop", "Claude Desktop");
 

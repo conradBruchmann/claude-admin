@@ -59,6 +59,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.tab_servers", "Servers");
         m.insert("mcp.tab_health", "Gezondheidscontrole");
         m.insert("mcp.tab_add", "Nieuwe server");
+        m.insert("mcp.tab_browse", "Catalogus bekijken");
         m.insert("mcp.loading", "MCP servers laden");
         m.insert("mcp.no_servers", "Geen MCP servers geconfigureerd");
         m.insert("mcp.no_servers_hint", "Voeg servers toe via het tabblad 'Nieuwe server' of de MCP Browser.");
@@ -93,6 +94,18 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.add.config_label", "Serverconfiguratie (JSON)");
         m.insert("mcp.add.submit", "Server toevoegen");
         m.insert("mcp.add.name_required", "Voer een servernaam in");
+        m.insert("mcp.browse.title", "MCP Server Catalogus");
+        m.insert("mcp.browse.description", "Blader door populaire MCP servers en installeer ze met één klik. Bekijk de configuratie voor installatie.");
+        m.insert("mcp.browse.installed", "Geïnstalleerd");
+        m.insert("mcp.browse.install", "Installeren");
+        m.insert("mcp.browse.show_config", "Configuratie tonen");
+        m.insert("mcp.browse.hide_config", "Configuratie verbergen");
+        m.insert("mcp.browse.config_hint", "Controleer en bewerk de configuratie voor installatie. Vul de vereiste API-sleutels en paden in.");
+        m.insert("mcp.browse.cat_system", "Systeem & Bestanden");
+        m.insert("mcp.browse.cat_database", "Databases");
+        m.insert("mcp.browse.cat_api", "APIs");
+        m.insert("mcp.browse.cat_specialized", "Gespecialiseerd");
+        m.insert("mcp.browse.npm", "npm");
         m.insert("mcp.source.claude_code", "Claude Code");
         m.insert("mcp.source.claude_desktop", "Claude Desktop");
 

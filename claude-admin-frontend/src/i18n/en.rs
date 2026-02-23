@@ -59,6 +59,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.tab_servers", "Servers");
         m.insert("mcp.tab_health", "Health Check");
         m.insert("mcp.tab_add", "New Server");
+        m.insert("mcp.tab_browse", "Browse Catalog");
         m.insert("mcp.loading", "Loading MCP servers");
         m.insert("mcp.no_servers", "No MCP servers configured");
         m.insert("mcp.no_servers_hint", "Add servers using the 'New Server' tab or the MCP Browser.");
@@ -93,6 +94,18 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.add.config_label", "Server Configuration (JSON)");
         m.insert("mcp.add.submit", "Add Server");
         m.insert("mcp.add.name_required", "Please enter a server name");
+        m.insert("mcp.browse.title", "MCP Server Catalog");
+        m.insert("mcp.browse.description", "Browse popular MCP servers and install them with one click. Review the configuration before installing.");
+        m.insert("mcp.browse.installed", "Installed");
+        m.insert("mcp.browse.install", "Install");
+        m.insert("mcp.browse.show_config", "Show Configuration");
+        m.insert("mcp.browse.hide_config", "Hide Configuration");
+        m.insert("mcp.browse.config_hint", "Review and edit the configuration before installing. Fill in required API keys and paths.");
+        m.insert("mcp.browse.cat_system", "System & Files");
+        m.insert("mcp.browse.cat_database", "Databases");
+        m.insert("mcp.browse.cat_api", "APIs");
+        m.insert("mcp.browse.cat_specialized", "Specialized");
+        m.insert("mcp.browse.npm", "npm");
         m.insert("mcp.source.claude_code", "Claude Code");
         m.insert("mcp.source.claude_desktop", "Claude Desktop");
 

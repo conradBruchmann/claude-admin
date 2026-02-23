@@ -59,6 +59,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.tab_servers", "Sunucular");
         m.insert("mcp.tab_health", "Sa\u{011f}l\u{0131}k Kontrol\u{00fc}");
         m.insert("mcp.tab_add", "Yeni Sunucu");
+        m.insert("mcp.tab_browse", "Katalog");
         m.insert("mcp.loading", "MCP sunucular\u{0131} y\u{00fc}kleniyor");
         m.insert("mcp.no_servers", "MCP sunucusu yap\u{0131}land\u{0131}r\u{0131}lmam\u{0131}\u{015f}");
         m.insert("mcp.no_servers_hint", "'Yeni Sunucu' sekmesini veya MCP Taray\u{0131}c\u{0131}s\u{0131}n\u{0131} kullanarak sunucu ekleyin.");
@@ -93,6 +94,18 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.add.config_label", "Sunucu Yap\u{0131}land\u{0131}rmas\u{0131} (JSON)");
         m.insert("mcp.add.submit", "Sunucu Ekle");
         m.insert("mcp.add.name_required", "L\u{00fc}tfen bir sunucu ad\u{0131} girin");
+        m.insert("mcp.browse.title", "MCP Sunucu Kataloğu");
+        m.insert("mcp.browse.description", "Popüler MCP sunucularına göz atın ve tek tıkla yükleyin. Yüklemeden önce yapılandırmayı inceleyin.");
+        m.insert("mcp.browse.installed", "Yüklü");
+        m.insert("mcp.browse.install", "Yükle");
+        m.insert("mcp.browse.show_config", "Yapılandırmayı göster");
+        m.insert("mcp.browse.hide_config", "Yapılandırmayı gizle");
+        m.insert("mcp.browse.config_hint", "Yüklemeden önce yapılandırmayı kontrol edin ve düzenleyin. Gerekli API anahtarlarını ve yolları doldurun.");
+        m.insert("mcp.browse.cat_system", "Sistem & Dosyalar");
+        m.insert("mcp.browse.cat_database", "Veritabanları");
+        m.insert("mcp.browse.cat_api", "API'ler");
+        m.insert("mcp.browse.cat_specialized", "Özelleştirilmiş");
+        m.insert("mcp.browse.npm", "npm");
         m.insert("mcp.source.claude_code", "Claude Code");
         m.insert("mcp.source.claude_desktop", "Claude Desktop");
 
