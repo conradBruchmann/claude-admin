@@ -1,5 +1,7 @@
 use leptos::*;
 
+use crate::i18n::t;
+
 /// Onboarding wizard shown when the user has no rules and few skills.
 /// Detects: rules_count == 0 && skills_count < 3
 #[component]
@@ -37,32 +39,32 @@ pub fn OnboardingBanner(rules_count: usize, skills_count: usize) -> impl IntoVie
                 view! {
                     <div class="onboarding-banner">
                         <div class="onboarding-header">
-                            <h3>"Getting Started with Claude Code"</h3>
-                            <button class="btn btn-sm" on:click=dismiss>"Dismiss"</button>
+                            <h3>{t("component.onboarding.title")}</h3>
+                            <button class="btn btn-sm" on:click=dismiss>{t("component.onboarding.dismiss")}</button>
                         </div>
                         <div class="onboarding-steps">
                             <div class="onboarding-step">
                                 <div class="onboarding-step-number">"1"</div>
                                 <div>
-                                    <strong>"Create a CLAUDE.md"</strong>
-                                    <p>"Add project instructions to guide Claude's behavior."</p>
-                                    <a href="/projects" class="btn btn-sm btn-primary" style="margin-top: 0.5rem;">"Go to Projects"</a>
+                                    <strong>{t("component.onboarding.step1_title")}</strong>
+                                    <p>{t("component.onboarding.step1_desc")}</p>
+                                    <a href="/projects" class="btn btn-sm btn-primary" style="margin-top: 0.5rem;">{t("component.onboarding.step1_link")}</a>
                                 </div>
                             </div>
                             <div class="onboarding-step">
                                 <div class="onboarding-step-number">"2"</div>
                                 <div>
-                                    <strong>"Add a Rule"</strong>
-                                    <p>"Create coding conventions or constraints."</p>
-                                    <a href="/rules" class="btn btn-sm btn-primary" style="margin-top: 0.5rem;">"Go to Rules"</a>
+                                    <strong>{t("component.onboarding.step2_title")}</strong>
+                                    <p>{t("component.onboarding.step2_desc")}</p>
+                                    <a href="/rules" class="btn btn-sm btn-primary" style="margin-top: 0.5rem;">{t("component.onboarding.step2_link")}</a>
                                 </div>
                             </div>
                             <div class="onboarding-step">
                                 <div class="onboarding-step-number">"3"</div>
                                 <div>
-                                    <strong>"Install a Skill"</strong>
-                                    <p>"Browse and install reusable skills."</p>
-                                    <a href="/skill-browser" class="btn btn-sm btn-primary" style="margin-top: 0.5rem;">"Skill Browser"</a>
+                                    <strong>{t("component.onboarding.step3_title")}</strong>
+                                    <p>{t("component.onboarding.step3_desc")}</p>
+                                    <a href="/skill-browser" class="btn btn-sm btn-primary" style="margin-top: 0.5rem;">{t("component.onboarding.step3_link")}</a>
                                 </div>
                             </div>
                         </div>

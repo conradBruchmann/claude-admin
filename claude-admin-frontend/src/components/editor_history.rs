@@ -1,5 +1,7 @@
 use leptos::*;
 
+use crate::i18n::t;
+
 const MAX_HISTORY: usize = 50;
 
 /// Client-side undo/redo stack for text editors.
@@ -95,7 +97,7 @@ pub fn UndoRedoButtons(history: EditorHistory, content: RwSignal<String>) -> imp
     view! {
         <button
             class="btn btn-sm btn-ghost"
-            title="Undo (Ctrl+Z)"
+            title=t("component.editor.undo_tooltip").get_untracked()
             on:click=handle_undo
             disabled=move || !history_can_undo.can_undo()
         >
@@ -103,7 +105,7 @@ pub fn UndoRedoButtons(history: EditorHistory, content: RwSignal<String>) -> imp
         </button>
         <button
             class="btn btn-sm btn-ghost"
-            title="Redo (Ctrl+Shift+Z)"
+            title=t("component.editor.redo_tooltip").get_untracked()
             on:click=handle_redo
             disabled=move || !history_can_redo.can_redo()
         >

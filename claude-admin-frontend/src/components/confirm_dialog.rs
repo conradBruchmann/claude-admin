@@ -1,5 +1,7 @@
 use leptos::*;
 
+use crate::i18n::t;
+
 /// A confirmation dialog for destructive actions.
 /// Shows a modal with a message and Confirm/Cancel buttons.
 #[component]
@@ -29,7 +31,7 @@ pub fn ConfirmDialog(
                         {message.clone()}
                     </div>
                     <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-                        <button class="btn btn-secondary btn-sm" on:click=on_cancel>"Cancel"</button>
+                        <button class="btn btn-secondary btn-sm" on:click=on_cancel>{t("common.cancel")}</button>
                         <button class="btn btn-danger btn-sm" on:click=on_ok>{confirm_label.clone()}</button>
                     </div>
                 </div>

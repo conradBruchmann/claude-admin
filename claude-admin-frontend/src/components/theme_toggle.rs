@@ -1,6 +1,8 @@
 use leptos::*;
 use web_sys;
 
+use crate::i18n::t;
+
 fn get_initial_theme() -> String {
     let window = web_sys::window().expect("no window");
     let storage = window
@@ -63,8 +65,8 @@ pub fn ThemeToggle() -> impl IntoView {
         <button
             class="theme-toggle"
             on:click=toggle_theme
-            title="Toggle theme"
-            aria-label="Toggle theme"
+            title=t("theme.toggle").get_untracked()
+            aria-label=t("theme.toggle").get_untracked()
         >
             {move || if theme.get() == "dark" { "\u{2600}" } else { "\u{263D}" }}
         </button>

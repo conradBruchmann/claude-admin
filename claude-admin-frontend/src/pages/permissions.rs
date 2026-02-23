@@ -215,13 +215,13 @@ pub fn PermissionDetailPage() -> impl IntoView {
 
         <ConfirmDialog
             show=confirm_delete
-            title="Delete Permission Entries"
-            message="Are you sure you want to delete the selected permission entries? This action cannot be undone."
-            confirm_label="Delete"
+            title=t("permissions.confirm_delete_title").get_untracked()
+            message=t("permissions.confirm_delete_msg").get_untracked()
+            confirm_label=t("common.delete").get_untracked()
             on_confirm=Callback::new(move |_| {
                 let indices = selected.get();
                 let pid = project_id();
-                delete_status.set(Some("Deleting...".to_string()));
+                delete_status.set(Some(t("permissions.detail_deleting").get_untracked()));
                 spawn_local(async move {
                     let req = PermissionDeleteRequest { indices };
                     match api::delete_with_body::<ProjectPermissions, _>(
@@ -229,7 +229,7 @@ pub fn PermissionDetailPage() -> impl IntoView {
                         &req
                     ).await {
                         Ok(_) => {
-                            delete_status.set(Some("Deleted! Reloading...".to_string()));
+                            delete_status.set(Some(t("permissions.detail_deleted_reloading").get_untracked()));
                             selected.set(vec![]);
                         }
                         Err(e) => delete_status.set(Some(format!("Error: {}", e))),

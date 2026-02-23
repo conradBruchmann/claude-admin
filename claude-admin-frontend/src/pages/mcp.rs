@@ -272,9 +272,9 @@ fn ServersTab() -> impl IntoView {
 
         <ConfirmDialog
             show=confirm_delete
-            title="Delete MCP Server"
-            message="Are you sure you want to delete this MCP server? This action cannot be undone."
-            confirm_label="Delete"
+            title=t("mcp.confirm_delete_title").get_untracked()
+            message=t("mcp.confirm_delete_msg").get_untracked()
+            confirm_label=t("common.delete").get_untracked()
             on_confirm=Callback::new(move |_| {
                 if let Some(name) = delete_target.get() {
                     spawn_local(async move {

@@ -294,13 +294,13 @@ fn TranscriptViewer(session_id: String) -> impl IntoView {
 
             {move || if show_transcript.get() {
                 match transcript.get() {
-                    Some(Ok(t)) => {
-                        if t.messages.is_empty() {
-                            view! { <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.85rem;">"No transcript data available."</p> }.into_view()
+                    Some(Ok(tr)) => {
+                        if tr.messages.is_empty() {
+                            view! { <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.85rem;">{t("sessions.no_transcript")}</p> }.into_view()
                         } else {
                             view! {
                                 <div class="transcript-viewer">
-                                    {t.messages.into_iter().map(|msg| {
+                                    {tr.messages.into_iter().map(|msg| {
                                         let (class, label) = match msg.role.as_str() {
                                             "user" => ("transcript-msg user", "User"),
                                             "assistant" => ("transcript-msg assistant", "Assistant"),
@@ -330,7 +330,7 @@ fn TranscriptViewer(session_id: String) -> impl IntoView {
                         <p style="color: var(--error); margin-top: 0.5rem; font-size: 0.85rem;">"Transcript unavailable: " {e}</p>
                     }.into_view(),
                     None => view! {
-                        <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.85rem;">"Loading transcript..."</p>
+                        <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.85rem;">{t("sessions.loading_transcript")}</p>
                     }.into_view(),
                 }
             } else {

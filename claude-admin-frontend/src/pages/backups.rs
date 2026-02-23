@@ -54,7 +54,7 @@ pub fn BackupsPage() -> impl IntoView {
                         });
                     }
                 >
-                    "Prune Old Backups"
+                    {t("backups.prune")}
                 </button>
             </div>
         </div>
@@ -79,7 +79,7 @@ pub fn BackupsPage() -> impl IntoView {
                 <div class="card" style="margin-bottom: 1.5rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
                         <h3 style="margin: 0;">{format!("Diff: {}", name)}</h3>
-                        <button class="btn btn-sm btn-ghost" on:click=move |_| diff_data.set(None)>"Close"</button>
+                        <button class="btn btn-sm btn-ghost" on:click=move |_| diff_data.set(None)>{t("common.close")}</button>
                     </div>
                     <DiffViewer diff=diff/>
                 </div>
@@ -201,9 +201,9 @@ pub fn BackupsPage() -> impl IntoView {
 
         <ConfirmDialog
             show=confirm_delete
-            title="Delete Backup"
-            message="Are you sure you want to delete this backup? This action cannot be undone."
-            confirm_label="Delete"
+            title=t("backups.confirm_delete_title").get_untracked()
+            message=t("backups.confirm_delete_msg").get_untracked()
+            confirm_label=t("backups.delete").get_untracked()
             on_confirm=Callback::new(move |_| {
                 if let Some(name) = delete_target.get() {
                     action_status.set(None);

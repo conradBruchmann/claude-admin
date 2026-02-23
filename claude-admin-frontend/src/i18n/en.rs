@@ -811,6 +811,45 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("common.error_prefix", "Error: ");
         m.insert("common.invalid_json", "Invalid JSON: ");
 
+        // -- Hardcoded string translations --
+        m.insert("backups.prune", "Prune Old Backups");
+        m.insert("backups.prune_confirm", "Delete backups older than 30 days?");
+        m.insert("mcp.confirm_delete_title", "Delete MCP Server");
+        m.insert("mcp.confirm_delete_msg", "Are you sure you want to delete this MCP server? This action cannot be undone.");
+        m.insert("mcp.add.name_placeholder_short", "e.g. my-server");
+        m.insert("mcp.health.ok_format", "OK \u{2013} {tools} Tools, {ms}ms");
+        m.insert("backups.confirm_delete_title", "Delete Backup");
+        m.insert("backups.confirm_delete_msg", "Are you sure you want to delete this backup? This action cannot be undone.");
+        m.insert("permissions.confirm_delete_title", "Delete Permission Entries");
+        m.insert("permissions.confirm_delete_msg", "Are you sure you want to delete the selected permission entries? This action cannot be undone.");
+        m.insert("sessions.no_transcript", "No transcript data available.");
+        m.insert("sessions.loading_transcript", "Loading transcript...");
+        m.insert("analytics.filter", "Filter:");
+        m.insert("analytics.to", "to");
+        m.insert("analytics.clear", "Clear");
+        m.insert("analytics.export_csv", "Export CSV");
+        m.insert("analytics.export_json", "Export JSON");
+        m.insert("analytics.est_cost", "Est. Cost");
+        m.insert("settings.timeout", "Timeout");
+        m.insert("component.confirm.cancel", "Cancel");
+        m.insert("component.editor.undo_tooltip", "Undo (Ctrl+Z)");
+        m.insert("component.editor.redo_tooltip", "Redo (Ctrl+Shift+Z)");
+        m.insert("component.markdown.toggle_preview", "Toggle Preview");
+        m.insert("component.markdown.edit", "Edit");
+        m.insert("component.markdown.preview", "Preview");
+        m.insert("component.markdown.preview_unavailable", "Preview unavailable");
+        m.insert("component.onboarding.title", "Getting Started with Claude Code");
+        m.insert("component.onboarding.dismiss", "Dismiss");
+        m.insert("component.onboarding.step1_title", "Create a CLAUDE.md");
+        m.insert("component.onboarding.step1_desc", "Add project instructions to guide Claude's behavior.");
+        m.insert("component.onboarding.step1_link", "Go to Projects");
+        m.insert("component.onboarding.step2_title", "Add a Rule");
+        m.insert("component.onboarding.step2_desc", "Create coding conventions or constraints.");
+        m.insert("component.onboarding.step2_link", "Go to Rules");
+        m.insert("component.onboarding.step3_title", "Install a Skill");
+        m.insert("component.onboarding.step3_desc", "Browse and install reusable skills.");
+        m.insert("component.onboarding.step3_link", "Skill Browser");
+
         m
     })
 }

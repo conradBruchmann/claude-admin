@@ -40,14 +40,14 @@ pub fn AnalyticsPage() -> impl IntoView {
 
         // Date filter controls
         <div class="card" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-            <label style="font-size: 0.875rem; font-weight: 500;">"Filter:"</label>
+            <label style="font-size: 0.875rem; font-weight: 500;">{t("analytics.filter")}</label>
             <input
                 type="date"
                 style="padding: 0.375rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-secondary); color: var(--text);"
                 prop:value=move || from_date.get()
                 on:input=move |ev| from_date.set(event_target_value(&ev))
             />
-            <span style="color: var(--text-muted);">"to"</span>
+            <span style="color: var(--text-muted);">{t("analytics.to")}</span>
             <input
                 type="date"
                 style="padding: 0.375rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg-secondary); color: var(--text);"
@@ -58,7 +58,7 @@ pub fn AnalyticsPage() -> impl IntoView {
                 class="btn btn-sm btn-ghost"
                 on:click=move |_| { from_date.set(String::new()); to_date.set(String::new()); }
             >
-                "Clear"
+                {t("analytics.clear")}
             </button>
             <div style="margin-left: auto; display: flex; gap: 0.5rem;">
                 <a
@@ -67,7 +67,7 @@ pub fn AnalyticsPage() -> impl IntoView {
                     target="_blank"
                     download="analytics.csv"
                 >
-                    "Export CSV"
+                    {t("analytics.export_csv")}
                 </a>
                 <a
                     class="btn btn-sm btn-secondary"
@@ -75,7 +75,7 @@ pub fn AnalyticsPage() -> impl IntoView {
                     target="_blank"
                     download="analytics.json"
                 >
-                    "Export JSON"
+                    {t("analytics.export_json")}
                 </a>
             </div>
         </div>
@@ -111,7 +111,7 @@ pub fn AnalyticsPage() -> impl IntoView {
                             </div>
                             <div class="card">
                                 <div class="card-value">{format!("${:.2}", data.estimated_total_cost_usd)}</div>
-                                <div class="card-label">"Est. Cost"</div>
+                                <div class="card-label">{t("analytics.est_cost")}</div>
                             </div>
                         </div>
 

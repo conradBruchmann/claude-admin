@@ -43,7 +43,7 @@ pub fn MarkdownEditor(
                 .await
                 {
                     Ok(resp) => setter.set(resp.html),
-                    Err(_) => setter.set("<p>Preview unavailable</p>".to_string()),
+                    Err(_) => setter.set(format!("<p>{}</p>", t("component.markdown.preview_unavailable").get_untracked())),
                 }
             });
         }
@@ -83,9 +83,9 @@ pub fn MarkdownEditor(
                     <button
                         class="btn btn-sm btn-ghost"
                         on:click=move |_| show_preview.update(|v| *v = !*v)
-                        title="Toggle Preview"
+                        title=t("component.markdown.toggle_preview").get_untracked()
                     >
-                        {move || if show_preview.get() { "Edit" } else { "Preview" }}
+                        {move || if show_preview.get() { t("component.markdown.edit") } else { t("component.markdown.preview") }}
                     </button>
                 </div>
                 <button class="btn btn-primary btn-sm" on:click=handle_save disabled=saving>
