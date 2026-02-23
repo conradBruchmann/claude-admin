@@ -17,10 +17,7 @@ pub fn load_webhooks(claude_home: &Path) -> Vec<WebhookConfig> {
 }
 
 /// Save webhooks.
-pub async fn save_webhooks(
-    claude_home: &Path,
-    webhooks: &[WebhookConfig],
-) -> Result<(), ApiError> {
+pub async fn save_webhooks(claude_home: &Path, webhooks: &[WebhookConfig]) -> Result<(), ApiError> {
     let path = claude_home.join("webhooks.json");
     let content = serde_json::to_string_pretty(webhooks)
         .map_err(|e| ApiError::Internal(format!("Serialize error: {}", e)))?;
@@ -104,8 +101,7 @@ pub fn fire_webhook(webhooks: &[WebhookConfig], event: &str, payload: serde_json
         let event = event.to_string();
 
         tokio::spawn(async move {
-            let body =
-                serde_json::json!({ "event": event, "payload": payload, "timestamp": chrono::Utc::now().to_rfc3339() });
+            let body = serde_json::json!({ "event": event, "payload": payload, "timestamp": chrono::Utc::now().to_rfc3339() });
 
             let mut builder = reqwest::Client::new().post(&url).json(&body);
 
@@ -118,7 +114,8 @@ pub fn fire_webhook(webhooks: &[WebhookConfig], event: &str, payload: serde_json
                     if let Ok(mut mac) = HmacSha256::new_from_slice(secret.as_bytes()) {
                         mac.update(&body_bytes);
                         let signature = hex_encode(&mac.finalize().into_bytes());
-                        builder = builder.header("X-Webhook-Signature", format!("sha256={}", signature));
+                        builder =
+                            builder.header("X-Webhook-Signature", format!("sha256={}", signature));
                     }
                 }
             }

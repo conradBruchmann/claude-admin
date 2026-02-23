@@ -21,7 +21,10 @@ impl ApiClient {
         if let Some(ref token) = self.token {
             req = req.bearer_auth(token);
         }
-        let resp = req.send().await.map_err(|e| format!("Request failed: {}", e))?;
+        let resp = req
+            .send()
+            .await
+            .map_err(|e| format!("Request failed: {}", e))?;
         if !resp.status().is_success() {
             let status = resp.status();
             let text = resp.text().await.unwrap_or_default();
@@ -36,7 +39,10 @@ impl ApiClient {
         if let Some(ref token) = self.token {
             req = req.bearer_auth(token);
         }
-        let resp = req.send().await.map_err(|e| format!("Request failed: {}", e))?;
+        let resp = req
+            .send()
+            .await
+            .map_err(|e| format!("Request failed: {}", e))?;
         if !resp.status().is_success() {
             let status = resp.status();
             let text = resp.text().await.unwrap_or_default();
@@ -55,7 +61,10 @@ impl ApiClient {
         if let Some(ref token) = self.token {
             req = req.bearer_auth(token);
         }
-        let resp = req.send().await.map_err(|e| format!("Request failed: {}", e))?;
+        let resp = req
+            .send()
+            .await
+            .map_err(|e| format!("Request failed: {}", e))?;
         if !resp.status().is_success() {
             let status = resp.status();
             let text = resp.text().await.unwrap_or_default();
@@ -70,7 +79,10 @@ impl ApiClient {
         if let Some(ref token) = self.token {
             req = req.bearer_auth(token);
         }
-        let resp = req.send().await.map_err(|e| format!("Request failed: {}", e))?;
+        let resp = req
+            .send()
+            .await
+            .map_err(|e| format!("Request failed: {}", e))?;
         if !resp.status().is_success() {
             let status = resp.status();
             let text = resp.text().await.unwrap_or_default();

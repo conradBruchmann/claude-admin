@@ -188,7 +188,8 @@ fn test_markdown_preview_roundtrip() {
     assert!(json.contains("# Hello"));
 
     let resp_json = r#"{"html":"<h1>Hello</h1>\n<p>World</p>"}"#;
-    let resp: claude_admin_shared::MarkdownPreviewResponse = serde_json::from_str(resp_json).unwrap();
+    let resp: claude_admin_shared::MarkdownPreviewResponse =
+        serde_json::from_str(resp_json).unwrap();
     assert!(resp.html.contains("Hello"));
 }
 

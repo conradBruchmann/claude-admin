@@ -69,10 +69,7 @@ pub async fn rate_limit_middleware(request: Request<Body>, next: Next) -> Respon
         .unwrap_or_else(|| "unknown".to_string());
 
     // Get the rate limiter from extensions
-    let limiter = request
-        .extensions()
-        .get::<RateLimiter>()
-        .cloned();
+    let limiter = request.extensions().get::<RateLimiter>().cloned();
 
     if let Some(limiter) = limiter {
         match limiter.check(&client_ip) {

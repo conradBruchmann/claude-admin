@@ -62,7 +62,9 @@ pub async fn run(client: &ApiClient, action: SkillAction) -> Result<(), String> 
             let content = content.unwrap_or_else(|| {
                 use std::io::Read;
                 let mut buf = String::new();
-                std::io::stdin().read_to_string(&mut buf).unwrap_or_default();
+                std::io::stdin()
+                    .read_to_string(&mut buf)
+                    .unwrap_or_default();
                 buf
             });
             let req = claude_admin_shared::SkillCreateRequest {
@@ -75,7 +77,9 @@ pub async fn run(client: &ApiClient, action: SkillAction) -> Result<(), String> 
             println!("Skill '{}' created.", name);
         }
         SkillAction::Delete { scope, name } => {
-            client.delete(&format!("/skills/{}/{}", scope, name)).await?;
+            client
+                .delete(&format!("/skills/{}/{}", scope, name))
+                .await?;
             println!("Skill '{}/{}' deleted.", scope, name);
         }
     }

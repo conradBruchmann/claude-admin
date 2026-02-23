@@ -69,7 +69,12 @@ pub async fn push_to_remote(
         });
 
         let url = format!("{}/api/v1/sync/receive", target_url.trim_end_matches('/'));
-        match reqwest::Client::new().post(&url).json(&payload).send().await {
+        match reqwest::Client::new()
+            .post(&url)
+            .json(&payload)
+            .send()
+            .await
+        {
             Ok(resp) if resp.status().is_success() => transferred += 1,
             Ok(resp) => errors.push(format!("Remote rejected {}: {}", file_path, resp.status())),
             Err(e) => errors.push(format!("Failed to push {}: {}", file_path, e)),
@@ -93,10 +98,7 @@ pub async fn pull_from_remote(
     let mut errors = Vec::new();
 
     // First get the remote manifest
-    let manifest_url = format!(
-        "{}/api/v1/sync/manifest",
-        source_url.trim_end_matches('/')
-    );
+    let manifest_url = format!("{}/api/v1/sync/manifest", source_url.trim_end_matches('/'));
     let manifest: SyncManifest = reqwest::Client::new()
         .get(&manifest_url)
         .send()
@@ -148,11 +150,7 @@ pub async fn pull_from_remote(
 }
 
 /// Receive a file push from a remote instance.
-pub async fn receive_file(
-    claude_home: &Path,
-    path: &str,
-    content: &str,
-) -> Result<(), ApiError> {
+pub async fn receive_file(claude_home: &Path, path: &str, content: &str) -> Result<(), ApiError> {
     // Validate path
     if path.contains("..") || path.starts_with('/') {
         return Err(ApiError::BadRequest("Invalid path".to_string()));
@@ -194,18 +192,23 @@ async fn file_entry(claude_home: &Path, path: &Path) -> Result<SyncFileEntry, Ap
     })
 }
 
-async fn collect_dir_entries(
-    claude_home: &Path,
-    dir: &Path,
-    files: &mut Vec<SyncFileEntry>,
-) {
+async fn collect_dir_entries(claude_home: &Path, dir: &Path, files: &mut Vec<SyncFileEntry>) {
     if !dir.exists() {
         return;
     }
     if let Ok(mut entries) = tokio::fs::read_dir(dir).await {
         while let Ok(Some(entry)) = entries.next_entry().await {
             let path = entry.path();
-            if path.is_file() {
+            // Skip macOS metadata files
+            if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                if name == ".DS_Store" || name.starts_with("._") {
+                    continue;
+                }
+            }
+            if path.is_dir() {
+                // Recurse into subdirectories (e.g. skills/commit/SKILL.md)
+                Box::pin(collect_dir_entries(claude_home, &path, files)).await;
+            } else if path.is_file() {
                 if let Ok(e) = file_entry(claude_home, &path).await {
                     files.push(e);
                 }

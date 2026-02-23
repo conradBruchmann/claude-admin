@@ -21,13 +21,14 @@ pub async fn update_budget(
     AppJson(config): AppJson<BudgetConfig>,
 ) -> Result<Json<BudgetConfig>, ApiError> {
     budgets::save_budget_config(&state.claude_home, &config).await?;
-    crate::services::audit::log_audit(
-        &state.claude_home,
-        "update",
-        "budget",
-        "config",
-        None,
-    )
-    .await;
+    crate::services::audit::log_audit(&state.claude_home, "update", "budget", "config", None).await;
+
+    let webhooks = crate::services::webhooks::load_webhooks(&state.claude_home);
+    crate::services::webhooks::fire_webhook(
+        &webhooks,
+        "budget.updated",
+        serde_json::json!({"config": config}),
+    );
+
     Ok(Json(config))
 }

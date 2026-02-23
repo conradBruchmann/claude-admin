@@ -3,8 +3,8 @@ use claude_admin_shared::{ExportBundle, ImportResult};
 
 pub async fn export(client: &ApiClient, output: Option<String>) -> Result<(), String> {
     let bundle: ExportBundle = client.get("/export").await?;
-    let json = serde_json::to_string_pretty(&bundle)
-        .map_err(|e| format!("Serialize error: {}", e))?;
+    let json =
+        serde_json::to_string_pretty(&bundle).map_err(|e| format!("Serialize error: {}", e))?;
 
     if let Some(path) = output {
         std::fs::write(&path, &json).map_err(|e| format!("Write error: {}", e))?;

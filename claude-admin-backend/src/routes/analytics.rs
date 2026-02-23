@@ -26,11 +26,21 @@ pub async fn get_analytics_overview(
         let from = query.from.as_deref().unwrap_or("0000-00-00");
         let to = query.to.as_deref().unwrap_or("9999-99-99");
 
-        overview.daily_activity.retain(|d| d.date.as_str() >= from && d.date.as_str() <= to);
+        overview
+            .daily_activity
+            .retain(|d| d.date.as_str() >= from && d.date.as_str() <= to);
 
         // Recalculate totals for filtered range
-        let filtered_messages: u64 = overview.daily_activity.iter().map(|d| d.message_count).sum();
-        let filtered_sessions: u64 = overview.daily_activity.iter().map(|d| d.session_count).sum();
+        let filtered_messages: u64 = overview
+            .daily_activity
+            .iter()
+            .map(|d| d.message_count)
+            .sum();
+        let filtered_sessions: u64 = overview
+            .daily_activity
+            .iter()
+            .map(|d| d.session_count)
+            .sum();
         if filtered_messages > 0 {
             overview.total_messages = filtered_messages;
         }
@@ -81,7 +91,7 @@ pub async fn export_analytics(
                 .body(axum::body::Body::from(csv))
                 .unwrap())
         }
-        _ => {
+        "json" => {
             let json = serde_json::to_string_pretty(&overview)
                 .map_err(|e| ApiError::Internal(format!("Serialize error: {}", e)))?;
 
@@ -95,5 +105,9 @@ pub async fn export_analytics(
                 .body(axum::body::Body::from(json))
                 .unwrap())
         }
+        other => Err(ApiError::BadRequest(format!(
+            "Unsupported export format '{}'. Use 'json' or 'csv'.",
+            other
+        ))),
     }
 }

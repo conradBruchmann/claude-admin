@@ -23,6 +23,9 @@ pub async fn put_global_settings(
     let content = serde_json::to_string_pretty(&req.settings)?;
     file_ops::write_with_backup(&state.claude_home, &settings_path, &content).await?;
 
+    let webhooks = crate::services::webhooks::load_webhooks(&state.claude_home);
+    crate::services::webhooks::fire_webhook(&webhooks, "settings.updated", serde_json::json!({}));
+
     let overview = fs_scanner::scan_settings(&state.claude_home).await?;
     Ok(Json(overview))
 }

@@ -51,6 +51,13 @@ pub async fn create_skill(
     let content = frontmatter::serialize_frontmatter(&req.frontmatter, &req.content);
     file_ops::write_with_backup(&state.claude_home, &skill_path, &content).await?;
 
+    let webhooks = crate::services::webhooks::load_webhooks(&state.claude_home);
+    crate::services::webhooks::fire_webhook(
+        &webhooks,
+        "skill.created",
+        serde_json::json!({"name": &req.name, "scope": format!("{:?}", &req.scope)}),
+    );
+
     Ok(Json(SkillFile {
         name: req.name,
         path: skill_path.to_string_lossy().to_string(),
@@ -75,6 +82,13 @@ pub async fn update_skill(
 
     let content = frontmatter::serialize_frontmatter(&req.frontmatter, &req.content);
     file_ops::write_with_backup(&state.claude_home, &skill_path, &content).await?;
+
+    let webhooks = crate::services::webhooks::load_webhooks(&state.claude_home);
+    crate::services::webhooks::fire_webhook(
+        &webhooks,
+        "skill.updated",
+        serde_json::json!({"name": &name, "scope": format!("{:?}", &scope)}),
+    );
 
     Ok(Json(SkillFile {
         name,
@@ -105,6 +119,14 @@ pub async fn delete_skill(
     }
 
     tokio::fs::remove_dir_all(&dir).await?;
+
+    let webhooks = crate::services::webhooks::load_webhooks(&state.claude_home);
+    crate::services::webhooks::fire_webhook(
+        &webhooks,
+        "skill.deleted",
+        serde_json::json!({"name": &name, "scope": format!("{:?}", &scope)}),
+    );
+
     Ok(Json(serde_json::json!({"deleted": name})))
 }
 

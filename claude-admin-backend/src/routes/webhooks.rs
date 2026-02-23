@@ -37,14 +37,7 @@ pub async fn update_webhook(
     AppJson(req): AppJson<WebhookUpdateRequest>,
 ) -> Result<Json<WebhookConfig>, ApiError> {
     let webhook = webhooks::update_webhook(&state.claude_home, &id, req).await?;
-    crate::services::audit::log_audit(
-        &state.claude_home,
-        "update",
-        "webhook",
-        &id,
-        None,
-    )
-    .await;
+    crate::services::audit::log_audit(&state.claude_home, "update", "webhook", &id, None).await;
     Ok(Json(webhook))
 }
 
@@ -53,13 +46,6 @@ pub async fn delete_webhook(
     Path(id): Path<String>,
 ) -> Result<Json<serde_json::Value>, ApiError> {
     webhooks::delete_webhook(&state.claude_home, &id).await?;
-    crate::services::audit::log_audit(
-        &state.claude_home,
-        "delete",
-        "webhook",
-        &id,
-        None,
-    )
-    .await;
+    crate::services::audit::log_audit(&state.claude_home, "delete", "webhook", &id, None).await;
     Ok(Json(serde_json::json!({ "status": "deleted", "id": id })))
 }

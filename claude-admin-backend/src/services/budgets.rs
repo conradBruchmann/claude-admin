@@ -24,11 +24,24 @@ pub fn load_budget_config(claude_home: &Path) -> BudgetConfig {
         })
 }
 
-/// Save budget config.
-pub async fn save_budget_config(
-    claude_home: &Path,
-    config: &BudgetConfig,
-) -> Result<(), ApiError> {
+/// Save budget config. Rejects negative budget values.
+pub async fn save_budget_config(claude_home: &Path, config: &BudgetConfig) -> Result<(), ApiError> {
+    if config.daily_budget_usd.is_some_and(|v| v < 0.0) {
+        return Err(ApiError::BadRequest(
+            "daily_budget_usd must not be negative".into(),
+        ));
+    }
+    if config.weekly_budget_usd.is_some_and(|v| v < 0.0) {
+        return Err(ApiError::BadRequest(
+            "weekly_budget_usd must not be negative".into(),
+        ));
+    }
+    if config.monthly_budget_usd.is_some_and(|v| v < 0.0) {
+        return Err(ApiError::BadRequest(
+            "monthly_budget_usd must not be negative".into(),
+        ));
+    }
+
     let path = claude_home.join("budget.json");
     let content = serde_json::to_string_pretty(config)
         .map_err(|e| ApiError::Internal(format!("Serialize error: {}", e)))?;
@@ -92,6 +105,13 @@ pub fn get_budget_status(
             ));
         }
     }
+
+    // Avoid negative zero display
+    let current_daily_cost = if current_daily_cost == 0.0 {
+        0.0
+    } else {
+        current_daily_cost
+    };
 
     BudgetStatus {
         config,

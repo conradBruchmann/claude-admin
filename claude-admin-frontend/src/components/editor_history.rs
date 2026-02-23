@@ -72,10 +72,7 @@ impl EditorHistory {
 
 /// Toolbar buttons for undo/redo.
 #[component]
-pub fn UndoRedoButtons(
-    history: EditorHistory,
-    content: RwSignal<String>,
-) -> impl IntoView {
+pub fn UndoRedoButtons(history: EditorHistory, content: RwSignal<String>) -> impl IntoView {
     let history_undo = history.clone();
     let history_redo = history.clone();
     let history_can_undo = history.clone();

@@ -2,9 +2,7 @@ use leptos::*;
 
 /// Read-only code viewer with syntax highlighting (rendered HTML from backend).
 #[component]
-pub fn CodeViewer(
-    #[prop(into)] html: String,
-) -> impl IntoView {
+pub fn CodeViewer(#[prop(into)] html: String) -> impl IntoView {
     view! {
         <div
             class="code-viewer"

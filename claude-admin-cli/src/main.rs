@@ -7,7 +7,11 @@ use clap::{Parser, Subcommand};
 #[command(name = "claude-admin-cli", about = "CLI companion for ClaudeAdmin")]
 struct Cli {
     /// ClaudeAdmin server URL
-    #[arg(long, env = "CLAUDE_ADMIN_URL", default_value = "http://localhost:9022")]
+    #[arg(
+        long,
+        env = "CLAUDE_ADMIN_URL",
+        default_value = "http://localhost:9022"
+    )]
     url: String,
 
     /// Authentication token

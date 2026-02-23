@@ -73,14 +73,9 @@ pub async fn get_backup_diff(
 
     // Try to find current file
     let original_relative = crate::services::backups::parse_original_path_pub(&name);
-    let original_path = state
-        .claude_home
-        .join(original_relative.replace('_', "/"));
+    let original_path = state.claude_home.join(original_relative.replace('_', "/"));
 
-    let current_content = if tokio::fs::try_exists(&original_path)
-        .await
-        .unwrap_or(false)
-    {
+    let current_content = if tokio::fs::try_exists(&original_path).await.unwrap_or(false) {
         tokio::fs::read_to_string(&original_path)
             .await
             .unwrap_or_default()
@@ -113,12 +108,8 @@ fn compute_diff(old: &str, new: &str) -> claude_admin_shared::DiffResult {
                 ni += 1;
             } else {
                 // Look ahead to find match
-                let old_match = new_lines[ni..]
-                    .iter()
-                    .position(|l| *l == old_lines[oi]);
-                let new_match = old_lines[oi..]
-                    .iter()
-                    .position(|l| *l == new_lines[ni]);
+                let old_match = new_lines[ni..].iter().position(|l| *l == old_lines[oi]);
+                let new_match = old_lines[oi..].iter().position(|l| *l == new_lines[ni]);
 
                 match (old_match, new_match) {
                     (Some(om), Some(nm)) if om <= nm => {

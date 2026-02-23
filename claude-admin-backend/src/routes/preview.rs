@@ -2,7 +2,9 @@ use axum::Json;
 
 use crate::domain::errors::ApiError;
 use crate::domain::extractors::AppJson;
-use claude_admin_shared::{HighlightRequest, HighlightResponse, MarkdownPreviewRequest, MarkdownPreviewResponse};
+use claude_admin_shared::{
+    HighlightRequest, HighlightResponse, MarkdownPreviewRequest, MarkdownPreviewResponse,
+};
 
 pub async fn render_markdown(
     AppJson(req): AppJson<MarkdownPreviewRequest>,

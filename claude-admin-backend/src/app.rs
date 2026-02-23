@@ -4,7 +4,7 @@ use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::{
     routing::{delete, get, post},
-    Json, Router,
+    Extension, Json, Router,
 };
 use rust_embed::Embed;
 use std::path::PathBuf;
@@ -13,7 +13,8 @@ use tokio::sync::broadcast;
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
 
 use crate::infra::auth::TokenStore;
-use crate::infra::rate_limit::{create_rate_limiter, RateLimiter};
+use crate::infra::rate_limit::{create_rate_limiter, rate_limit_middleware, RateLimiter};
+use crate::infra::rbac::RbacConfig;
 use crate::infra::{config::Config, cors::create_cors_layer};
 use crate::routes;
 use crate::services::claude_api::AnthropicClient;
@@ -51,6 +52,7 @@ pub async fn block_path_traversal(request: Request<Body>, next: Next) -> Respons
 
 /// Middleware that enforces Bearer token authentication when CLAUDE_ADMIN_TOKEN is set.
 /// Supports both master tokens and session tokens.
+/// Also enforces RBAC when ~/.claude/users.json exists.
 pub async fn auth_middleware(request: Request<Body>, next: Next) -> Response {
     let token = std::env::var("CLAUDE_ADMIN_TOKEN").unwrap_or_default();
     if token.is_empty() {
@@ -77,15 +79,19 @@ pub async fn auth_middleware(request: Request<Body>, next: Next) -> Response {
         return next.run(request).await;
     }
 
-    // Get token store from extensions
+    // Get token store and claude_home from extensions
     let token_store = request.extensions().get::<TokenStore>().cloned();
+    let claude_home = request.extensions().get::<PathBuf>().cloned();
+
+    let method = request.method().clone();
+    let path = request.uri().path().to_string();
 
     match request.headers().get(header::AUTHORIZATION) {
         Some(auth_value) => {
             if let Ok(auth_str) = auth_value.to_str() {
                 let bearer = auth_str.strip_prefix("Bearer ").unwrap_or(auth_str);
 
-                // Check master token
+                // Check master token — full admin access, skip RBAC
                 if bearer == token {
                     return next.run(request).await;
                 }
@@ -93,7 +99,35 @@ pub async fn auth_middleware(request: Request<Body>, next: Next) -> Response {
                 // Check session token
                 if let Some(ref store) = token_store {
                     if store.validate(bearer) {
+                        // Session token is valid — now enforce RBAC if enabled
+                        if let Some(ref home) = claude_home {
+                            let rbac = RbacConfig::load(home);
+                            if rbac.enabled {
+                                if let Some(user) = rbac.find_by_token(bearer) {
+                                    // Check role-based permissions
+                                    if let Some(resp) = check_rbac(&user.role, &method, &path) {
+                                        return resp;
+                                    }
+                                }
+                                // If RBAC is enabled but user not found in users.json,
+                                // the session token was created via master token login —
+                                // allow full access (backwards compatible)
+                            }
+                        }
                         return next.run(request).await;
+                    }
+                }
+
+                // Check RBAC user tokens directly (users.json tokens without session)
+                if let Some(ref home) = claude_home {
+                    let rbac = RbacConfig::load(home);
+                    if rbac.enabled {
+                        if let Some(user) = rbac.find_by_token(bearer) {
+                            if let Some(resp) = check_rbac(&user.role, &method, &path) {
+                                return resp;
+                            }
+                            return next.run(request).await;
+                        }
                     }
                 }
             }
@@ -109,6 +143,37 @@ pub async fn auth_middleware(request: Request<Body>, next: Next) -> Response {
         )
             .into_response(),
     }
+}
+
+/// Check RBAC permissions. Returns Some(Response) if access is denied, None if allowed.
+fn check_rbac(
+    role: &claude_admin_shared::UserRole,
+    method: &axum::http::Method,
+    path: &str,
+) -> Option<Response> {
+    // User management endpoints require Admin
+    if path.starts_with("/api/v1/users") && !RbacConfig::can_manage_users(role) {
+        return Some(
+            (
+                StatusCode::FORBIDDEN,
+                Json(serde_json::json!({ "error": "Admin role required for user management" })),
+            )
+                .into_response(),
+        );
+    }
+
+    // Write operations (POST/PUT/DELETE) require Admin or Editor
+    if method != axum::http::Method::GET && !RbacConfig::can_write(role) {
+        return Some(
+            (
+                StatusCode::FORBIDDEN,
+                Json(serde_json::json!({ "error": "Write access denied for Viewer role" })),
+            )
+                .into_response(),
+        );
+    }
+
+    None
 }
 
 /// Middleware that adds security headers to every response.
@@ -168,10 +233,8 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
     let file_change_tx = Arc::new(file_change_tx);
 
     // Start file watcher
-    let _watcher = crate::services::watcher::start_watcher(
-        claude_home.clone(),
-        file_change_tx.clone(),
-    );
+    let _watcher =
+        crate::services::watcher::start_watcher(claude_home.clone(), file_change_tx.clone());
 
     // Spawn background tasks
     crate::infra::auth::spawn_token_purge_task(token_store.clone());
@@ -435,30 +498,30 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
                 .delete(routes::webhooks::delete_webhook),
         )
         // Sync
-        .route(
-            "/api/v1/sync/manifest",
-            get(routes::sync::get_manifest),
-        )
+        .route("/api/v1/sync/manifest", get(routes::sync::get_manifest))
         .route("/api/v1/sync/push", post(routes::sync::push_files))
         .route("/api/v1/sync/pull", post(routes::sync::pull_files))
         .route("/api/v1/sync/file", get(routes::sync::get_file))
-        .route(
-            "/api/v1/sync/receive",
-            post(routes::sync::receive_file),
-        )
+        .route("/api/v1/sync/receive", post(routes::sync::receive_file))
         // API Docs
         .route("/api/v1/docs", get(routes::docs::swagger_ui))
-        .route(
-            "/api/v1/docs/openapi.json",
-            get(routes::docs::openapi_spec),
-        );
+        .route("/api/v1/docs/openapi.json", get(routes::docs::openapi_spec));
+
+    // Clone extensions before moving state into Arc
+    let token_store_ext = state.token_store.clone();
+    let rate_limiter_ext = state.rate_limiter.clone();
+    let claude_home_ext = state.claude_home.clone();
 
     let app = Router::new()
         .merge(api_routes)
         .fallback(serve_frontend)
         .layer(middleware::from_fn(block_path_traversal))
+        .layer(middleware::from_fn(rate_limit_middleware))
         .layer(middleware::from_fn(auth_middleware))
         .layer(middleware::from_fn(security_headers))
+        .layer(Extension(token_store_ext))
+        .layer(Extension(rate_limiter_ext))
+        .layer(Extension(claude_home_ext))
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
         .layer(create_cors_layer(&config.allowed_origins))

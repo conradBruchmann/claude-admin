@@ -157,6 +157,37 @@ async fn create_test_app() -> (axum::Router, TempDir) {
             "/api/v1/analytics/overview",
             get(claude_admin_backend::routes::analytics::get_analytics_overview),
         )
+        .route(
+            "/api/v1/analytics/export",
+            get(claude_admin_backend::routes::analytics::export_analytics),
+        )
+        // Budgets
+        .route(
+            "/api/v1/budgets",
+            get(claude_admin_backend::routes::budgets::get_budget_status)
+                .put(claude_admin_backend::routes::budgets::update_budget),
+        )
+        // Webhooks
+        .route(
+            "/api/v1/webhooks",
+            get(claude_admin_backend::routes::webhooks::list_webhooks)
+                .post(claude_admin_backend::routes::webhooks::create_webhook),
+        )
+        .route(
+            "/api/v1/webhooks/:id",
+            axum::routing::put(claude_admin_backend::routes::webhooks::update_webhook)
+                .delete(claude_admin_backend::routes::webhooks::delete_webhook),
+        )
+        // Audit
+        .route(
+            "/api/v1/audit",
+            get(claude_admin_backend::routes::audit::get_audit_log),
+        )
+        // SSE Events
+        .route(
+            "/api/v1/events",
+            get(claude_admin_backend::routes::events::sse_events),
+        )
         .fallback(claude_admin_backend::app::serve_frontend_test)
         .layer(axum::middleware::from_fn(
             claude_admin_backend::app::block_path_traversal,
@@ -1158,4 +1189,289 @@ fn test_mcp_create_request_wrapper_format() {
     let req: claude_admin_shared::McpServerCreateRequest = serde_json::from_str(json).unwrap();
     assert_eq!(req.name, "test");
     assert!(req.config.get("command").is_some());
+}
+
+// ================================================================
+// Budget Validation (GAP-v4-008)
+// ================================================================
+
+#[tokio::test]
+async fn test_budget_reject_negative_daily() {
+    let (app, _tmp) = create_test_app().await;
+    let body = serde_json::json!({
+        "daily_budget_usd": -10.0,
+        "weekly_budget_usd": null,
+        "monthly_budget_usd": null
+    });
+
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .method(Method::PUT)
+                .uri("/api/v1/budgets")
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(Body::from(serde_json::to_vec(&body).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    let body = body_string(resp).await;
+    assert!(body.contains("negative"));
+}
+
+#[tokio::test]
+async fn test_budget_reject_negative_weekly() {
+    let (app, _tmp) = create_test_app().await;
+    let body = serde_json::json!({
+        "daily_budget_usd": null,
+        "weekly_budget_usd": -5.0,
+        "monthly_budget_usd": null
+    });
+
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .method(Method::PUT)
+                .uri("/api/v1/budgets")
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(Body::from(serde_json::to_vec(&body).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    let body = body_string(resp).await;
+    assert!(body.contains("negative"));
+}
+
+#[tokio::test]
+async fn test_budget_accept_zero() {
+    let (app, _tmp) = create_test_app().await;
+    let body = serde_json::json!({
+        "daily_budget_usd": 0.0,
+        "weekly_budget_usd": null,
+        "monthly_budget_usd": null
+    });
+
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .method(Method::PUT)
+                .uri("/api/v1/budgets")
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(Body::from(serde_json::to_vec(&body).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(resp.status(), StatusCode::OK);
+}
+
+// ================================================================
+// Webhook CRUD (GAP-v4-006)
+// ================================================================
+
+#[tokio::test]
+async fn test_webhook_crud() {
+    let (app, _tmp) = create_test_app().await;
+
+    // Create webhook
+    let body = serde_json::json!({
+        "url": "https://example.com/webhook",
+        "events": ["skill.created", "rule.updated"]
+    });
+    let resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method(Method::POST)
+                .uri("/api/v1/webhooks")
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(Body::from(serde_json::to_vec(&body).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::OK);
+    let resp_body = body_string(resp).await;
+    let created: serde_json::Value = serde_json::from_str(&resp_body).unwrap();
+    let webhook_id = created["id"].as_str().unwrap().to_string();
+
+    // List webhooks — should contain the new one
+    let resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/webhooks")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::OK);
+    let resp_body = body_string(resp).await;
+    assert!(resp_body.contains(&webhook_id));
+
+    // Update webhook
+    let update_body = serde_json::json!({
+        "url": "https://example.com/webhook-v2",
+        "active": false
+    });
+    let resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method(Method::PUT)
+                .uri(&format!("/api/v1/webhooks/{}", webhook_id))
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(Body::from(serde_json::to_vec(&update_body).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::OK);
+    let resp_body = body_string(resp).await;
+    assert!(resp_body.contains("webhook-v2"));
+
+    // Delete webhook
+    let resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method(Method::DELETE)
+                .uri(&format!("/api/v1/webhooks/{}", webhook_id))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::OK);
+
+    // Verify deletion — list should be empty
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/webhooks")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::OK);
+    let resp_body = body_string(resp).await;
+    assert_eq!(resp_body, "[]");
+}
+
+// ================================================================
+// Audit Log (GAP-v4-006)
+// ================================================================
+
+#[tokio::test]
+async fn test_audit_log_after_writes() {
+    let (app, _tmp) = create_test_app().await;
+
+    // Create a skill to generate an audit entry
+    let body = serde_json::json!({
+        "name": "audit-test-skill",
+        "scope": "global",
+        "frontmatter": {"description": "audit test"},
+        "content": "# Audit Test"
+    });
+    let resp = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method(Method::POST)
+                .uri("/api/v1/skills")
+                .header(header::CONTENT_TYPE, "application/json")
+                .body(Body::from(serde_json::to_vec(&body).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::OK);
+
+    // Check audit log
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/audit?limit=10")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(resp.status(), StatusCode::OK);
+    let body_str = body_string(resp).await;
+    assert!(body_str.contains("\"entries\""));
+}
+
+// ================================================================
+// Export Format Validation (GAP-v4-006)
+// ================================================================
+
+#[tokio::test]
+async fn test_export_format_invalid() {
+    let (app, _tmp) = create_test_app().await;
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/analytics/export?format=xml")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    let body = body_string(resp).await;
+    assert!(body.contains("Unsupported"));
+}
+
+#[tokio::test]
+async fn test_export_format_csv() {
+    let (app, _tmp) = create_test_app().await;
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/analytics/export?format=csv")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(resp.status(), StatusCode::OK);
+    assert_eq!(resp.headers().get("content-type").unwrap(), "text/csv");
+}
+
+// ================================================================
+// SSE Events Endpoint (GAP-v4-007)
+// ================================================================
+
+#[tokio::test]
+async fn test_sse_events_endpoint() {
+    let (app, _tmp) = create_test_app().await;
+    let resp = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/events")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(resp.status(), StatusCode::OK);
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .unwrap()
+        .to_str()
+        .unwrap();
+    assert!(content_type.contains("text/event-stream"));
 }

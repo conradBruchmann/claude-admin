@@ -61,7 +61,10 @@ pub async fn get_file(
     }
     let full_path = state.claude_home.join(&query.path);
     if !tokio::fs::try_exists(&full_path).await.unwrap_or(false) {
-        return Err(ApiError::NotFound(format!("File not found: {}", query.path)));
+        return Err(ApiError::NotFound(format!(
+            "File not found: {}",
+            query.path
+        )));
     }
     let content = tokio::fs::read_to_string(&full_path).await?;
     Ok(content)

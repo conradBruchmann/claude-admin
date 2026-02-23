@@ -28,10 +28,7 @@ pub async fn run(client: &ApiClient, action: AnalyticsAction) -> Result<(), Stri
             println!("Git Commits:    {}", overview.total_git_commits);
             println!("Lines Added:    {}", overview.total_lines_added);
             println!("Lines Removed:  {}", overview.total_lines_removed);
-            println!(
-                "Est. Cost:      ${:.2}",
-                overview.estimated_total_cost_usd
-            );
+            println!("Est. Cost:      ${:.2}", overview.estimated_total_cost_usd);
 
             if !overview.model_usage.is_empty() {
                 println!("\nModel Usage:");

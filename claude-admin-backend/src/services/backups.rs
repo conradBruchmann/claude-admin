@@ -173,8 +173,7 @@ pub async fn prune_backups(
 /// Spawn background task to prune backups every 6 hours.
 pub fn spawn_backup_prune_task(claude_home: std::path::PathBuf) {
     tokio::spawn(async move {
-        let mut interval =
-            tokio::time::interval(std::time::Duration::from_secs(6 * 3600));
+        let mut interval = tokio::time::interval(std::time::Duration::from_secs(6 * 3600));
         loop {
             interval.tick().await;
             match prune_backups(&claude_home, 100, 30).await {

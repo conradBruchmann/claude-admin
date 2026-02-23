@@ -51,6 +51,13 @@ pub async fn create_rule(
     let rule_path = rules_dir.join(&filename);
     file_ops::write_with_backup(&state.claude_home, &rule_path, &req.content).await?;
 
+    let webhooks = crate::services::webhooks::load_webhooks(&state.claude_home);
+    crate::services::webhooks::fire_webhook(
+        &webhooks,
+        "rule.created",
+        serde_json::json!({"name": &req.name, "scope": format!("{:?}", &req.scope)}),
+    );
+
     Ok(Json(RuleFile {
         name: req.name,
         path: rule_path.to_string_lossy().to_string(),
@@ -73,6 +80,13 @@ pub async fn update_rule(
     }
 
     file_ops::write_with_backup(&state.claude_home, &rule_path, &req.content).await?;
+
+    let webhooks = crate::services::webhooks::load_webhooks(&state.claude_home);
+    crate::services::webhooks::fire_webhook(
+        &webhooks,
+        "rule.updated",
+        serde_json::json!({"name": &name, "scope": format!("{:?}", &scope)}),
+    );
 
     Ok(Json(RuleFile {
         name,
@@ -98,6 +112,14 @@ pub async fn delete_rule(
     file_ops::create_backup(&state.claude_home, &rule_path, &content).await?;
 
     tokio::fs::remove_file(&rule_path).await?;
+
+    let webhooks = crate::services::webhooks::load_webhooks(&state.claude_home);
+    crate::services::webhooks::fire_webhook(
+        &webhooks,
+        "rule.deleted",
+        serde_json::json!({"name": &name, "scope": format!("{:?}", &scope)}),
+    );
+
     Ok(Json(serde_json::json!({"deleted": name})))
 }
 
