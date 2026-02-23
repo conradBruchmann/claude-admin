@@ -221,7 +221,7 @@ fn detect_fragment(command: &str) -> bool {
 fn detect_security_issue(command: &str) -> Option<String> {
     // Plaintext passwords
     let password_patterns = [
-        (r"-p\s*\S+", "Possible plaintext password in -p flag"),
+        (r"--password[= ]\S+", "Possible plaintext password in command"),
         (r"password=\S+", "Plaintext password in command"),
         (r"secret=\S+", "Plaintext secret in command"),
         (r"token=\S+", "Plaintext token in command"),
