@@ -1,3 +1,5 @@
+🌍 **English** | [Deutsch](README.de.md) | [Nederlands](README.nl.md) | [Português](README.pt.md) | [Español](README.es.md) | [Français](README.fr.md) | [Italiano](README.it.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [中文](README.zh.md) | [Polski](README.pl.md) | [Türkçe](README.tr.md)
+
 # ClaudeAdmin
 
 A web-based admin console for managing your [Claude Code](https://claude.com/claude-code) configuration.
