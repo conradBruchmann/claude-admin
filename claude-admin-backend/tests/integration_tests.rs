@@ -21,6 +21,10 @@ async fn create_test_app() -> (axum::Router, TempDir) {
 
     let (file_change_tx, _) = tokio::sync::broadcast::channel(100);
 
+    let rbac_config = Arc::new(tokio::sync::RwLock::new(
+        claude_admin_backend::infra::rbac::RbacConfig::load(&claude_home),
+    ));
+
     let state = Arc::new(claude_admin_backend::app::AppState {
         config: claude_admin_backend::infra::config::Config {
             host: "127.0.0.1".to_string(),
@@ -35,159 +39,11 @@ async fn create_test_app() -> (axum::Router, TempDir) {
         token_store: claude_admin_backend::infra::auth::TokenStore::new(8),
         rate_limiter: claude_admin_backend::infra::rate_limit::create_rate_limiter(),
         file_change_tx: Arc::new(file_change_tx),
+        rbac_config,
     });
 
-    // Build the router the same way as production but with test state
-    use axum::routing::{delete, get, post};
-
-    let api = axum::Router::new()
-        .route(
-            "/api/v1/health",
-            get(claude_admin_backend::routes::health::health_check),
-        )
-        .route(
-            "/api/v1/dashboard",
-            get(claude_admin_backend::routes::dashboard::get_dashboard),
-        )
-        .route(
-            "/api/v1/skills",
-            get(claude_admin_backend::routes::skills::list_skills)
-                .post(claude_admin_backend::routes::skills::create_skill),
-        )
-        .route(
-            "/api/v1/skills/:scope/:name",
-            get(claude_admin_backend::routes::skills::get_skill)
-                .put(claude_admin_backend::routes::skills::update_skill)
-                .delete(claude_admin_backend::routes::skills::delete_skill),
-        )
-        .route(
-            "/api/v1/rules",
-            get(claude_admin_backend::routes::rules::list_rules)
-                .post(claude_admin_backend::routes::rules::create_rule),
-        )
-        .route(
-            "/api/v1/rules/:scope/:name",
-            get(claude_admin_backend::routes::rules::get_rule)
-                .put(claude_admin_backend::routes::rules::update_rule)
-                .delete(claude_admin_backend::routes::rules::delete_rule),
-        )
-        .route(
-            "/api/v1/plans",
-            get(claude_admin_backend::routes::plans::list_plans),
-        )
-        .route(
-            "/api/v1/plans/:name",
-            get(claude_admin_backend::routes::plans::get_plan)
-                .put(claude_admin_backend::routes::plans::update_plan)
-                .delete(claude_admin_backend::routes::plans::delete_plan),
-        )
-        .route(
-            "/api/v1/memory/:project",
-            get(claude_admin_backend::routes::memory::get_memory)
-                .put(claude_admin_backend::routes::memory::put_memory),
-        )
-        .route(
-            "/api/v1/memory/:project/topics/:name",
-            get(claude_admin_backend::routes::memory::get_topic)
-                .put(claude_admin_backend::routes::memory::put_topic),
-        )
-        .route(
-            "/api/v1/settings/global",
-            get(claude_admin_backend::routes::settings::get_global_settings)
-                .put(claude_admin_backend::routes::settings::put_global_settings),
-        )
-        .route(
-            "/api/v1/mcp",
-            get(claude_admin_backend::routes::mcp::list_mcp_servers)
-                .post(claude_admin_backend::routes::mcp::create_mcp_server),
-        )
-        .route(
-            "/api/v1/mcp/:name",
-            delete(claude_admin_backend::routes::mcp::delete_mcp_server),
-        )
-        .route(
-            "/api/v1/backups",
-            get(claude_admin_backend::routes::backups::list_backups),
-        )
-        .route(
-            "/api/v1/backups/:name",
-            delete(claude_admin_backend::routes::backups::delete_backup),
-        )
-        .route(
-            "/api/v1/export",
-            get(claude_admin_backend::routes::export::export_bundle),
-        )
-        .route(
-            "/api/v1/import",
-            post(claude_admin_backend::routes::export::import_bundle),
-        )
-        .route(
-            "/api/v1/search",
-            get(claude_admin_backend::routes::search::search),
-        )
-        .route(
-            "/api/v1/templates",
-            get(claude_admin_backend::routes::templates::list_templates),
-        )
-        .route(
-            "/api/v1/templates/:name/apply",
-            post(claude_admin_backend::routes::templates::apply_template),
-        )
-        .route(
-            "/api/v1/permissions",
-            get(claude_admin_backend::routes::permissions::list_permissions),
-        )
-        .route(
-            "/api/v1/permissions/:project_id",
-            get(claude_admin_backend::routes::permissions::get_project_permissions),
-        )
-        .route(
-            "/api/v1/permissions/:project_id/optimize",
-            get(claude_admin_backend::routes::permissions::optimize_permissions),
-        )
-        .route(
-            "/api/v1/sessions",
-            get(claude_admin_backend::routes::sessions::list_sessions),
-        )
-        .route(
-            "/api/v1/sessions/search",
-            get(claude_admin_backend::routes::sessions::search_history),
-        )
-        .route(
-            "/api/v1/analytics/overview",
-            get(claude_admin_backend::routes::analytics::get_analytics_overview),
-        )
-        .route(
-            "/api/v1/analytics/export",
-            get(claude_admin_backend::routes::analytics::export_analytics),
-        )
-        // Budgets
-        .route(
-            "/api/v1/budgets",
-            get(claude_admin_backend::routes::budgets::get_budget_status)
-                .put(claude_admin_backend::routes::budgets::update_budget),
-        )
-        // Webhooks
-        .route(
-            "/api/v1/webhooks",
-            get(claude_admin_backend::routes::webhooks::list_webhooks)
-                .post(claude_admin_backend::routes::webhooks::create_webhook),
-        )
-        .route(
-            "/api/v1/webhooks/:id",
-            axum::routing::put(claude_admin_backend::routes::webhooks::update_webhook)
-                .delete(claude_admin_backend::routes::webhooks::delete_webhook),
-        )
-        // Audit
-        .route(
-            "/api/v1/audit",
-            get(claude_admin_backend::routes::audit::get_audit_log),
-        )
-        // SSE Events
-        .route(
-            "/api/v1/events",
-            get(claude_admin_backend::routes::events::sse_events),
-        )
+    // Use the shared route builder — identical routes as production
+    let api = claude_admin_backend::routes::router::create_api_routes()
         .fallback(claude_admin_backend::app::serve_frontend_test)
         .layer(axum::middleware::from_fn(
             claude_admin_backend::app::block_path_traversal,

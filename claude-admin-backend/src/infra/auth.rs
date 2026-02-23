@@ -56,18 +56,46 @@ impl TokenStore {
 }
 
 fn generate_token() -> String {
+    use hmac::{Hmac, Mac};
+    use sha2::Sha256;
+    use std::sync::atomic::{AtomicU64, Ordering};
+    use std::sync::OnceLock;
     use std::time::SystemTime;
-    let seed = SystemTime::now()
+
+    // Process-unique secret (created once per process lifetime)
+    static SECRET: OnceLock<[u8; 32]> = OnceLock::new();
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+
+    let secret = SECRET.get_or_init(|| {
+        let ts = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos();
+        let pid = std::process::id() as u128;
+        // Mix timestamp, PID, and a stack address for uniqueness
+        let stack_var = 0u8;
+        let stack_addr = &stack_var as *const u8 as u128;
+        let combined = ts ^ (pid << 64) ^ stack_addr;
+        let mut buf = [0u8; 32];
+        buf[..16].copy_from_slice(&combined.to_le_bytes());
+        buf[16..].copy_from_slice(&ts.to_be_bytes());
+        buf
+    });
+
+    let counter = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let ts = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
         .unwrap_or_default()
         .as_nanos();
 
-    // Simple token generation using timestamp + random-ish bits
-    format!(
-        "ses_{:x}_{:x}",
-        seed,
-        seed.wrapping_mul(6364136223846793005).wrapping_add(1)
-    )
+    let message = format!("{}:{}", ts, counter);
+    let mut mac = Hmac::<Sha256>::new_from_slice(secret).expect("HMAC accepts any key length");
+    mac.update(message.as_bytes());
+    let result = mac.finalize().into_bytes();
+
+    // Take first 16 bytes (128 bits) and format as hex
+    let hex: String = result[..16].iter().map(|b| format!("{:02x}", b)).collect();
+    format!("ses_{}", hex)
 }
 
 /// Spawn background task to purge expired tokens every 5 minutes.

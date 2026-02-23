@@ -6,7 +6,7 @@ use crate::app::AppState;
 use crate::domain::errors::ApiError;
 use crate::domain::extractors::AppJson;
 use crate::domain::validation::validate_resource_name;
-use crate::services::{file_ops, project_resolver};
+use crate::services::{audit, file_ops, project_resolver};
 use claude_admin_shared::{MemoryFile, MemoryUpdateRequest};
 
 pub async fn get_memory(
@@ -60,6 +60,15 @@ pub async fn put_memory(
     tokio::fs::create_dir_all(&memory_dir).await?;
     let memory_path = memory_dir.join("MEMORY.md");
     file_ops::write_with_backup(&state.claude_home, &memory_path, &req.content).await?;
+
+    audit::log_audit(
+        &state.claude_home,
+        "update",
+        "memory",
+        "MEMORY.md",
+        Some(&project),
+    )
+    .await;
 
     Ok(Json(MemoryFile {
         name: "MEMORY.md".to_string(),
@@ -118,6 +127,15 @@ pub async fn put_topic(
     tokio::fs::create_dir_all(&memory_dir).await?;
     let topic_path = memory_dir.join(&filename);
     file_ops::write_with_backup(&state.claude_home, &topic_path, &req.content).await?;
+
+    audit::log_audit(
+        &state.claude_home,
+        "update",
+        "memory",
+        &filename,
+        Some(&project),
+    )
+    .await;
 
     Ok(Json(MemoryFile {
         name: filename,

@@ -1,8 +1,3 @@
-use axum::body::Body;
-use axum::http::{Request, StatusCode};
-use axum::middleware::Next;
-use axum::response::{IntoResponse, Response};
-use axum::Json;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
@@ -51,37 +46,4 @@ pub fn create_rate_limiter() -> RateLimiter {
         .unwrap_or(120);
 
     RateLimiter::new(max_rpm)
-}
-
-/// Axum middleware function for rate limiting.
-pub async fn rate_limit_middleware(request: Request<Body>, next: Next) -> Response {
-    // Only rate-limit API endpoints
-    if !request.uri().path().starts_with("/api/") {
-        return next.run(request).await;
-    }
-
-    // Extract client IP from headers or connection
-    let client_ip = request
-        .headers()
-        .get("x-forwarded-for")
-        .and_then(|v| v.to_str().ok())
-        .map(|s| s.split(',').next().unwrap_or("unknown").trim().to_string())
-        .unwrap_or_else(|| "unknown".to_string());
-
-    // Get the rate limiter from extensions
-    let limiter = request.extensions().get::<RateLimiter>().cloned();
-
-    if let Some(limiter) = limiter {
-        match limiter.check(&client_ip) {
-            Some(_remaining) => next.run(request).await,
-            None => (
-                StatusCode::TOO_MANY_REQUESTS,
-                [("Retry-After", "60")],
-                Json(serde_json::json!({ "error": "Rate limit exceeded. Try again later." })),
-            )
-                .into_response(),
-        }
-    } else {
-        next.run(request).await
-    }
 }

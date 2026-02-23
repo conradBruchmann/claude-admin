@@ -5,7 +5,7 @@ use std::sync::Arc;
 use crate::app::AppState;
 use crate::domain::errors::ApiError;
 use crate::domain::extractors::AppJson;
-use crate::services::{claude_api, file_ops, fs_scanner, project_resolver, system_info};
+use crate::services::{audit, claude_api, file_ops, fs_scanner, project_resolver, system_info};
 use claude_admin_shared::*;
 
 pub async fn get_global_settings(
@@ -25,6 +25,8 @@ pub async fn put_global_settings(
 
     let webhooks = crate::services::webhooks::load_webhooks(&state.claude_home);
     crate::services::webhooks::fire_webhook(&webhooks, "settings.updated", serde_json::json!({}));
+
+    audit::log_audit(&state.claude_home, "update", "settings", "global", None).await;
 
     let overview = fs_scanner::scan_settings(&state.claude_home).await?;
     Ok(Json(overview))
@@ -127,6 +129,8 @@ pub async fn set_api_key(
             *guard = Some(claude_api::AnthropicClient::from_api_key(req.api_key));
         }
     }
+
+    audit::log_audit(&state.claude_home, "update", "settings", "api-key", None).await;
 
     let status = claude_api::get_auth_status(&state.claude_home);
     Ok(Json(status))

@@ -27,3 +27,5 @@ pub mod sync;
 pub mod system_info;
 pub mod templates;
 pub mod webhooks;
+
+pub mod router;

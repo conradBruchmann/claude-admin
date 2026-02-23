@@ -7,7 +7,7 @@ use crate::domain::errors::ApiError;
 use crate::domain::extractors::AppJson;
 use crate::domain::frontmatter;
 use crate::domain::validation::validate_resource_name;
-use crate::services::{file_ops, fs_scanner};
+use crate::services::{audit, file_ops, fs_scanner};
 use claude_admin_shared::{ConfigScope, SkillCreateRequest, SkillFile, SkillUpdateRequest};
 
 pub async fn list_skills(
@@ -58,6 +58,8 @@ pub async fn create_skill(
         serde_json::json!({"name": &req.name, "scope": format!("{:?}", &req.scope)}),
     );
 
+    audit::log_audit(&state.claude_home, "create", "skill", &req.name, None).await;
+
     Ok(Json(SkillFile {
         name: req.name,
         path: skill_path.to_string_lossy().to_string(),
@@ -89,6 +91,8 @@ pub async fn update_skill(
         "skill.updated",
         serde_json::json!({"name": &name, "scope": format!("{:?}", &scope)}),
     );
+
+    audit::log_audit(&state.claude_home, "update", "skill", &name, None).await;
 
     Ok(Json(SkillFile {
         name,
@@ -127,13 +131,17 @@ pub async fn delete_skill(
         serde_json::json!({"name": &name, "scope": format!("{:?}", &scope)}),
     );
 
+    audit::log_audit(&state.claude_home, "delete", "skill", &name, None).await;
+
     Ok(Json(serde_json::json!({"deleted": name})))
 }
 
 fn parse_scope(s: &str) -> Result<ConfigScope, ApiError> {
     match s {
         "global" => Ok(ConfigScope::Global),
-        "project" => Ok(ConfigScope::Project),
+        "project" => Err(ApiError::BadRequest(
+            "Project-scoped resources are not yet supported. Use 'global' scope.".into(),
+        )),
         _ => Err(ApiError::BadRequest(format!("Invalid scope: {}", s))),
     }
 }
@@ -141,7 +149,7 @@ fn parse_scope(s: &str) -> Result<ConfigScope, ApiError> {
 fn skill_dir(claude_home: &std::path::Path, scope: &ConfigScope, name: &str) -> std::path::PathBuf {
     match scope {
         ConfigScope::Global => claude_home.join("skills").join(name),
-        ConfigScope::Project => claude_home.join("skills").join(name), // TODO: project-scoped path
+        ConfigScope::Project => unreachable!("Project scope rejected by parse_scope"),
     }
 }
 

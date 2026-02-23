@@ -6,7 +6,7 @@ use crate::app::AppState;
 use crate::domain::errors::ApiError;
 use crate::domain::extractors::AppJson;
 use crate::domain::validation::validate_resource_name;
-use crate::services::{file_ops, fs_scanner};
+use crate::services::{audit, file_ops, fs_scanner};
 use claude_admin_shared::{ConfigScope, RuleCreateRequest, RuleFile, RuleUpdateRequest};
 
 pub async fn list_rules(
@@ -58,6 +58,8 @@ pub async fn create_rule(
         serde_json::json!({"name": &req.name, "scope": format!("{:?}", &req.scope)}),
     );
 
+    audit::log_audit(&state.claude_home, "create", "rule", &req.name, None).await;
+
     Ok(Json(RuleFile {
         name: req.name,
         path: rule_path.to_string_lossy().to_string(),
@@ -87,6 +89,8 @@ pub async fn update_rule(
         "rule.updated",
         serde_json::json!({"name": &name, "scope": format!("{:?}", &scope)}),
     );
+
+    audit::log_audit(&state.claude_home, "update", "rule", &name, None).await;
 
     Ok(Json(RuleFile {
         name,
@@ -120,13 +124,17 @@ pub async fn delete_rule(
         serde_json::json!({"name": &name, "scope": format!("{:?}", &scope)}),
     );
 
+    audit::log_audit(&state.claude_home, "delete", "rule", &name, None).await;
+
     Ok(Json(serde_json::json!({"deleted": name})))
 }
 
 fn parse_scope(s: &str) -> Result<ConfigScope, ApiError> {
     match s {
         "global" => Ok(ConfigScope::Global),
-        "project" => Ok(ConfigScope::Project),
+        "project" => Err(ApiError::BadRequest(
+            "Project-scoped resources are not yet supported. Use 'global' scope.".into(),
+        )),
         _ => Err(ApiError::BadRequest(format!("Invalid scope: {}", s))),
     }
 }
@@ -134,7 +142,7 @@ fn parse_scope(s: &str) -> Result<ConfigScope, ApiError> {
 fn rules_dir(claude_home: &std::path::Path, scope: &ConfigScope) -> std::path::PathBuf {
     match scope {
         ConfigScope::Global => claude_home.join("rules"),
-        ConfigScope::Project => claude_home.join("rules"), // TODO: project-scoped
+        ConfigScope::Project => unreachable!("Project scope rejected by parse_scope"),
     }
 }
 

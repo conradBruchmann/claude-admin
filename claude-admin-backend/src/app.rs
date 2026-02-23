@@ -2,10 +2,7 @@ use axum::body::Body;
 use axum::http::{header, Request, StatusCode};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
-use axum::{
-    routing::{delete, get, post},
-    Extension, Json, Router,
-};
+use axum::{Json, Router};
 use rust_embed::Embed;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
@@ -13,7 +10,7 @@ use tokio::sync::broadcast;
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
 
 use crate::infra::auth::TokenStore;
-use crate::infra::rate_limit::{create_rate_limiter, rate_limit_middleware, RateLimiter};
+use crate::infra::rate_limit::{create_rate_limiter, RateLimiter};
 use crate::infra::rbac::RbacConfig;
 use crate::infra::{config::Config, cors::create_cors_layer};
 use crate::routes;
@@ -31,6 +28,7 @@ pub struct AppState {
     pub token_store: TokenStore,
     pub rate_limiter: RateLimiter,
     pub file_change_tx: Arc<broadcast::Sender<FileChangeEvent>>,
+    pub rbac_config: Arc<tokio::sync::RwLock<RbacConfig>>,
 }
 
 #[derive(Embed)]
@@ -53,7 +51,11 @@ pub async fn block_path_traversal(request: Request<Body>, next: Next) -> Respons
 /// Middleware that enforces Bearer token authentication when CLAUDE_ADMIN_TOKEN is set.
 /// Supports both master tokens and session tokens.
 /// Also enforces RBAC when ~/.claude/users.json exists.
-pub async fn auth_middleware(request: Request<Body>, next: Next) -> Response {
+pub async fn auth_middleware(
+    axum::extract::State(state): axum::extract::State<Arc<AppState>>,
+    request: Request<Body>,
+    next: Next,
+) -> Response {
     let token = std::env::var("CLAUDE_ADMIN_TOKEN").unwrap_or_default();
     if token.is_empty() {
         return next.run(request).await;
@@ -79,10 +81,6 @@ pub async fn auth_middleware(request: Request<Body>, next: Next) -> Response {
         return next.run(request).await;
     }
 
-    // Get token store and claude_home from extensions
-    let token_store = request.extensions().get::<TokenStore>().cloned();
-    let claude_home = request.extensions().get::<PathBuf>().cloned();
-
     let method = request.method().clone();
     let path = request.uri().path().to_string();
 
@@ -97,37 +95,30 @@ pub async fn auth_middleware(request: Request<Body>, next: Next) -> Response {
                 }
 
                 // Check session token
-                if let Some(ref store) = token_store {
-                    if store.validate(bearer) {
-                        // Session token is valid — now enforce RBAC if enabled
-                        if let Some(ref home) = claude_home {
-                            let rbac = RbacConfig::load(home);
-                            if rbac.enabled {
-                                if let Some(user) = rbac.find_by_token(bearer) {
-                                    // Check role-based permissions
-                                    if let Some(resp) = check_rbac(&user.role, &method, &path) {
-                                        return resp;
-                                    }
-                                }
-                                // If RBAC is enabled but user not found in users.json,
-                                // the session token was created via master token login —
-                                // allow full access (backwards compatible)
-                            }
-                        }
-                        return next.run(request).await;
-                    }
-                }
-
-                // Check RBAC user tokens directly (users.json tokens without session)
-                if let Some(ref home) = claude_home {
-                    let rbac = RbacConfig::load(home);
+                if state.token_store.validate(bearer) {
+                    // Session token is valid — now enforce RBAC if enabled
+                    let rbac = state.rbac_config.read().await;
                     if rbac.enabled {
                         if let Some(user) = rbac.find_by_token(bearer) {
                             if let Some(resp) = check_rbac(&user.role, &method, &path) {
                                 return resp;
                             }
-                            return next.run(request).await;
                         }
+                        // If RBAC is enabled but user not found in users.json,
+                        // the session token was created via master token login —
+                        // allow full access (backwards compatible)
+                    }
+                    return next.run(request).await;
+                }
+
+                // Check RBAC user tokens directly (users.json tokens without session)
+                let rbac = state.rbac_config.read().await;
+                if rbac.enabled {
+                    if let Some(user) = rbac.find_by_token(bearer) {
+                        if let Some(resp) = check_rbac(&user.role, &method, &path) {
+                            return resp;
+                        }
+                        return next.run(request).await;
                     }
                 }
             }
@@ -145,19 +136,48 @@ pub async fn auth_middleware(request: Request<Body>, next: Next) -> Response {
     }
 }
 
+/// Axum middleware function for rate limiting (uses State instead of Extension).
+pub async fn rate_limit_middleware(
+    axum::extract::State(state): axum::extract::State<Arc<AppState>>,
+    request: Request<Body>,
+    next: Next,
+) -> Response {
+    // Only rate-limit API endpoints
+    if !request.uri().path().starts_with("/api/") {
+        return next.run(request).await;
+    }
+
+    // Extract client IP from headers or connection
+    let client_ip = request
+        .headers()
+        .get("x-forwarded-for")
+        .and_then(|v| v.to_str().ok())
+        .map(|s| s.split(',').next().unwrap_or("unknown").trim().to_string())
+        .unwrap_or_else(|| "unknown".to_string());
+
+    match state.rate_limiter.check(&client_ip) {
+        Some(_remaining) => next.run(request).await,
+        None => (
+            StatusCode::TOO_MANY_REQUESTS,
+            [("Retry-After", "60")],
+            Json(serde_json::json!({ "error": "Rate limit exceeded. Try again later." })),
+        )
+            .into_response(),
+    }
+}
+
 /// Check RBAC permissions. Returns Some(Response) if access is denied, None if allowed.
 fn check_rbac(
     role: &claude_admin_shared::UserRole,
     method: &axum::http::Method,
     path: &str,
 ) -> Option<Response> {
+    use crate::domain::errors::ApiError;
+
     // User management endpoints require Admin
     if path.starts_with("/api/v1/users") && !RbacConfig::can_manage_users(role) {
         return Some(
-            (
-                StatusCode::FORBIDDEN,
-                Json(serde_json::json!({ "error": "Admin role required for user management" })),
-            )
+            ApiError::Forbidden("Admin role required for user management".to_string())
                 .into_response(),
         );
     }
@@ -165,11 +185,7 @@ fn check_rbac(
     // Write operations (POST/PUT/DELETE) require Admin or Editor
     if method != axum::http::Method::GET && !RbacConfig::can_write(role) {
         return Some(
-            (
-                StatusCode::FORBIDDEN,
-                Json(serde_json::json!({ "error": "Write access denied for Viewer role" })),
-            )
-                .into_response(),
+            ApiError::Forbidden("Write access denied for Viewer role".to_string()).into_response(),
         );
     }
 
@@ -240,6 +256,21 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
     crate::infra::auth::spawn_token_purge_task(token_store.clone());
     crate::services::backups::spawn_backup_prune_task(claude_home.clone());
 
+    // RBAC cache — loaded once, reloaded on users.json changes
+    let rbac_config = Arc::new(tokio::sync::RwLock::new(RbacConfig::load(&claude_home)));
+    {
+        let rbac_cache = rbac_config.clone();
+        let claude_home_clone = claude_home.clone();
+        let mut rx = file_change_tx.subscribe();
+        tokio::spawn(async move {
+            while let Ok(event) = rx.recv().await {
+                if event.path.ends_with("users.json") {
+                    *rbac_cache.write().await = RbacConfig::load(&claude_home_clone);
+                }
+            }
+        });
+    }
+
     let state = Arc::new(AppState {
         config: config.clone(),
         claude_home,
@@ -249,279 +280,24 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
         token_store,
         rate_limiter,
         file_change_tx,
+        rbac_config,
     });
 
-    let api_routes = Router::new()
-        .route("/api/v1/health", get(routes::health::health_check))
-        .route("/api/v1/dashboard", get(routes::dashboard::get_dashboard))
-        .route(
-            "/api/v1/dashboard/health",
-            get(routes::dashboard::get_dashboard_health),
-        )
-        .route("/api/v1/projects", get(routes::projects::list_projects))
-        .route("/api/v1/projects/:id", get(routes::projects::get_project))
-        .route(
-            "/api/v1/projects/:id/status",
-            get(routes::projects::get_project_status),
-        )
-        .route(
-            "/api/v1/projects/:id/claude-md",
-            get(routes::projects::get_claude_md).put(routes::projects::put_claude_md),
-        )
-        .route(
-            "/api/v1/skills",
-            get(routes::skills::list_skills).post(routes::skills::create_skill),
-        )
-        .route(
-            "/api/v1/skills/:scope/:name",
-            get(routes::skills::get_skill)
-                .put(routes::skills::update_skill)
-                .delete(routes::skills::delete_skill),
-        )
-        .route(
-            "/api/v1/rules",
-            get(routes::rules::list_rules).post(routes::rules::create_rule),
-        )
-        .route(
-            "/api/v1/rules/:scope/:name",
-            get(routes::rules::get_rule)
-                .put(routes::rules::update_rule)
-                .delete(routes::rules::delete_rule),
-        )
-        .route(
-            "/api/v1/memory/:project",
-            get(routes::memory::get_memory).put(routes::memory::put_memory),
-        )
-        .route(
-            "/api/v1/memory/:project/topics/:name",
-            get(routes::memory::get_topic).put(routes::memory::put_topic),
-        )
-        .route(
-            "/api/v1/settings/global",
-            get(routes::settings::get_global_settings).put(routes::settings::put_global_settings),
-        )
-        .route(
-            "/api/v1/settings/claude-json",
-            get(routes::settings::get_claude_json),
-        )
-        .route("/api/v1/plans", get(routes::plans::list_plans))
-        .route(
-            "/api/v1/plans/:name",
-            get(routes::plans::get_plan)
-                .put(routes::plans::update_plan)
-                .delete(routes::plans::delete_plan),
-        )
-        .route(
-            "/api/v1/projects/:id/advisor",
-            get(routes::advisor::get_advisor_report),
-        )
-        .route(
-            "/api/v1/ai/suggest",
-            axum::routing::post(routes::ai::suggest),
-        )
-        .route(
-            "/api/v1/ai/validate",
-            axum::routing::post(routes::ai::validate),
-        )
-        // Permissions & Config Health
-        .route(
-            "/api/v1/permissions",
-            get(routes::permissions::list_permissions),
-        )
-        .route(
-            "/api/v1/permissions/:project_id",
-            get(routes::permissions::get_project_permissions),
-        )
-        .route(
-            "/api/v1/permissions/:project_id/entries",
-            delete(routes::permissions::delete_permission_entries),
-        )
-        .route(
-            "/api/v1/health/overview",
-            get(routes::permissions::get_health_overview),
-        )
-        .route(
-            "/api/v1/health/:project_id",
-            get(routes::permissions::get_project_health),
-        )
-        // Skill Browser
-        .route(
-            "/api/v1/skill-browser/official",
-            get(routes::skill_browser::list_official_skills),
-        )
-        .route(
-            "/api/v1/skill-browser/community",
-            get(routes::skill_browser::list_community_skills),
-        )
-        .route(
-            "/api/v1/skill-browser/install",
-            post(routes::skill_browser::install_skill),
-        )
-        // Settings Hierarchy & Hook Builder
-        .route(
-            "/api/v1/settings/hierarchy/:project_id",
-            get(routes::settings::get_settings_hierarchy),
-        )
-        .route(
-            "/api/v1/settings/hook-templates",
-            get(routes::settings::get_hook_templates),
-        )
-        .route(
-            "/api/v1/settings/storage",
-            get(routes::settings::get_storage),
-        )
-        // API Key management
-        .route(
-            "/api/v1/settings/api-key",
-            get(routes::settings::get_api_key_status).put(routes::settings::set_api_key),
-        )
-        // Analytics
-        .route(
-            "/api/v1/analytics/overview",
-            get(routes::analytics::get_analytics_overview),
-        )
-        .route(
-            "/api/v1/analytics/projects",
-            get(routes::analytics::get_project_analytics),
-        )
-        .route(
-            "/api/v1/analytics/export",
-            get(routes::analytics::export_analytics),
-        )
-        // Sessions
-        .route("/api/v1/sessions", get(routes::sessions::list_sessions))
-        .route(
-            "/api/v1/sessions/search",
-            get(routes::sessions::search_history),
-        )
-        .route("/api/v1/sessions/:id", get(routes::sessions::get_session))
-        .route(
-            "/api/v1/sessions/:id/transcript",
-            get(routes::sessions::get_transcript),
-        )
-        // System Info & GitHub
-        .route(
-            "/api/v1/system/info",
-            get(routes::system_info::get_system_info),
-        )
-        .route(
-            "/api/v1/system/storage",
-            get(routes::system_info::get_storage_info),
-        )
-        .route("/api/v1/github", get(routes::github::get_github_overview))
-        // Licenses
-        .route("/api/v1/licenses", get(routes::licenses::get_licenses))
-        // MCP Server Management
-        .route(
-            "/api/v1/mcp",
-            get(routes::mcp::list_mcp_servers).post(routes::mcp::create_mcp_server),
-        )
-        .route("/api/v1/mcp/health", get(routes::mcp::health_check_all))
-        .route(
-            "/api/v1/mcp/:name",
-            get(routes::mcp::get_mcp_server)
-                .put(routes::mcp::update_mcp_server)
-                .delete(routes::mcp::delete_mcp_server),
-        )
-        .route(
-            "/api/v1/mcp/:name/health",
-            get(routes::mcp::health_check_server),
-        )
-        .route("/api/v1/mcp-browser", get(routes::mcp::get_mcp_catalog))
-        .route(
-            "/api/v1/mcp-browser/install",
-            post(routes::mcp::install_mcp_server),
-        )
-        // Backups
-        .route("/api/v1/backups", get(routes::backups::list_backups))
-        .route(
-            "/api/v1/backups/prune",
-            post(routes::backups::prune_backups),
-        )
-        .route(
-            "/api/v1/backups/:name/restore",
-            post(routes::backups::restore_backup),
-        )
-        .route(
-            "/api/v1/backups/:name/diff",
-            get(routes::backups::get_backup_diff),
-        )
-        .route(
-            "/api/v1/backups/:name",
-            delete(routes::backups::delete_backup),
-        )
-        // Export/Import
-        .route("/api/v1/export", get(routes::export::export_bundle))
-        .route("/api/v1/import", post(routes::export::import_bundle))
-        // Search
-        .route("/api/v1/search", get(routes::search::search))
-        // Templates
-        .route("/api/v1/templates", get(routes::templates::list_templates))
-        .route(
-            "/api/v1/templates/:name/apply",
-            post(routes::templates::apply_template),
-        )
-        // Permission Optimizer
-        .route(
-            "/api/v1/permissions/:project_id/optimize",
-            get(routes::permissions::optimize_permissions),
-        )
-        // === New routes ===
-        // Auth (login for session tokens)
-        .route("/api/v1/auth/login", post(login))
-        // Audit Log
-        .route("/api/v1/audit", get(routes::audit::get_audit_log))
-        // Budgets
-        .route(
-            "/api/v1/budgets",
-            get(routes::budgets::get_budget_status).put(routes::budgets::update_budget),
-        )
-        // Preview (Markdown + Syntax Highlighting)
-        .route(
-            "/api/v1/preview/markdown",
-            post(routes::preview::render_markdown),
-        )
-        .route(
-            "/api/v1/preview/highlight",
-            post(routes::preview::highlight_code),
-        )
-        // SSE Events
-        .route("/api/v1/events", get(routes::events::sse_events))
-        // Webhooks
-        .route(
-            "/api/v1/webhooks",
-            get(routes::webhooks::list_webhooks).post(routes::webhooks::create_webhook),
-        )
-        .route(
-            "/api/v1/webhooks/:id",
-            axum::routing::put(routes::webhooks::update_webhook)
-                .delete(routes::webhooks::delete_webhook),
-        )
-        // Sync
-        .route("/api/v1/sync/manifest", get(routes::sync::get_manifest))
-        .route("/api/v1/sync/push", post(routes::sync::push_files))
-        .route("/api/v1/sync/pull", post(routes::sync::pull_files))
-        .route("/api/v1/sync/file", get(routes::sync::get_file))
-        .route("/api/v1/sync/receive", post(routes::sync::receive_file))
-        // API Docs
-        .route("/api/v1/docs", get(routes::docs::swagger_ui))
-        .route("/api/v1/docs/openapi.json", get(routes::docs::openapi_spec));
-
-    // Clone extensions before moving state into Arc
-    let token_store_ext = state.token_store.clone();
-    let rate_limiter_ext = state.rate_limiter.clone();
-    let claude_home_ext = state.claude_home.clone();
+    let api_routes = routes::router::create_api_routes();
 
     let app = Router::new()
         .merge(api_routes)
         .fallback(serve_frontend)
         .layer(middleware::from_fn(block_path_traversal))
-        .layer(middleware::from_fn(rate_limit_middleware))
-        .layer(middleware::from_fn(auth_middleware))
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            rate_limit_middleware,
+        ))
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            auth_middleware,
+        ))
         .layer(middleware::from_fn(security_headers))
-        .layer(Extension(token_store_ext))
-        .layer(Extension(rate_limiter_ext))
-        .layer(Extension(claude_home_ext))
         .layer(TraceLayer::new_for_http())
         .layer(CompressionLayer::new())
         .layer(create_cors_layer(&config.allowed_origins))
@@ -531,6 +307,8 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
 }
 
 /// Test-friendly version of serve_frontend that always returns JSON 404 for API paths.
+/// Used by integration tests as a fallback handler.
+#[allow(dead_code)]
 pub async fn serve_frontend_test(uri: axum::http::Uri) -> Response {
     let path = uri.path().trim_start_matches('/');
     if path.starts_with("api/") {

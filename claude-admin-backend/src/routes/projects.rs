@@ -5,7 +5,7 @@ use std::sync::Arc;
 use crate::app::AppState;
 use crate::domain::errors::ApiError;
 use crate::domain::extractors::AppJson;
-use crate::services::{file_ops, fs_scanner, project_resolver};
+use crate::services::{audit, file_ops, fs_scanner, project_resolver};
 use claude_admin_shared::{
     ClaudeMdContent, ClaudeMdUpdateRequest, ProjectDetail, ProjectStatus, ProjectSummaryLite,
 };
@@ -70,6 +70,8 @@ pub async fn put_claude_md(
     let claude_md_path = std::path::Path::new(&project_path).join("CLAUDE.md");
 
     file_ops::write_with_backup(&state.claude_home, &claude_md_path, &req.content).await?;
+
+    audit::log_audit(&state.claude_home, "update", "claude-md", &id, None).await;
 
     Ok(Json(ClaudeMdContent {
         content: req.content,

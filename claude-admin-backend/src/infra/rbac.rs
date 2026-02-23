@@ -11,6 +11,7 @@ pub struct RbacConfig {
 
 #[derive(Clone)]
 pub struct RbacUser {
+    #[allow(dead_code)] // Used for audit context
     pub username: String,
     pub role: UserRole,
     pub token: String,
