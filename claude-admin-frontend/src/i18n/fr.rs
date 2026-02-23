@@ -84,6 +84,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.health.running", "En cours");
         m.insert("mcp.health.error", "Erreur");
         m.insert("mcp.health.timeout", "D\u{00e9}lai d\u{00e9}pass\u{00e9}");
+        m.insert("mcp.health.unsupported", "Non pris en charge");
         m.insert("mcp.health.unknown", "Inconnu");
         m.insert("mcp.add.title", "Ajouter un serveur MCP");
         m.insert("mcp.add.description", "Ajoutez un nouveau serveur MCP \u{00e0} votre configuration globale ~/.claude.json.");

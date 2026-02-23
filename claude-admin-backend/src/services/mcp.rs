@@ -296,15 +296,24 @@ pub async fn health_check_server(
                 Some(stderr)
             },
         },
-        Ok(Err(e)) => McpHealthResult {
-            name: name.to_string(),
-            status: McpServerStatus::Error,
-            server_info: None,
-            tools: vec![],
-            duration_ms: start.elapsed().as_millis() as u64,
-            error: Some(e),
-            source: source.to_string(),
-            stderr_output: None,
+        Ok(Err(e)) => {
+            let is_unsupported = e.contains("EOF")
+                || e.contains("closed stdout")
+                || e.contains("No matching JSON-RPC response");
+            McpHealthResult {
+                name: name.to_string(),
+                status: if is_unsupported {
+                    McpServerStatus::Unsupported
+                } else {
+                    McpServerStatus::Error
+                },
+                server_info: None,
+                tools: vec![],
+                duration_ms: start.elapsed().as_millis() as u64,
+                error: Some(e),
+                source: source.to_string(),
+                stderr_output: None,
+            }
         },
         Err(_) => McpHealthResult {
             name: name.to_string(),

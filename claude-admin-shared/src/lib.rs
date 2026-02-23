@@ -398,6 +398,7 @@ pub enum McpServerStatus {
     Running,
     Error,
     Timeout,
+    Unsupported,
     Unknown,
 }
 

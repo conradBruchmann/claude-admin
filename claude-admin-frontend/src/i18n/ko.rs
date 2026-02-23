@@ -84,6 +84,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.health.running", "실행 중");
         m.insert("mcp.health.error", "오류");
         m.insert("mcp.health.timeout", "타임아웃");
+        m.insert("mcp.health.unsupported", "지원되지 않음");
         m.insert("mcp.health.unknown", "알 수 없음");
         m.insert("mcp.add.title", "MCP 서버 추가");
         m.insert("mcp.add.description", "글로벌 ~/.claude.json 구성에 새 MCP 서버를 추가합니다.");

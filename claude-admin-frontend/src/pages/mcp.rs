@@ -349,10 +349,11 @@ fn HealthCheckTab() -> impl IntoView {
                                 <tbody>
                                     {checks.into_iter().map(|r| {
                                         let (badge_class, status_text) = match r.status {
-                                            claude_admin_shared::McpServerStatus::Running => ("badge badge-success", "Running"),
-                                            claude_admin_shared::McpServerStatus::Error => ("badge badge-error", "Error"),
-                                            claude_admin_shared::McpServerStatus::Timeout => ("badge badge-warning", "Timeout"),
-                                            claude_admin_shared::McpServerStatus::Unknown => ("badge badge-muted", "Unknown"),
+                                            claude_admin_shared::McpServerStatus::Running => ("badge badge-success", t("mcp.health.running").get_untracked()),
+                                            claude_admin_shared::McpServerStatus::Error => ("badge badge-error", t("mcp.health.error").get_untracked()),
+                                            claude_admin_shared::McpServerStatus::Timeout => ("badge badge-warning", t("mcp.health.timeout").get_untracked()),
+                                            claude_admin_shared::McpServerStatus::Unsupported => ("badge badge-muted", t("mcp.health.unsupported").get_untracked()),
+                                            claude_admin_shared::McpServerStatus::Unknown => ("badge badge-muted", t("mcp.health.unknown").get_untracked()),
                                         };
                                         let src_style = source_badge_style(&r.source);
                                         let src_label = source_badge_label(&r.source);
