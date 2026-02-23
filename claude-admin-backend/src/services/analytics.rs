@@ -173,11 +173,12 @@ fn parse_stats_cache(claude_home: &Path) -> StatsCacheData {
         .and_then(|v| v.as_str())
         .map(|s| s.to_string());
 
-    // Parse daily activity
-    if let Some(daily) = json.get("dailyActivity").and_then(|v| v.as_object()) {
+    // Parse daily activity (array of {date, messageCount, sessionCount, toolCallCount})
+    if let Some(daily) = json.get("dailyActivity").and_then(|v| v.as_array()) {
         let mut activities: Vec<DailyActivity> = daily
             .iter()
-            .map(|(date, val)| {
+            .filter_map(|val| {
+                let date = val.get("date").and_then(|v| v.as_str())?.to_string();
                 let msg_count = val
                     .get("messageCount")
                     .and_then(|v| v.as_u64())
@@ -190,12 +191,12 @@ fn parse_stats_cache(claude_home: &Path) -> StatsCacheData {
                     .get("toolCallCount")
                     .and_then(|v| v.as_u64())
                     .unwrap_or(0);
-                DailyActivity {
-                    date: date.clone(),
+                Some(DailyActivity {
+                    date,
                     message_count: msg_count,
                     session_count: sess_count,
                     tool_call_count: tool_count,
-                }
+                })
             })
             .collect();
         activities.sort_by(|a, b| a.date.cmp(&b.date));
@@ -287,8 +288,11 @@ fn aggregate_session_meta(claude_home: &Path) -> SessionAggregation {
 
             agg.session_count += 1;
 
-            // Tool counts
-            if let Some(tools) = json.get("toolCounts").and_then(|v| v.as_object()) {
+            // Tool counts (snake_case or camelCase)
+            let tools_val = json
+                .get("tool_counts")
+                .or_else(|| json.get("toolCounts"));
+            if let Some(tools) = tools_val.and_then(|v| v.as_object()) {
                 for (tool, count) in tools {
                     let c = count.as_u64().unwrap_or(0);
                     *tool_counts.entry(tool.clone()).or_insert(0) += c;
@@ -303,16 +307,22 @@ fn aggregate_session_meta(claude_home: &Path) -> SessionAggregation {
                 }
             }
 
-            // Git stats
-            if let Some(git) = json.get("git") {
-                agg.total_git_commits += git.get("commits").and_then(|v| v.as_u64()).unwrap_or(0);
-                agg.total_lines_added +=
-                    git.get("linesAdded").and_then(|v| v.as_u64()).unwrap_or(0);
-                agg.total_lines_removed += git
-                    .get("linesRemoved")
-                    .and_then(|v| v.as_u64())
-                    .unwrap_or(0);
-            }
+            // Git stats (flat fields or nested)
+            agg.total_git_commits += json
+                .get("git_commits")
+                .or_else(|| json.pointer("/git/commits"))
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0);
+            agg.total_lines_added += json
+                .get("lines_added")
+                .or_else(|| json.pointer("/git/linesAdded"))
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0);
+            agg.total_lines_removed += json
+                .get("lines_removed")
+                .or_else(|| json.pointer("/git/linesRemoved"))
+                .and_then(|v| v.as_u64())
+                .unwrap_or(0);
         }
     }
 
