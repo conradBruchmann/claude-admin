@@ -1,9 +1,38 @@
 use axum::extract::rejection::JsonRejection;
 use axum::extract::FromRequest;
-use axum::http::StatusCode;
+use axum::http::header::ACCEPT_LANGUAGE;
+use axum::http::{HeaderMap, StatusCode};
 use axum::response::{IntoResponse, Response};
 use serde::de::DeserializeOwned;
 use serde_json::json;
+
+/// Extract the UI language code from the Accept-Language header. Defaults to "de".
+pub fn extract_lang(headers: &HeaderMap) -> String {
+    headers
+        .get(ACCEPT_LANGUAGE)
+        .and_then(|v| v.to_str().ok())
+        .map(|s| s.split(',').next().unwrap_or("de").trim().to_string())
+        .unwrap_or_else(|| "de".to_string())
+}
+
+/// Return the full language name for use in AI prompts.
+pub fn lang_instruction(lang: &str) -> &'static str {
+    match lang {
+        "en" => "Always respond in English.",
+        "de" => "Antworte immer auf Deutsch.",
+        "es" => "Responde siempre en español.",
+        "fr" => "Réponds toujours en français.",
+        "it" => "Rispondi sempre in italiano.",
+        "pt" => "Responda sempre em português.",
+        "ja" => "必ず日本語で回答してください。",
+        "ko" => "항상 한국어로 답변해 주세요.",
+        "zh" => "请始终用中文回答。",
+        "nl" => "Antwoord altijd in het Nederlands.",
+        "pl" => "Zawsze odpowiadaj po polsku.",
+        "tr" => "Her zaman Türkçe cevap ver.",
+        _ => "Antworte immer auf Deutsch.",
+    }
+}
 
 /// Custom JSON extractor that returns generic error messages without exposing internals.
 pub struct AppJson<T>(pub T);

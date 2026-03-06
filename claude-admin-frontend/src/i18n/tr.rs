@@ -44,6 +44,11 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("dashboard.plans", "Planlar");
         m.insert("dashboard.config_health", "Yap\u{0131}land\u{0131}rma Sa\u{011f}l\u{0131}\u{011f}\u{0131}");
         m.insert("dashboard.recent_projects", "Son Projeler");
+        m.insert("dashboard.recent_changes", "Son De\u{011f}i\u{015f}iklikler");
+        m.insert("dashboard.no_recent_changes", "Son de\u{011f}i\u{015f}iklik yok");
+        m.insert("dashboard.change_action", "\u{0130}\u{015f}lem");
+        m.insert("dashboard.change_resource", "Kaynak");
+        m.insert("dashboard.change_time", "Zaman");
         m.insert("dashboard.loading", "Y\u{00fc}kleniyor");
         m.insert("dashboard.error_loading", "Pano y\u{00fc}klenirken hata olu\u{015f}tu");
         m.insert("dashboard.col_name", "Ad");
@@ -92,6 +97,13 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.add.name_label", "Sunucu Ad\u{0131}");
         m.insert("mcp.add.name_placeholder", "\u{00f6}rn. my-server");
         m.insert("mcp.add.config_label", "Sunucu Yap\u{0131}land\u{0131}rmas\u{0131} (JSON)");
+        m.insert("mcp.add.mode_form", "Form");
+        m.insert("mcp.add.mode_json", "Geli\u{015f}mi\u{015f} JSON");
+        m.insert("mcp.add.command_label", "Komut");
+        m.insert("mcp.add.args_label", "Arg\u{00fc}manlar");
+        m.insert("mcp.add.args_hint", "Sat\u{0131}r ba\u{015f}\u{0131}na bir arg\u{00fc}man");
+        m.insert("mcp.add.env_label", "Ortam De\u{011f}i\u{015f}kenleri");
+        m.insert("mcp.add.env_hint", "KEY=VALUE format\u{0131}, sat\u{0131}r ba\u{015f}\u{0131}na bir tane");
         m.insert("mcp.add.submit", "Sunucu Ekle");
         m.insert("mcp.add.name_required", "L\u{00fc}tfen bir sunucu ad\u{0131} girin");
         m.insert("mcp.browse.title", "MCP Sunucu Kataloğu");
@@ -109,6 +121,16 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.source.claude_code", "Claude Code");
         m.insert("mcp.source.claude_desktop", "Claude Desktop");
 
+        // ── MCP Tools (Feature 7) ──
+        m.insert("mcp.tab_tools", "Ara\u{00e7} Ke\u{015f}fedici");
+        m.insert("mcp.tools.title", "Ara\u{00e7} Ke\u{015f}fedici");
+        m.insert("mcp.tools.description", "T\u{00fc}m MCP sunucular\u{0131}ndaki t\u{00fc}m ara\u{00e7}lar");
+        m.insert("mcp.tools.search", "Ara\u{00e7} ara...");
+        m.insert("mcp.tools.parameters", "Parametreler (JSON Schema)");
+        m.insert("mcp.tools.required", "Zorunlu");
+        m.insert("mcp.tools.no_tools", "Ara\u{00e7} bulunamad\u{0131}. \u{00d6}nce sa\u{011f}l\u{0131}k kontrol\u{00fc} \u{00e7}al\u{0131}\u{015f}t\u{0131}r\u{0131}n.");
+        m.insert("mcp.tools.from_server", "kaynak");
+
         // ── MCP Browser ──
         m.insert("mcp_browser.title", "MCP Taray\u{0131}c\u{0131}s\u{0131}");
         m.insert("mcp_browser.subtitle", "Claude Code i\u{00e7}in MCP sunucular\u{0131}n\u{0131} ke\u{015f}fedin ve kurun");
@@ -122,6 +144,8 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp_browser.install_failed", "Kurulum ba\u{015f}ar\u{0131}s\u{0131}z");
 
         // ── Projects ──
+        m.insert("projects.tab_projects", "Projeler");
+        m.insert("projects.tab_health", "Sağlık Genel Bakış");
         m.insert("projects.title", "Projeler");
         m.insert("projects.subtitle", "~/.claude.json dosyas\u{0131}nda kay\u{0131}tl\u{0131} t\u{00fc}m projeler");
         m.insert("projects.loading", "Y\u{00fc}kleniyor");
@@ -195,7 +219,24 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("project_detail.bytes", "bayt");
         m.insert("project_detail.unknown_tab", "Bilinmeyen sekme");
 
+        // ── Project Profile (Feature 1) ──
+        m.insert("project_detail.tab_profile", "Profil");
+        m.insert("project_detail.profile_health", "Sa\u{011f}l\u{0131}k Puan\u{0131}");
+        m.insert("project_detail.profile_rules", "Kurallar");
+        m.insert("project_detail.profile_skills", "Skills");
+        m.insert("project_detail.profile_memory", "Haf\u{0131}za");
+        m.insert("project_detail.profile_mcp", "MCP Sunucular\u{0131}");
+        m.insert("project_detail.profile_hooks", "Hooks");
+        m.insert("project_detail.profile_conflicts", "\u{00c7}ak\u{0131}\u{015f}malar");
+        m.insert("project_detail.profile_analyze", "Derin Analiz \u{00c7}al\u{0131}\u{015f}t\u{0131}r");
+        m.insert("project_detail.profile_no_mcp", "MCP sunucusu yok");
+        m.insert("project_detail.profile_global_scope", "Global");
+        m.insert("project_detail.profile_project_scope", "Proje");
+
         // ── Global Skills ──
+        m.insert("global_skills.tab_my_skills", "Becerilerim");
+        m.insert("global_skills.tab_browse", "Göz At");
+        m.insert("global_skills.tab_templates", "Şablonlar");
         m.insert("global_skills.title", "Global Skills");
         m.insert("global_skills.subtitle", "~/.claude/skills/ i\u{00e7}indeki Skills\u{2019}leri y\u{00f6}netin");
         m.insert("global_skills.loading", "Skills y\u{00fc}kleniyor");
@@ -212,6 +253,23 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("global_skills.delete", "Sil");
         m.insert("global_skills.deleted", "Silindi!");
 
+        // ── Skill Builder (Feature 2) ──
+        m.insert("global_skills.tab_create", "Olu\u{015f}tur");
+        m.insert("skill_builder.templates", "\u{015e}ablonlar");
+        m.insert("skill_builder.editor", "Edit\u{00f6}r");
+        m.insert("skill_builder.preview", "\u{00d6}nizleme");
+        m.insert("skill_builder.name", "Skill Ad\u{0131}");
+        m.insert("skill_builder.name_placeholder", "\u{00f6}rn. benim-skillim");
+        m.insert("skill_builder.name_required", "L\u{00fc}tfen bir Skill ad\u{0131} girin");
+        m.insert("skill_builder.description", "A\u{00e7}\u{0131}klama");
+        m.insert("skill_builder.desc_placeholder", "Bu Skill ne yapar?");
+        m.insert("skill_builder.user_invocable", "\u{00c7}a\u{011f}r\u{0131}labilir (/komut ile)");
+        m.insert("skill_builder.content", "Skill \u{0130}\u{00e7}eri\u{011f}i (Markdown)");
+        m.insert("skill_builder.save", "Skill\u{2019}i Kaydet");
+        m.insert("skill_builder.saved", "Skill kaydedildi:");
+        m.insert("skill_builder.trigger", "Tetikleyici:");
+        m.insert("skill_builder.preview_hint", "Canl\u{0131} \u{00f6}nizleme i\u{00e7}in bir \u{015f}ablon se\u{00e7}in veya yazmaya ba\u{015f}lay\u{0131}n.");
+
         // ── Global Rules ──
         m.insert("global_rules.title", "Global Kurallar");
         m.insert("global_rules.subtitle", "~/.claude/rules/ i\u{00e7}indeki kurallar\u{0131} y\u{00f6}netin");
@@ -225,6 +283,16 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("global_rules.saved", "Kaydedildi!");
         m.insert("global_rules.delete", "Sil");
         m.insert("global_rules.deleted", "Silindi!");
+
+        // ── Rules Conflicts (Feature 6) ──
+        m.insert("rules.conflicts_title", "Kural \u{00c7}ak\u{0131}\u{015f}malar\u{0131}");
+        m.insert("rules.conflicts_found", "\u{00c7}ak\u{0131}\u{015f}ma bulundu");
+        m.insert("rules.conflict_name_collision", "Ad \u{00c7}ak\u{0131}\u{015f}mas\u{0131}");
+        m.insert("rules.conflict_content_overlap", "\u{0130}\u{00e7}erik \u{00d6}rt\u{00fc}\u{015f}mesi");
+        m.insert("rules.conflict_contradiction", "\u{00c7}eli\u{015f}ki");
+        m.insert("rules.conflict_global", "Global");
+        m.insert("rules.conflict_project", "Proje");
+        m.insert("rules.no_conflicts", "\u{00c7}ak\u{0131}\u{015f}ma tespit edilmedi");
 
         // ── Plans ──
         m.insert("plans.title", "Planlar");
@@ -336,6 +404,16 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("analytics.languages", "Programlama Dilleri");
         m.insert("analytics.session_outcomes", "Oturum Sonu\u{00e7}lar\u{0131}");
         m.insert("analytics.outcomes", "Sonu\u{00e7}lar");
+
+        // ── Teach Me Tips (Feature 5) ──
+        m.insert("analytics.tips_title", "\u{0130}\u{00e7}g\u{00f6}r\u{00fc}ler ve \u{0130}pu\u{00e7}lar\u{0131}");
+        m.insert("analytics.tips_dismiss", "Kapat");
+        m.insert("analytics.tips_learn_more", "Daha fazla \u{00f6}\u{011f}ren");
+        m.insert("analytics.tip_category_tool", "Ara\u{00e7}");
+        m.insert("analytics.tip_category_workflow", "I\u{015f} Ak\u{0131}\u{015f}\u{0131}");
+        m.insert("analytics.tip_category_performance", "Performans");
+        m.insert("analytics.tip_category_config", "Yap\u{0131}land\u{0131}rma");
+        m.insert("analytics.no_tips", "Kullan\u{0131}labilir ipu\u{00e7}lar\u{0131} yok");
 
         // ── Sessions ──
         m.insert("sessions.title", "Oturumlar");
@@ -662,6 +740,44 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("docs.scopes_project_4", "Projeye \u{00f6}zel Skills ve i\u{015f} ak\u{0131}\u{015f}lar\u{0131}");
         m.insert("docs.scopes_project_5", "CI/CD Hooks ve otomasyon");
 
+        // ── Docs: Optimization Guide ──
+        m.insert("docs.toc_optimization", "Optimizasyon K\u{0131}lavuzu");
+        m.insert("docs.opt_heading", "Optimizasyon K\u{0131}lavuzu");
+        m.insert("docs.opt_callout", "Analitikten gelen ki\u{015f}iselle\u{015f}tirilmi\u{015f} ipu\u{00e7}lar\u{0131} derinlemesine a\u{00e7}\u{0131}klanm\u{0131}\u{015f}t\u{0131}r. Her b\u{00f6}l\u{00fc}m bir kal\u{0131}b\u{0131}n neden \u{00f6}nemli oldu\u{011f}unu ve nas\u{0131}l iyile\u{015f}tirece\u{011f}inizi Anthropic\u{2019}in resmi belgelendirmesine ba\u{011f}lant\u{0131}larla birlikte a\u{00e7}\u{0131}klar.");
+        m.insert("docs.opt_why", "Neden:");
+        m.insert("docs.opt_how", "Nas\u{0131}l:");
+        m.insert("docs.opt_task_heading", "Task Arac\u{0131}yla Paralel Ajanlar");
+        m.insert("docs.opt_task_why", "Task arac\u{0131} paralel \u{00e7}al\u{0131}\u{015f}an uzmanla\u{015f}m\u{0131}\u{015f} alt ajanlar ba\u{015f}lat\u{0131}r. Karma\u{015f}\u{0131}k \u{00e7}ok ad\u{0131}ml\u{0131} i\u{015f}ler i\u{00e7}in (ara\u{015f}t\u{0131}rma, kod ke\u{015f}fi, test), alt ajanlar s\u{0131}rayla de\u{011f}il ayn\u{0131} anda \u{00e7}al\u{0131}\u{015f}abilir ve toplam s\u{00fc}reyi \u{00f6}nemli \u{00f6}l\u{00e7}\u{00fc}de azalt\u{0131}r.");
+        m.insert("docs.opt_task_how", "Claude Code paralellik f\u{0131}rsatlar\u{0131}n\u{0131} tan\u{0131}d\u{0131}\u{011f}\u{0131}nda Task arac\u{0131}n\u{0131} otomatik olarak kullan\u{0131}r. A\u{00e7}\u{0131}k\u{00e7}a da isteyebilirsiniz: \u{201c}X ve Y\u{2019}yi paralel olarak ara\u{015f}t\u{0131}r\u{201d} veya \u{201c}Hatay\u{0131} d\u{00fc}zeltirken testleri \u{00e7}al\u{0131}\u{015f}t\u{0131}r.\u{201d} Her ajan kendi ba\u{011f}lam penceresine sahip oldu\u{011f}undan b\u{00fc}y\u{00fc}k kod tabanlar\u{0131} daha verimli ke\u{015f}fedilir.");
+        m.insert("docs.opt_task_link", "Anthropic Docs: En \u{0130}yi Uygulamalar \u{2192}");
+        m.insert("docs.opt_hooks_heading", "Hooks ile Otomatikle\u{015f}tirme");
+        m.insert("docs.opt_hooks_why", "Hook\u{2019}lar, Claude bir arac\u{0131} kullanmadan \u{00f6}nce veya sonra otomatik olarak \u{00e7}al\u{0131}\u{015f}an kabuk komutlar\u{0131}d\u{0131}r. Hook\u{2019}lar olmadan bi\u{00e7}imlendiricileri, linter\u{2019}lar\u{0131} ve testleri manuel olarak \u{00e7}al\u{0131}\u{015f}t\u{0131}rman\u{0131}z gerekir. Hook\u{2019}larla her dosya yazma otomatik bi\u{00e7}imlendirebilir, her commit otomatik test edebilir.");
+        m.insert("docs.opt_hooks_how", "~/.claude/settings.json dosyas\u{0131}ndaki \u{201c}hooks\u{201d} anahtar\u{0131} alt\u{0131}nda hook\u{2019}lar\u{0131} yap\u{0131}land\u{0131}r\u{0131}n. Bir ara\u{00e7}tan \u{00f6}nce eylem y\u{00fc}r\u{00fc}tmek i\u{00e7}in PreToolUse kullan\u{0131}n (\u{00f6}r.: yazmadan \u{00f6}nce kodu bi\u{00e7}imlendirme). De\u{011f}i\u{015f}ikliklerden sonra do\u{011f}rulama i\u{00e7}in PostToolUse kullan\u{0131}n (\u{00f6}r.: d\u{00fc}zenlemeden sonra lint). Claude bitirdi\u{011f}inde kontrolleri \u{00e7}al\u{0131}\u{015f}t\u{0131}rmak i\u{00e7}in Stop kullan\u{0131}n.");
+        m.insert("docs.opt_hooks_link", "Anthropic Docs: Hooks \u{2192}");
+        m.insert("docs.opt_sessions_heading", "Optimal Oturum S\u{00fc}resi");
+        m.insert("docs.opt_sessions_why", "Uzun oturumlar Claude\u{2019}un odaklanmas\u{0131}n\u{0131} zay\u{0131}flatan ba\u{011f}lam biriktirir. \u{00c7}ok say\u{0131}da mesajdan sonra \u{00f6}nceki talimatlar daha az belirgin hale gelir. Ba\u{011f}lam penceresi konu\u{015f}ma ge\u{00e7}mi\u{015f}iyle dolduk\u{00e7}a token maliyetleri de artar.");
+        m.insert("docs.opt_sessions_how", "Karma\u{015f}\u{0131}k \u{00e7}al\u{0131}\u{015f}may\u{0131} odakl\u{0131} oturumlara b\u{00f6}l\u{00fc}n. Bir oturum i\u{00e7}inde ba\u{011f}lam\u{0131} s\u{0131}f\u{0131}rlamak i\u{00e7}in /clear kullan\u{0131}n. \u{00c7}ok ad\u{0131}ml\u{0131} projeler i\u{00e7}in plan dosyalar\u{0131} kullan\u{0131}n (Claude bir plan yazar, sonra odakl\u{0131} oturumlarda ad\u{0131}mlar\u{0131} y\u{00fc}r\u{00fc}t\u{00fc}r). Her yeni oturum mevcut g\u{00f6}revinize maksimum dikkatle ba\u{015f}lar.");
+        m.insert("docs.opt_sessions_link", "Anthropic Docs: En \u{0130}yi Uygulamalar \u{2192}");
+        m.insert("docs.opt_cost_heading", "Maliyet Optimizasyonu");
+        m.insert("docs.opt_cost_why", "Farkl\u{0131} Claude modelleri \u{00e7}ok farkl\u{0131} maliyetlere sahiptir. Opus karma\u{015f}\u{0131}k muhakemede m\u{00fc}kemmeldir ancak token ba\u{015f}\u{0131}na daha pahal\u{0131}d\u{0131}r. Haiku h\u{0131}zl\u{0131} ve ucuzdur, basit g\u{00f6}revler i\u{00e7}in idealdir. Her g\u{00f6}rev i\u{00e7}in do\u{011f}ru modeli kullanmak maliyetleri b\u{00fc}y\u{00fc}k \u{00f6}l\u{00e7}\u{00fc}de azaltabilir.");
+        m.insert("docs.opt_cost_how", "Oturum s\u{0131}ras\u{0131}nda model de\u{011f}i\u{015f}tirmek i\u{00e7}in /model kullan\u{0131}n. Haiku i\u{00e7}in: h\u{0131}zl\u{0131} d\u{00fc}zeltmeler, kod bi\u{00e7}imlendirme, basit sorular. Sonnet i\u{00e7}in: orta d\u{00fc}zey kodlama g\u{00f6}revleri, incelemeler. Opus i\u{00e7}in: mimari tasar\u{0131}m, karma\u{015f}\u{0131}k hata ay\u{0131}klama, \u{00e7}ok dosyal\u{0131} yeniden d\u{00fc}zenleme. Analitik sayfas\u{0131} modele g\u{00f6}re maliyet da\u{011f}\u{0131}l\u{0131}m\u{0131}n\u{0131}z\u{0131} g\u{00f6}sterir.");
+        m.insert("docs.opt_cost_link", "Anthropic Docs: Claude Code Genel Bak\u{0131}\u{015f} \u{2192}");
+        m.insert("docs.opt_write_heading", "Write vs Edit: do\u{011f}ru arac\u{0131} se\u{00e7}mek");
+        m.insert("docs.opt_write_why", "Write arac\u{0131} dosyalar\u{0131}n tamam\u{0131}n\u{0131} bir seferde olu\u{015f}turur, Edit ise mevcut dosyalarda hedefli de\u{011f}i\u{015f}iklikler yapar. Yeni dosyalar i\u{00e7}in Write daha verimlidir \u{00e7}\u{00fc}nk\u{00fc} Edit \u{00f6}nce dosyay\u{0131} okumak ve sonra tam dize de\u{011f}i\u{015f}iklikleri belirtmek zorundad\u{0131}r.");
+        m.insert("docs.opt_write_how", "Claude genellikle do\u{011f}ru arac\u{0131} otomatik olarak se\u{00e7}er. Ancak s\u{0131}f\u{0131}rdan yeni dosyalar olu\u{015f}turuyorsan\u{0131}z (\u{015f}ablonlar, standart kod, yap\u{0131}land\u{0131}rma), a\u{00e7}\u{0131}k\u{00e7}a \u{201c}yeni bir dosya olu\u{015f}tur\u{201d} demek Claude\u{2019}un Write\u{2019}\u{0131} se\u{00e7}mesine yard\u{0131}mc\u{0131} olur. Mevcut kodda yap\u{0131}lan de\u{011f}i\u{015f}iklikler i\u{00e7}in Edit her zaman tercih edilir.");
+        m.insert("docs.opt_models_heading", "Model \u{00c7}e\u{015f}itlili\u{011f}i");
+        m.insert("docs.opt_models_why", "T\u{00fc}m g\u{00f6}revler i\u{00e7}in tek bir model kullanmak, basit i\u{015f} i\u{00e7}in fazla \u{00f6}deme (her \u{015f}ey i\u{00e7}in Opus) veya karma\u{015f}\u{0131}k g\u{00f6}revler i\u{00e7}in yetersiz g\u{00fc}\u{00e7} (her \u{015f}ey i\u{00e7}in Haiku) anlam\u{0131}na gelir. Her model ailesinin g\u{00fc}\u{00e7}l\u{00fc} yanlar\u{0131} vard\u{0131}r: h\u{0131}z i\u{00e7}in Haiku, denge i\u{00e7}in Sonnet, derin muhakeme i\u{00e7}in Opus.");
+        m.insert("docs.opt_models_how", "/model komutuyla modelleri de\u{011f}i\u{015f}tirin. \u{0130}yi bir kal\u{0131}p: planlama ve mimari i\u{00e7}in Opus ile ba\u{015f}lay\u{0131}n, uygulama i\u{00e7}in Sonnet\u{2019}e ge\u{00e7}in, h\u{0131}zl\u{0131} d\u{00fc}zeltmeler ve bi\u{00e7}imlendirme i\u{00e7}in Haiku kullan\u{0131}n. Analitik sayfas\u{0131} en \u{00e7}ok hangi modeli kulland\u{0131}\u{011f}\u{0131}n\u{0131}z\u{0131} g\u{00f6}sterir.");
+        m.insert("docs.opt_models_link", "Anthropic Docs: Claude Code Genel Bak\u{0131}\u{015f} \u{2192}");
+        m.insert("docs.opt_git_heading", "Git Entegrasyonu");
+        m.insert("docs.opt_git_why", "Claude Code do\u{011f}rudan stage, commit, push yapabilir ve PR olu\u{015f}turabilir. Git entegrasyonu olmadan her Claude oturumundan sonra manuel olarak commit yapars\u{0131}n\u{0131}z, bu da i\u{015f} ak\u{0131}\u{015f}\u{0131}n\u{0131} keser ve \u{00f6}nemli de\u{011f}i\u{015f}iklikleri unutma riski ta\u{015f}\u{0131}r.");
+        m.insert("docs.opt_git_how", "Claude\u{2019}dan basit\u{00e7}e commit yapmas\u{0131}n\u{0131} isteyin: \u{201c}bu de\u{011f}i\u{015f}iklikleri commitle\u{201d} veya /commit kullan\u{0131}n. Claude a\u{00e7}\u{0131}klay\u{0131}c\u{0131} commit mesajlar\u{0131} yazar, yaln\u{0131}zca ilgili dosyalar\u{0131} stage\u{2019}e al\u{0131}r ve pre-commit hook\u{2019}lara sayg\u{0131} g\u{00f6}sterir. PR\u{2019}ler i\u{00e7}in Claude\u{2019}dan \u{201c}bir PR olu\u{015f}tur\u{201d} isteyin \u{2013} gh CLI kullanarak push yapar ve \u{00f6}zetli bir pull request a\u{00e7}ar.");
+        m.insert("docs.opt_git_link", "Anthropic Docs: En \u{0130}yi Uygulamalar \u{2192}");
+        m.insert("docs.opt_churn_heading", "Kod De\u{011f}i\u{015f}im Oran\u{0131}n\u{0131} Azaltma");
+        m.insert("docs.opt_churn_why", "Eklenen sat\u{0131}rlardan daha fazla sat\u{0131}r siliniyorsa, bu genellikle Claude\u{2019}un yeniden yaz\u{0131}lmas\u{0131} gereken kod yazd\u{0131}\u{011f}\u{0131} anlam\u{0131}na gelir. Bu token ve zaman israf\u{0131}d\u{0131}r. Yayg\u{0131}n nedenler: belirsiz istemler, eksik ba\u{011f}lam veya Claude\u{2019}un gereksinimleri tahmin etmesi.");
+        m.insert("docs.opt_churn_how", "\u{0130}stemlerde spesifik olun: mevcut dosyalara at\u{0131}fta bulunun, kesin fonksiyon adlar\u{0131} verin, beklenen davran\u{0131}\u{015f}\u{0131} a\u{00e7}\u{0131}klay\u{0131}n. Claude\u{2019}un tahmin etmemesi i\u{00e7}in CLAUDE.md kullanarak kurallar\u{0131} belgeleyin. Karma\u{015f}\u{0131}k de\u{011f}i\u{015f}iklikler i\u{00e7}in uygulamadan \u{00f6}nce Claude\u{2019}dan plan yapmas\u{0131}n\u{0131} isteyin (/plan). Kodlamaya ba\u{015f}lamadan \u{00f6}nce Claude\u{2019}un plan\u{0131}n\u{0131} g\u{00f6}zden ge\u{00e7}irin.");
+        m.insert("docs.opt_churn_link", "Anthropic Docs: En \u{0130}yi Uygulamalar \u{2192}");
+
         // ── Docs: Tips & Best Practices ──
         m.insert("docs.bestpractices_heading", "\u{0130}pu\u{00e7}lar\u{0131} ve En \u{0130}yi Uygulamalar");
         m.insert("docs.bestpractices_hygiene_heading", "Yap\u{0131}land\u{0131}rma Hijyeni");
@@ -815,6 +931,183 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("settings.user_prompt_submit", "UserPromptSubmit");
         m.insert("settings.session_start", "SessionStart");
 
+        // ── Sidebar (new) ──
+        m.insert("sidebar.agents", "Ajanlar");
+        m.insert("sidebar.plugins", "Eklentiler");
+        m.insert("sidebar.launch_profiles", "Başlatma Profilleri");
+        m.insert("sidebar.system_prompts", "Sistem Promptları");
+        m.insert("sidebar.worktrees", "Çalışma Ağaçları");
+
+        // ── Agents ──
+        m.insert("agents.title", "Ajanlar");
+        m.insert("agents.subtitle", "Özel ajan yapılandırmalarını yönet");
+        m.insert("agents.tab_overview", "Genel Bakış");
+        m.insert("agents.tab_create", "Yeni Oluştur");
+        m.insert("agents.loading", "Yükleniyor...");
+        m.insert("agents.empty", "Ajan bulunamadı");
+        m.insert("agents.name", "Ad");
+        m.insert("agents.description", "Açıklama");
+        m.insert("agents.prompt", "Prompt");
+        m.insert("agents.model", "Model");
+        m.insert("agents.allowed_tools", "İzin verilen araçlar");
+        m.insert("agents.disallowed_tools", "Engellenen araçlar");
+        m.insert("agents.custom_instructions", "Özel talimatlar");
+        m.insert("agents.source", "Kaynak");
+        m.insert("agents.create_success", "Ajan oluşturuldu");
+        m.insert("agents.update_success", "Ajan güncellendi");
+        m.insert("agents.delete_confirm", "Bu ajanı silmek istediğinizden emin misiniz?");
+        m.insert("agents.delete_success", "Ajan silindi");
+        m.insert("agents.copy_cli", "CLI komutunu kopyala");
+        m.insert("agents.copied", "Kopyalandı");
+
+        // ── Plugins ──
+        m.insert("plugins.title", "Eklentiler");
+        m.insert("plugins.subtitle", "Yüklü eklentileri yönet");
+        m.insert("plugins.loading", "Yükleniyor...");
+        m.insert("plugins.empty", "Eklenti bulunamadı");
+        m.insert("plugins.name", "Ad");
+        m.insert("plugins.version", "Sürüm");
+        m.insert("plugins.path", "Yol");
+        m.insert("plugins.status", "Durum");
+        m.insert("plugins.enabled", "Etkin");
+        m.insert("plugins.disabled", "Devre dışı");
+        m.insert("plugins.install", "Yükle");
+        m.insert("plugins.install_path", "Yükleme yolu");
+        m.insert("plugins.install_success", "Eklenti yüklendi");
+        m.insert("plugins.delete_confirm", "Bu eklentiyi silmek istediğinizden emin misiniz?");
+        m.insert("plugins.delete_success", "Eklenti silindi");
+
+        // ── Launch Profiles ──
+        m.insert("launch_profiles.title", "Başlatma Profilleri");
+        m.insert("launch_profiles.subtitle", "Claude Code başlatma yapılandırmalarını yönet");
+        m.insert("launch_profiles.tab_profiles", "Profiller");
+        m.insert("launch_profiles.tab_create", "Yeni Oluştur");
+        m.insert("launch_profiles.tab_presets", "Hazır Ayarlar");
+        m.insert("launch_profiles.loading", "Yükleniyor...");
+        m.insert("launch_profiles.empty", "Profil bulunamadı");
+        m.insert("launch_profiles.name", "Ad");
+        m.insert("launch_profiles.description", "Açıklama");
+        m.insert("launch_profiles.model", "Model");
+        m.insert("launch_profiles.effort", "Akıl yürütme seviyesi");
+        m.insert("launch_profiles.permission_mode", "İzin modu");
+        m.insert("launch_profiles.allowed_tools", "İzin verilen araçlar");
+        m.insert("launch_profiles.disallowed_tools", "Engellenen araçlar");
+        m.insert("launch_profiles.system_prompt", "Sistem promptu");
+        m.insert("launch_profiles.append_system_prompt", "Sistem promptuna ekle");
+        m.insert("launch_profiles.max_budget", "Maksimum bütçe");
+        m.insert("launch_profiles.fallback_model", "Yedek model");
+        m.insert("launch_profiles.debug_filter", "Hata ayıklama filtresi");
+        m.insert("launch_profiles.add_dirs", "Dizin ekle");
+        m.insert("launch_profiles.copy_command", "Komutu kopyala");
+        m.insert("launch_profiles.copied", "Kopyalandı");
+        m.insert("launch_profiles.create_success", "Profil oluşturuldu");
+        m.insert("launch_profiles.delete_confirm", "Bu profili silmek istediğinizden emin misiniz?");
+        m.insert("launch_profiles.delete_success", "Profil silindi");
+        m.insert("launch_profiles.use_template", "Şablon kullan");
+        m.insert("launch_profiles.preset_code_review", "Kod İncelemesi");
+        m.insert("launch_profiles.preset_code_review_desc", "Salt okunur kod inceleme profili");
+        m.insert("launch_profiles.preset_full_dev", "Tam Geliştirme");
+        m.insert("launch_profiles.preset_full_dev_desc", "Tam yetkili geliştirme profili");
+        m.insert("launch_profiles.preset_quick_fix", "Hızlı Düzeltme");
+        m.insert("launch_profiles.preset_quick_fix_desc", "Küçük düzeltmeler için hafif profil");
+        m.insert("launch_profiles.preset_research", "Araştırma");
+        m.insert("launch_profiles.preset_research_desc", "Kod tabanı araştırma profili");
+        m.insert("launch_profiles.preset_budget", "Bütçe Limiti");
+        m.insert("launch_profiles.preset_budget_desc", "Maliyet sınırlı profil");
+
+        // ── System Prompts ──
+        m.insert("system_prompts.title", "Sistem Promptları");
+        m.insert("system_prompts.subtitle", "Yeniden kullanılabilir sistem promptlarını yönet");
+        m.insert("system_prompts.tab_library", "Kütüphane");
+        m.insert("system_prompts.tab_create", "Yeni Oluştur");
+        m.insert("system_prompts.loading", "Yükleniyor...");
+        m.insert("system_prompts.empty", "Sistem promptu bulunamadı");
+        m.insert("system_prompts.name", "Ad");
+        m.insert("system_prompts.content", "İçerik");
+        m.insert("system_prompts.modified", "Değiştirilme tarihi");
+        m.insert("system_prompts.create_success", "Sistem promptu oluşturuldu");
+        m.insert("system_prompts.update_success", "Sistem promptu güncellendi");
+        m.insert("system_prompts.delete_confirm", "Bu sistem promptunu silmek istediğinizden emin misiniz?");
+        m.insert("system_prompts.delete_success", "Sistem promptu silindi");
+        m.insert("system_prompts.copy_cli", "CLI komutunu kopyala");
+        m.insert("system_prompts.copied", "Kopyalandı");
+        m.insert("system_prompts.use_template", "Şablon kullan");
+        m.insert("system_prompts.template_reviewer", "Kod İnceleyici");
+        m.insert("system_prompts.template_docs", "Dokümantasyon Yazarı");
+        m.insert("system_prompts.template_security", "Güvenlik Denetimi");
+        m.insert("system_prompts.template_refactor", "Yeniden Düzenleme");
+
+        // ── Worktrees ──
+        m.insert("worktrees.title", "Çalışma Ağaçları");
+        m.insert("worktrees.subtitle", "Git çalışma ağaçlarını yönet");
+        m.insert("worktrees.loading", "Yükleniyor...");
+        m.insert("worktrees.empty", "Çalışma ağacı bulunamadı");
+        m.insert("worktrees.project_path", "Proje yolu");
+        m.insert("worktrees.branch_name", "Dal adı");
+        m.insert("worktrees.create", "Oluştur");
+        m.insert("worktrees.create_success", "Çalışma ağacı oluşturuldu");
+        m.insert("worktrees.delete_confirm", "Bu çalışma ağacını silmek istediğinizden emin misiniz?");
+        m.insert("worktrees.delete_success", "Çalışma ağacı silindi");
+        m.insert("worktrees.col_branch", "Dal");
+        m.insert("worktrees.col_path", "Yol");
+        m.insert("worktrees.col_head", "HEAD");
+        m.insert("worktrees.col_status", "Durum");
+        m.insert("worktrees.col_actions", "İşlemler");
+        m.insert("worktrees.badge_main", "Ana");
+        m.insert("worktrees.badge_bare", "Çıplak");
+        m.insert("worktrees.badge_worktree", "Çalışma Ağacı");
+
+        // ── Ajanlar (form alanları) ──
+        m.insert("agents.field_name", "Ad");
+        m.insert("agents.field_description", "Açıklama");
+        m.insert("agents.field_prompt", "Prompt");
+        m.insert("agents.field_model", "Model");
+        m.insert("agents.field_allowed_tools", "İzin verilen araçlar");
+        m.insert("agents.field_disallowed_tools", "Engellenen araçlar");
+        m.insert("agents.field_custom_instructions", "Özel talimatlar");
+        m.insert("agents.tools_hint", "Virgülle ayrılmış liste, örn. Bash, Edit, Read");
+        m.insert("agents.tools_placeholder", "Bash, Edit, Read, Write...");
+        m.insert("agents.create_btn", "Ajan oluştur");
+        m.insert("agents.editing", "Düzenleniyor");
+        m.insert("agents.save_success", "Ajan başarıyla güncellendi");
+        m.insert("agents.confirm_delete", "Ajanı sil");
+        m.insert("agents.name_required", "Ad gereklidir");
+        m.insert("agents.model_default", "Varsayılan (miras alınan)");
+        m.insert("agents.name_placeholder", "örn. code-reviewer");
+        m.insert("agents.desc_placeholder", "Bu ajan ne yapar?");
+        m.insert("agents.prompt_placeholder", "Sen bir kod inceleyicisisin...");
+        m.insert("agents.instructions_placeholder", "Ek talimatlar...");
+
+        // ── Eklentiler (eksik) ──
+        m.insert("plugins.actions", "İşlemler");
+
+        // ── Başlatma Profilleri (eksik) ──
+        m.insert("launch_profiles.save_btn", "Profil oluştur");
+
+        // ── Ortak (eksik) ──
+        m.insert("common.edit", "Düzenle");
+        m.insert("common.saved", "Kaydedildi");
+
+        // ── Timeline ──
+        m.insert("sidebar.timeline", "Zaman Çizelgesi");
+        m.insert("timeline.title", "Zaman Çizelgesi");
+        m.insert("timeline.subtitle", "Claude yapılandırmanızın Git tabanlı sürüm geçmişi");
+        m.insert("timeline.files", "dosya");
+        m.insert("timeline.restore", "Geri Yükle");
+        m.insert("timeline.confirm_restore_title", "Yapılandırmayı Geri Yükle");
+        m.insert("timeline.confirm_restore_msg", "Bu, tüm dosyaları seçilen commit'e geri yükleyecektir. Mevcut durumun yedeği önce kaydedilecektir. Devam edilsin mi?");
+        m.insert("timeline.empty", "Henüz zaman çizelgesi girişi yok. Yapılandırmanızı düzenledikçe değişiklikler burada görünecektir.");
+        m.insert("timeline.error", "Zaman çizelgesi yüklenemedi");
+        m.insert("timeline.select_commit", "Değişikliklerini görmek için bir commit seçin");
+        m.insert("timeline.diff_for", "Değişiklikler");
+
+        // ── Yardım Sohbeti ──
+        m.insert("help_chat.title", "Yardım");
+        m.insert("help_chat.placeholder", "Bu sayfa hakkında sorun...");
+        m.insert("help_chat.send", "Gönder");
+        m.insert("help_chat.thinking", "Düşünüyor...");
+        m.insert("help_chat.clear", "Yeni sohbet");
+        m.insert("help_chat.no_api_key", "Yardım sohbeti için API anahtarı gerekli. Ayarlar'da yapılandırın.");
 
         m
     })

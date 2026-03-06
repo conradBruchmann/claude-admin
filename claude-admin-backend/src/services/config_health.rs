@@ -162,6 +162,157 @@ pub async fn compute_health_score(
     })
 }
 
+/// Detect conflicts between global rules and project rules for all projects.
+pub async fn detect_all_rule_conflicts(
+    claude_home: &Path,
+    claude_json_path: &Path,
+) -> Vec<ConflictInfo> {
+    let projects = crate::services::fs_scanner::scan_projects_lite(claude_json_path)
+        .await
+        .unwrap_or_default();
+
+    let mut all_conflicts = Vec::new();
+    for project in &projects {
+        let mut conflicts = detect_rule_conflicts(claude_home, &project.path).await;
+        all_conflicts.append(&mut conflicts);
+    }
+    all_conflicts
+}
+
+/// Detect conflicts between global rules and project rules for a single project.
+pub async fn detect_rule_conflicts(claude_home: &Path, project_path: &str) -> Vec<ConflictInfo> {
+    let mut conflicts = Vec::new();
+
+    // Load global rules
+    let global_rules = crate::services::fs_scanner::scan_rules(claude_home, &ConfigScope::Global)
+        .await
+        .unwrap_or_default();
+
+    // Load project rules
+    let encoded = crate::services::project_resolver::encode_project_path(project_path);
+    let project_rules_dir = claude_home.join("projects").join(&encoded).join("rules");
+    let local_rules_dir = std::path::Path::new(project_path)
+        .join(".claude")
+        .join("rules");
+
+    let mut project_rules: Vec<RuleFile> = Vec::new();
+    for dir in [project_rules_dir, local_rules_dir] {
+        if !tokio::fs::try_exists(&dir).await.unwrap_or(false) {
+            continue;
+        }
+        if let Ok(mut entries) = tokio::fs::read_dir(&dir).await {
+            while let Ok(Some(entry)) = entries.next_entry().await {
+                let path = entry.path();
+                if path.extension().is_some_and(|e| e == "md") {
+                    if let Ok(content) = tokio::fs::read_to_string(&path).await {
+                        let name = path
+                            .file_stem()
+                            .map(|s| s.to_string_lossy().to_string())
+                            .unwrap_or_default();
+                        project_rules.push(RuleFile {
+                            name,
+                            path: path.to_string_lossy().to_string(),
+                            scope: ConfigScope::Project,
+                            content,
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    // Contradiction keywords (pairs of opposites)
+    let contradictions: &[(&str, &str)] = &[
+        ("always", "never"),
+        ("must", "must not"),
+        ("require", "forbid"),
+        ("enable", "disable"),
+        ("allow", "deny"),
+        ("prefer", "avoid"),
+    ];
+
+    for proj_rule in &project_rules {
+        for glob_rule in &global_rules {
+            // 1. Name collision
+            if proj_rule.name == glob_rule.name {
+                conflicts.push(ConflictInfo {
+                    name: proj_rule.name.clone(),
+                    file_type: ClaudeFileType::Rule,
+                    global_path: glob_rule.path.clone(),
+                    project_path: proj_rule.path.clone(),
+                    conflict_type: ConflictType::NameCollision,
+                    description: format!(
+                        "Rule '{}' exists in both global and project scope",
+                        proj_rule.name
+                    ),
+                });
+                continue;
+            }
+
+            let proj_lower = proj_rule.content.to_lowercase();
+            let glob_lower = glob_rule.content.to_lowercase();
+
+            // 2. Content overlap: significant lines that appear in both
+            let glob_lines: Vec<&str> =
+                glob_lower.lines().filter(|l| l.trim().len() > 20).collect();
+            let has_overlap = glob_lines.iter().any(|l| proj_lower.contains(l.trim()));
+
+            if has_overlap {
+                conflicts.push(ConflictInfo {
+                    name: format!("{} vs {}", glob_rule.name, proj_rule.name),
+                    file_type: ClaudeFileType::Rule,
+                    global_path: glob_rule.path.clone(),
+                    project_path: proj_rule.path.clone(),
+                    conflict_type: ConflictType::ContentOverlap,
+                    description: format!(
+                        "Global rule '{}' and project rule '{}' have overlapping content",
+                        glob_rule.name, proj_rule.name
+                    ),
+                });
+                continue;
+            }
+
+            // 3. Contradiction detection via keyword pairs
+            for (word_a, word_b) in contradictions {
+                let glob_has_a = glob_lower.contains(word_a);
+                let proj_has_b = proj_lower.contains(word_b);
+                let glob_has_b = glob_lower.contains(word_b);
+                let proj_has_a = proj_lower.contains(word_a);
+
+                if (glob_has_a && proj_has_b) || (glob_has_b && proj_has_a) {
+                    // Check if they reference similar topics (share at least one significant word)
+                    let glob_words: std::collections::HashSet<&str> = glob_lower
+                        .split_whitespace()
+                        .filter(|w| w.len() > 4)
+                        .collect();
+                    let proj_words: std::collections::HashSet<&str> = proj_lower
+                        .split_whitespace()
+                        .filter(|w| w.len() > 4)
+                        .collect();
+                    let shared: Vec<&&str> = glob_words.intersection(&proj_words).take(3).collect();
+
+                    if !shared.is_empty() {
+                        conflicts.push(ConflictInfo {
+                            name: format!("{} vs {}", glob_rule.name, proj_rule.name),
+                            file_type: ClaudeFileType::Rule,
+                            global_path: glob_rule.path.clone(),
+                            project_path: proj_rule.path.clone(),
+                            conflict_type: ConflictType::Contradiction,
+                            description: format!(
+                                "Possible contradiction: '{}' (global) vs '{}' (project) — opposing keywords '{}/{}' on shared topic",
+                                glob_rule.name, proj_rule.name, word_a, word_b
+                            ),
+                        });
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    conflicts
+}
+
 /// Find rules that are duplicated between project CLAUDE.md and global rules/skills.
 async fn find_duplicated_rules(claude_home: &Path, project_path: &str) -> Vec<DuplicatedRule> {
     let mut duplicates = Vec::new();

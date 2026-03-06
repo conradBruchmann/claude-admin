@@ -1,5 +1,6 @@
 pub mod code_viewer;
 pub mod confirm_dialog;
+pub mod context_help;
 pub mod diff_viewer;
 pub mod editor_history;
 pub mod file_tree;

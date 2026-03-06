@@ -44,6 +44,11 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("dashboard.plans", "Plany");
         m.insert("dashboard.config_health", "Config Health");
         m.insert("dashboard.recent_projects", "Ostatnie projekty");
+        m.insert("dashboard.recent_changes", "Ostatnie zmiany");
+        m.insert("dashboard.no_recent_changes", "Brak ostatnich zmian");
+        m.insert("dashboard.change_action", "Akcja");
+        m.insert("dashboard.change_resource", "Zas\u{f3}b");
+        m.insert("dashboard.change_time", "Czas");
         m.insert("dashboard.loading", "\u{0141}adowanie");
         m.insert("dashboard.error_loading", "B\u{0142}\u{0105}d podczas \u{0142}adowania panelu");
         m.insert("dashboard.col_name", "Nazwa");
@@ -92,6 +97,13 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.add.name_label", "Nazwa serwera");
         m.insert("mcp.add.name_placeholder", "np. my-server");
         m.insert("mcp.add.config_label", "Konfiguracja serwera (JSON)");
+        m.insert("mcp.add.mode_form", "Formularz");
+        m.insert("mcp.add.mode_json", "Zaawansowany JSON");
+        m.insert("mcp.add.command_label", "Polecenie");
+        m.insert("mcp.add.args_label", "Argumenty");
+        m.insert("mcp.add.args_hint", "Jeden argument na lini\u{0119}");
+        m.insert("mcp.add.env_label", "Zmienne \u{015b}rodowiskowe");
+        m.insert("mcp.add.env_hint", "Format KEY=VALUE, jedna na lini\u{0119}");
         m.insert("mcp.add.submit", "Dodaj serwer");
         m.insert("mcp.add.name_required", "Podaj nazw\u{0119} serwera");
         m.insert("mcp.browse.title", "Katalog serwerów MCP");
@@ -109,6 +121,16 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.source.claude_code", "Claude Code");
         m.insert("mcp.source.claude_desktop", "Claude Desktop");
 
+        // ── MCP Tools (Feature 7) ──
+        m.insert("mcp.tab_tools", "Eksplorator narz\u{0119}dzi");
+        m.insert("mcp.tools.title", "Eksplorator narz\u{0119}dzi");
+        m.insert("mcp.tools.description", "Wszystkie narz\u{0119}dzia ze wszystkich serwer\u{00f3}w MCP");
+        m.insert("mcp.tools.search", "Szukaj narz\u{0119}dzi...");
+        m.insert("mcp.tools.parameters", "Parametry (JSON Schema)");
+        m.insert("mcp.tools.required", "Wymagane");
+        m.insert("mcp.tools.no_tools", "Nie znaleziono narz\u{0119}dzi. Najpierw uruchom Health Check.");
+        m.insert("mcp.tools.from_server", "z");
+
         // ── MCP Browser ──
         m.insert("mcp_browser.title", "MCP Browser");
         m.insert("mcp_browser.subtitle", "Odkrywaj i instaluj serwery MCP dla Claude Code");
@@ -122,6 +144,8 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp_browser.install_failed", "Instalacja nie powiod\u{0142}a si\u{0119}");
 
         // ── Projects ──
+        m.insert("projects.tab_projects", "Projekty");
+        m.insert("projects.tab_health", "Przegląd Zdrowia");
         m.insert("projects.title", "Projekty");
         m.insert("projects.subtitle", "Wszystkie projekty zarejestrowane w ~/.claude.json");
         m.insert("projects.loading", "\u{0141}adowanie");
@@ -195,7 +219,24 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("project_detail.bytes", "bajt\u{00f3}w");
         m.insert("project_detail.unknown_tab", "Nieznana zak\u{0142}adka");
 
+        // ── Project Profile (Feature 1) ──
+        m.insert("project_detail.tab_profile", "Profil");
+        m.insert("project_detail.profile_health", "Wynik Health");
+        m.insert("project_detail.profile_rules", "Regu\u{0142}y");
+        m.insert("project_detail.profile_skills", "Skills");
+        m.insert("project_detail.profile_memory", "Memory");
+        m.insert("project_detail.profile_mcp", "Serwery MCP");
+        m.insert("project_detail.profile_hooks", "Hooki");
+        m.insert("project_detail.profile_conflicts", "Konflikty");
+        m.insert("project_detail.profile_analyze", "Uruchom g\u{0142}\u{0119}bok\u{0105} analiz\u{0119}");
+        m.insert("project_detail.profile_no_mcp", "Brak serwer\u{00f3}w MCP");
+        m.insert("project_detail.profile_global_scope", "Globalny");
+        m.insert("project_detail.profile_project_scope", "Projekt");
+
         // ── Global Skills ──
+        m.insert("global_skills.tab_my_skills", "Moje Skille");
+        m.insert("global_skills.tab_browse", "Przeglądaj");
+        m.insert("global_skills.tab_templates", "Szablony");
         m.insert("global_skills.title", "Globalne Skills");
         m.insert("global_skills.subtitle", "Zarz\u{0105}dzaj Skills w ~/.claude/skills/");
         m.insert("global_skills.loading", "\u{0141}adowanie Skills");
@@ -212,6 +253,23 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("global_skills.delete", "Usu\u{0144}");
         m.insert("global_skills.deleted", "Usuni\u{0119}to!");
 
+        // ── Skill Builder (Feature 2) ──
+        m.insert("global_skills.tab_create", "Utw\u{00f3}rz");
+        m.insert("skill_builder.templates", "Szablony");
+        m.insert("skill_builder.editor", "Edytor");
+        m.insert("skill_builder.preview", "Podgl\u{0105}d");
+        m.insert("skill_builder.name", "Nazwa Skilla");
+        m.insert("skill_builder.name_placeholder", "np. m\u{00f3}j-skill");
+        m.insert("skill_builder.name_required", "Podaj nazw\u{0119} Skilla");
+        m.insert("skill_builder.description", "Opis");
+        m.insert("skill_builder.desc_placeholder", "Co robi ten Skill?");
+        m.insert("skill_builder.user_invocable", "Wywo\u{0142}ywalny (/command)");
+        m.insert("skill_builder.content", "Tre\u{015b}\u{0107} Skilla (Markdown)");
+        m.insert("skill_builder.save", "Zapisz Skilla");
+        m.insert("skill_builder.saved", "Skill zapisany:");
+        m.insert("skill_builder.trigger", "Wyzwalacz:");
+        m.insert("skill_builder.preview_hint", "Wybierz szablon lub zacznij pisa\u{0107}, aby zobaczy\u{0107} podgl\u{0105}d na \u{017c}ywo.");
+
         // ── Global Rules ──
         m.insert("global_rules.title", "Globalne regu\u{0142}y");
         m.insert("global_rules.subtitle", "Zarz\u{0105}dzaj regu\u{0142}ami w ~/.claude/rules/");
@@ -225,6 +283,16 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("global_rules.saved", "Zapisano!");
         m.insert("global_rules.delete", "Usu\u{0144}");
         m.insert("global_rules.deleted", "Usuni\u{0119}to!");
+
+        // ── Rules Conflicts (Feature 6) ──
+        m.insert("rules.conflicts_title", "Konflikty regu\u{0142}");
+        m.insert("rules.conflicts_found", "Znalezione konflikty");
+        m.insert("rules.conflict_name_collision", "Kolizja nazw");
+        m.insert("rules.conflict_content_overlap", "Nak\u{0142}adanie si\u{0119} tre\u{015b}ci");
+        m.insert("rules.conflict_contradiction", "Sprzeczno\u{015b}\u{0107}");
+        m.insert("rules.conflict_global", "Globalny");
+        m.insert("rules.conflict_project", "Projekt");
+        m.insert("rules.no_conflicts", "Nie wykryto konflikt\u{00f3}w");
 
         // ── Plans ──
         m.insert("plans.title", "Plany");
@@ -336,6 +404,16 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("analytics.languages", "J\u{0119}zyki");
         m.insert("analytics.session_outcomes", "Wyniki sesji");
         m.insert("analytics.outcomes", "Wyniki");
+
+        // ── Teach Me Tips (Feature 5) ──
+        m.insert("analytics.tips_title", "Spostrze\u{017c}enia i wskaz\u{00f3}wki");
+        m.insert("analytics.tips_dismiss", "Zamknij");
+        m.insert("analytics.tips_learn_more", "Dowiedz si\u{0119} wi\u{0119}cej");
+        m.insert("analytics.tip_category_tool", "Narz\u{0119}dzie");
+        m.insert("analytics.tip_category_workflow", "Workflow");
+        m.insert("analytics.tip_category_performance", "Wydajno\u{015b}\u{0107}");
+        m.insert("analytics.tip_category_config", "Konfiguracja");
+        m.insert("analytics.no_tips", "Brak dost\u{0119}pnych wskaz\u{00f3}wek");
 
         // ── Sessions ──
         m.insert("sessions.title", "Sesje");
@@ -662,6 +740,44 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("docs.scopes_project_4", "Skills i przeplywy pracy specyficzne dla projektu");
         m.insert("docs.scopes_project_5", "Hooki CI/CD i automatyzacja");
 
+        // ── Docs: Optimization Guide ──
+        m.insert("docs.toc_optimization", "Przewodnik optymalizacji");
+        m.insert("docs.opt_heading", "Przewodnik optymalizacji");
+        m.insert("docs.opt_callout", "Spersonalizowane wskaz\u{f3}wki z Analityki om\u{f3}wione szczeg\u{f3}\u{142}owo. Ka\u{17c}da sekcja wyja\u{15b}nia dlaczego wz\u{f3}r jest wa\u{17c}ny i jak si\u{119} poprawi\u{107}, z linkami do oficjalnej dokumentacji Anthropic.");
+        m.insert("docs.opt_why", "Dlaczego:");
+        m.insert("docs.opt_how", "Jak:");
+        m.insert("docs.opt_task_heading", "R\u{f3}wnoleg\u{142}e agenty z narz\u{119}dziem Task");
+        m.insert("docs.opt_task_why", "Narz\u{119}dzie Task uruchamia wyspecjalizowane podagenty pracuj\u{105}ce r\u{f3}wnolegle. Przy z\u{142}o\u{17c}onych, wieloetapowych zadaniach (badania, eksploracja kodu, testowanie) podagenty mog\u{105} dzia\u{142}a\u{107} jednocze\u{15b}nie zamiast sekwencyjnie, znacz\u{105}co skracaj\u{105}c ca\u{142}kowity czas.");
+        m.insert("docs.opt_task_how", "Claude Code u\u{17c}ywa narz\u{119}dzia Task automatycznie, gdy rozpozna mo\u{17c}liwo\u{15b}ci r\u{f3}wnoleg\u{142}ego przetwarzania. Mo\u{17c}esz te\u{17c} poprosi\u{107} wprost: \u{201e}Zbadaj X i Y r\u{f3}wnolegle\u{201d} lub \u{201e}Uruchom testy podczas naprawiania b\u{142}\u{119}du.\u{201d} Ka\u{17c}dy agent dostaje w\u{142}asne okno kontekstu, dzi\u{119}ki czemu eksploracja du\u{17c}ych baz kodu jest bardziej wydajna.");
+        m.insert("docs.opt_task_link", "Anthropic Docs: Najlepsze praktyki \u{2192}");
+        m.insert("docs.opt_hooks_heading", "Automatyzacja z Hooks");
+        m.insert("docs.opt_hooks_why", "Hooki to komendy powloki uruchamiane automatycznie przed lub po u\u{17c}yciu narz\u{119}dzia przez Claude. Bez hook\u{f3}w musisz r\u{119}cznie uruchamia\u{107} formatery, lintery i testy. Z hookami ka\u{17c}dy zapis pliku mo\u{17c}e automatycznie formatowa\u{107}, ka\u{17c}dy commit mo\u{17c}e automatycznie testowa\u{107}.");
+        m.insert("docs.opt_hooks_how", "Skonfiguruj hooki w ~/.claude/settings.json pod kluczem \u{201e}hooks\u{201d}. U\u{17c}yj PreToolUse do uruchomienia akcji przed narz\u{119}dziem (np. formatowanie kodu przed zapisem). U\u{17c}yj PostToolUse do walidacji po zmianach (np. lint po edycji). U\u{17c}yj Stop do uruchomienia sprawdze\u{144} gdy Claude sko\u{144}czy.");
+        m.insert("docs.opt_hooks_link", "Anthropic Docs: Hooks \u{2192}");
+        m.insert("docs.opt_sessions_heading", "Optymalna d\u{142}ugo\u{15b}\u{107} sesji");
+        m.insert("docs.opt_sessions_why", "D\u{142}ugie sesje gromadz\u{105} kontekst, kt\u{f3}ry mo\u{17c}e rozmy\u{107} skupienie Claude. Po wielu wiadomo\u{15b}ciach wcze\u{15b}niejsze instrukcje staj\u{105} si\u{119} mniej widoczne. Koszty token\u{f3}w r\u{f3}wnie\u{17c} rosn\u{105}, gdy okno kontekstu wype\u{142}nia si\u{119} histori\u{105} rozmowy.");
+        m.insert("docs.opt_sessions_how", "Podziel z\u{142}o\u{17c}on\u{105} prac\u{119} na ukierunkowane sesje. U\u{17c}yj /clear, aby zresetowa\u{107} kontekst w ramach sesji. Dla projekt\u{f3}w wieloetapowych u\u{17c}yj plik\u{f3}w planu (Claude pisze plan, a nast\u{119}pnie wykonuje kroki w ukierunkowanych sesjach). Ka\u{17c}da nowa sesja zaczyna si\u{119} z maksymaln\u{105} uwag\u{105} na bie\u{17c}\u{105}ce zadanie.");
+        m.insert("docs.opt_sessions_link", "Anthropic Docs: Najlepsze praktyki \u{2192}");
+        m.insert("docs.opt_cost_heading", "Optymalizacja koszt\u{f3}w");
+        m.insert("docs.opt_cost_why", "R\u{f3}\u{17c}ne modele Claude maj\u{105} bardzo r\u{f3}\u{17c}ne koszty. Opus \u{15b}wietnie radzi sobie ze z\u{142}o\u{17c}onym rozumowaniem, ale kosztuje wi\u{119}cej za token. Haiku jest szybki i tani, idealny do prostych zada\u{144}. U\u{17c}ywanie odpowiedniego modelu do ka\u{17c}dego zadania mo\u{17c}e drastycznie obni\u{17c}y\u{107} koszty.");
+        m.insert("docs.opt_cost_how", "U\u{17c}yj /model, aby prze\u{142}\u{105}cza\u{107} modele podczas sesji. Haiku do: szybkich poprawek, formatowania kodu, prostych pyta\u{144}. Sonnet do: \u{15b}rednich zada\u{144} kodowania, przegl\u{105}d\u{f3}w. Opus do: projektowania architektury, z\u{142}o\u{17c}onego debugowania, refaktoryzacji wielu plik\u{f3}w. Strona Analityki pokazuje rozk\u{142}ad koszt\u{f3}w wed\u{142}ug modelu.");
+        m.insert("docs.opt_cost_link", "Anthropic Docs: Przegl\u{105}d Claude Code \u{2192}");
+        m.insert("docs.opt_write_heading", "Write vs Edit: wyb\u{f3}r w\u{142}a\u{15b}ciwego narz\u{119}dzia");
+        m.insert("docs.opt_write_why", "Narz\u{119}dzie Write tworzy ca\u{142}e pliki na raz, podczas gdy Edit wprowadza ukierunkowane zmiany w istniej\u{105}cych plikach. Dla nowych plik\u{f3}w Write jest bardziej wydajne, poniewa\u{17c} Edit musi najpierw przeczyta\u{107} plik, a nast\u{119}pnie okre\u{15b}li\u{107} dok\u{142}adne zamiany ci\u{105}g\u{f3}w znak\u{f3}w.");
+        m.insert("docs.opt_write_how", "Claude zazwyczaj automatycznie wybiera w\u{142}a\u{15b}ciwe narz\u{119}dzie. Ale je\u{15b}li tworzysz nowe pliki od podstaw (szablony, boilerplate, konfiguracja), wyra\u{17a}ne powiedzenie \u{201e}utw\u{f3}rz nowy plik\u{201d} pomaga Claude wybra\u{107} Write. Dla modyfikacji istniej\u{105}cego kodu Edit jest zawsze preferowany.");
+        m.insert("docs.opt_models_heading", "R\u{f3}\u{17c}norodno\u{15b}\u{107} modeli");
+        m.insert("docs.opt_models_why", "U\u{17c}ywanie jednego modelu do wszystkich zada\u{144} oznacza albo przep\u{142}acanie za prost\u{105} prac\u{119} (Opus do wszystkiego), albo niewystarczaj\u{105}c\u{105} moc dla z\u{142}o\u{17c}onych zada\u{144} (Haiku do wszystkiego). Ka\u{17c}da rodzina modeli ma mocne strony: Haiku dla szybko\u{15b}ci, Sonnet dla r\u{f3}wnowagi, Opus dla g\u{142}\u{119}bokiego rozumowania.");
+        m.insert("docs.opt_models_how", "Prze\u{142}\u{105}czaj modele poleceniem /model. Dobry wz\u{f3}r: zacznij od Opus do planowania i architektury, przejd\u{17a} na Sonnet do implementacji, u\u{17c}yj Haiku do szybkich poprawek i formatowania. Strona Analityki pokazuje, kt\u{f3}rego modelu u\u{17c}ywasz najcz\u{119}\u{15b}ciej.");
+        m.insert("docs.opt_models_link", "Anthropic Docs: Przegl\u{105}d Claude Code \u{2192}");
+        m.insert("docs.opt_git_heading", "Integracja z Git");
+        m.insert("docs.opt_git_why", "Claude Code mo\u{17c}e stagowa\u{107}, commitowa\u{107}, pushowa\u{107} i tworzy\u{107} PR bezpo\u{15b}rednio. Bez integracji z Git r\u{119}cznie commitujesz po ka\u{17c}dej sesji Claude, co przerywa przep\u{142}yw pracy i grozi zapomnieniem wa\u{17c}nych zmian.");
+        m.insert("docs.opt_git_how", "Po prostu popro\u{15b} Claude o commit: \u{201e}commituj te zmiany\u{201d} lub u\u{17c}yj /commit. Claude pisze opisowe wiadomo\u{15b}ci commitowe, staguje tylko odpowiednie pliki i respektuje pre-commit hooks. Dla PR popro\u{15b} Claude o \u{201e}stworzenie PR\u{201d} \u{2013} u\u{17c}ywa gh CLI do pushowania i otwierania pull requesta z podsumowaniem.");
+        m.insert("docs.opt_git_link", "Anthropic Docs: Najlepsze praktyki \u{2192}");
+        m.insert("docs.opt_churn_heading", "Zmniejszanie zmienno\u{15b}ci kodu");
+        m.insert("docs.opt_churn_why", "Gdy usuwanych jest wi\u{119}cej linii ni\u{17c} dodawanych, zwykle oznacza to, \u{17c}e Claude napisa\u{142} kod, kt\u{f3}ry musia\u{142} zosta\u{107} przepisany. To marnuje tokeny i czas. Cz\u{119}ste przyczyny: niejasne prompty, brakuj\u{105}cy kontekst lub Claude zgaduj\u{105}cy wymagania.");
+        m.insert("docs.opt_churn_how", "B\u{105}d\u{17a} konkretny w promptach: odwo\u{142}uj si\u{119} do istniej\u{105}cych plik\u{f3}w, podawaj dok\u{142}adne nazwy funkcji, opisuj oczekiwane zachowanie. U\u{17c}yj CLAUDE.md do dokumentowania konwencji, aby Claude nie zgadywa\u{142}. Dla z\u{142}o\u{17c}onych zmian popro\u{15b} Claude o zaplanowanie najpierw (/plan) przed implementacj\u{105}. Przejrzyj plan Claude przed rozpocz\u{119}ciem kodowania.");
+        m.insert("docs.opt_churn_link", "Anthropic Docs: Najlepsze praktyki \u{2192}");
+
         // ── Docs: Wskaz\u{00f3}wki & Best Practices ──
         m.insert("docs.bestpractices_heading", "Wskaz\u{00f3}wki i najlepsze praktyki");
         m.insert("docs.bestpractices_hygiene_heading", "Higiena konfiguracji");
@@ -815,6 +931,183 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("settings.user_prompt_submit", "UserPromptSubmit");
         m.insert("settings.session_start", "SessionStart");
 
+        // ── Sidebar (new) ──
+        m.insert("sidebar.agents", "Agenci");
+        m.insert("sidebar.plugins", "Wtyczki");
+        m.insert("sidebar.launch_profiles", "Profile startowe");
+        m.insert("sidebar.system_prompts", "Prompty systemowe");
+        m.insert("sidebar.worktrees", "Drzewa robocze");
+
+        // ── Agents ──
+        m.insert("agents.title", "Agenci");
+        m.insert("agents.subtitle", "Zarządzanie konfiguracjami agentów");
+        m.insert("agents.tab_overview", "Przegląd");
+        m.insert("agents.tab_create", "Utwórz nowego");
+        m.insert("agents.loading", "Ładowanie...");
+        m.insert("agents.empty", "Nie znaleziono agentów");
+        m.insert("agents.name", "Nazwa");
+        m.insert("agents.description", "Opis");
+        m.insert("agents.prompt", "Prompt");
+        m.insert("agents.model", "Model");
+        m.insert("agents.allowed_tools", "Dozwolone narzędzia");
+        m.insert("agents.disallowed_tools", "Zablokowane narzędzia");
+        m.insert("agents.custom_instructions", "Niestandardowe instrukcje");
+        m.insert("agents.source", "Źródło");
+        m.insert("agents.create_success", "Agent został utworzony");
+        m.insert("agents.update_success", "Agent został zaktualizowany");
+        m.insert("agents.delete_confirm", "Czy na pewno chcesz usunąć tego agenta?");
+        m.insert("agents.delete_success", "Agent został usunięty");
+        m.insert("agents.copy_cli", "Kopiuj polecenie CLI");
+        m.insert("agents.copied", "Skopiowano");
+
+        // ── Plugins ──
+        m.insert("plugins.title", "Wtyczki");
+        m.insert("plugins.subtitle", "Zarządzanie zainstalowanymi wtyczkami");
+        m.insert("plugins.loading", "Ładowanie...");
+        m.insert("plugins.empty", "Nie znaleziono wtyczek");
+        m.insert("plugins.name", "Nazwa");
+        m.insert("plugins.version", "Wersja");
+        m.insert("plugins.path", "Ścieżka");
+        m.insert("plugins.status", "Status");
+        m.insert("plugins.enabled", "Włączona");
+        m.insert("plugins.disabled", "Wyłączona");
+        m.insert("plugins.install", "Zainstaluj");
+        m.insert("plugins.install_path", "Ścieżka instalacji");
+        m.insert("plugins.install_success", "Wtyczka została zainstalowana");
+        m.insert("plugins.delete_confirm", "Czy na pewno chcesz usunąć tę wtyczkę?");
+        m.insert("plugins.delete_success", "Wtyczka została usunięta");
+
+        // ── Launch Profiles ──
+        m.insert("launch_profiles.title", "Profile startowe");
+        m.insert("launch_profiles.subtitle", "Zarządzanie konfiguracjami startowymi Claude Code");
+        m.insert("launch_profiles.tab_profiles", "Profile");
+        m.insert("launch_profiles.tab_create", "Utwórz nowy");
+        m.insert("launch_profiles.tab_presets", "Szablony");
+        m.insert("launch_profiles.loading", "Ładowanie...");
+        m.insert("launch_profiles.empty", "Nie znaleziono profili");
+        m.insert("launch_profiles.name", "Nazwa");
+        m.insert("launch_profiles.description", "Opis");
+        m.insert("launch_profiles.model", "Model");
+        m.insert("launch_profiles.effort", "Poziom wnioskowania");
+        m.insert("launch_profiles.permission_mode", "Tryb uprawnień");
+        m.insert("launch_profiles.allowed_tools", "Dozwolone narzędzia");
+        m.insert("launch_profiles.disallowed_tools", "Zablokowane narzędzia");
+        m.insert("launch_profiles.system_prompt", "Prompt systemowy");
+        m.insert("launch_profiles.append_system_prompt", "Dopisz do promptu systemowego");
+        m.insert("launch_profiles.max_budget", "Maksymalny budżet");
+        m.insert("launch_profiles.fallback_model", "Model zapasowy");
+        m.insert("launch_profiles.debug_filter", "Filtr debugowania");
+        m.insert("launch_profiles.add_dirs", "Dodaj katalogi");
+        m.insert("launch_profiles.copy_command", "Kopiuj polecenie");
+        m.insert("launch_profiles.copied", "Skopiowano");
+        m.insert("launch_profiles.create_success", "Profil został utworzony");
+        m.insert("launch_profiles.delete_confirm", "Czy na pewno chcesz usunąć ten profil?");
+        m.insert("launch_profiles.delete_success", "Profil został usunięty");
+        m.insert("launch_profiles.use_template", "Użyj szablonu");
+        m.insert("launch_profiles.preset_code_review", "Przegląd kodu");
+        m.insert("launch_profiles.preset_code_review_desc", "Profil tylko do odczytu do przeglądu kodu");
+        m.insert("launch_profiles.preset_full_dev", "Pełne programowanie");
+        m.insert("launch_profiles.preset_full_dev_desc", "Profil programistyczny z pełnymi uprawnieniami");
+        m.insert("launch_profiles.preset_quick_fix", "Szybka poprawka");
+        m.insert("launch_profiles.preset_quick_fix_desc", "Lekki profil do drobnych poprawek");
+        m.insert("launch_profiles.preset_research", "Badanie");
+        m.insert("launch_profiles.preset_research_desc", "Profil do analizy bazy kodu");
+        m.insert("launch_profiles.preset_budget", "Limit budżetu");
+        m.insert("launch_profiles.preset_budget_desc", "Profil z limitem kosztów");
+
+        // ── System Prompts ──
+        m.insert("system_prompts.title", "Prompty systemowe");
+        m.insert("system_prompts.subtitle", "Zarządzanie wielokrotnie używanymi promptami systemowymi");
+        m.insert("system_prompts.tab_library", "Biblioteka");
+        m.insert("system_prompts.tab_create", "Utwórz nowy");
+        m.insert("system_prompts.loading", "Ładowanie...");
+        m.insert("system_prompts.empty", "Nie znaleziono promptów systemowych");
+        m.insert("system_prompts.name", "Nazwa");
+        m.insert("system_prompts.content", "Treść");
+        m.insert("system_prompts.modified", "Zmodyfikowano");
+        m.insert("system_prompts.create_success", "Prompt systemowy został utworzony");
+        m.insert("system_prompts.update_success", "Prompt systemowy został zaktualizowany");
+        m.insert("system_prompts.delete_confirm", "Czy na pewno chcesz usunąć ten prompt systemowy?");
+        m.insert("system_prompts.delete_success", "Prompt systemowy został usunięty");
+        m.insert("system_prompts.copy_cli", "Kopiuj polecenie CLI");
+        m.insert("system_prompts.copied", "Skopiowano");
+        m.insert("system_prompts.use_template", "Użyj szablonu");
+        m.insert("system_prompts.template_reviewer", "Recenzent kodu");
+        m.insert("system_prompts.template_docs", "Autor dokumentacji");
+        m.insert("system_prompts.template_security", "Audyt bezpieczeństwa");
+        m.insert("system_prompts.template_refactor", "Refaktoryzacja");
+
+        // ── Worktrees ──
+        m.insert("worktrees.title", "Drzewa robocze");
+        m.insert("worktrees.subtitle", "Zarządzanie drzewami roboczymi Git");
+        m.insert("worktrees.loading", "Ładowanie...");
+        m.insert("worktrees.empty", "Nie znaleziono drzew roboczych");
+        m.insert("worktrees.project_path", "Ścieżka projektu");
+        m.insert("worktrees.branch_name", "Nazwa gałęzi");
+        m.insert("worktrees.create", "Utwórz");
+        m.insert("worktrees.create_success", "Drzewo robocze zostało utworzone");
+        m.insert("worktrees.delete_confirm", "Czy na pewno chcesz usunąć to drzewo robocze?");
+        m.insert("worktrees.delete_success", "Drzewo robocze zostało usunięte");
+        m.insert("worktrees.col_branch", "Gałąź");
+        m.insert("worktrees.col_path", "Ścieżka");
+        m.insert("worktrees.col_head", "HEAD");
+        m.insert("worktrees.col_status", "Status");
+        m.insert("worktrees.col_actions", "Akcje");
+        m.insert("worktrees.badge_main", "Główna");
+        m.insert("worktrees.badge_bare", "Goła");
+        m.insert("worktrees.badge_worktree", "Drzewo robocze");
+
+        // ── Agenci (pola formularza) ──
+        m.insert("agents.field_name", "Nazwa");
+        m.insert("agents.field_description", "Opis");
+        m.insert("agents.field_prompt", "Prompt");
+        m.insert("agents.field_model", "Model");
+        m.insert("agents.field_allowed_tools", "Dozwolone narz\u{0119}dzia");
+        m.insert("agents.field_disallowed_tools", "Zablokowane narz\u{0119}dzia");
+        m.insert("agents.field_custom_instructions", "Niestandardowe instrukcje");
+        m.insert("agents.tools_hint", "Lista rozdzielona przecinkami, np. Bash, Edit, Read");
+        m.insert("agents.tools_placeholder", "Bash, Edit, Read, Write...");
+        m.insert("agents.create_btn", "Utw\u{f3}rz agenta");
+        m.insert("agents.editing", "Edycja");
+        m.insert("agents.save_success", "Agent zosta\u{0142} zaktualizowany");
+        m.insert("agents.confirm_delete", "Usu\u{0144} agenta");
+        m.insert("agents.name_required", "Nazwa jest wymagana");
+        m.insert("agents.model_default", "Domy\u{015b}lny (dziedziczony)");
+        m.insert("agents.name_placeholder", "np. code-reviewer");
+        m.insert("agents.desc_placeholder", "Co robi ten agent?");
+        m.insert("agents.prompt_placeholder", "Jeste\u{015b} recenzentem kodu...");
+        m.insert("agents.instructions_placeholder", "Dodatkowe instrukcje...");
+
+        // ── Wtyczki (brakuj\u{0105}ce) ──
+        m.insert("plugins.actions", "Akcje");
+
+        // ── Profile uruchamiania (brakuj\u{0105}ce) ──
+        m.insert("launch_profiles.save_btn", "Utw\u{f3}rz profil");
+
+        // ── Wsp\u{f3}lne (brakuj\u{0105}ce) ──
+        m.insert("common.edit", "Edytuj");
+        m.insert("common.saved", "Zapisano");
+
+        // ── Timeline ──
+        m.insert("sidebar.timeline", "Oś czasu");
+        m.insert("timeline.title", "Oś czasu");
+        m.insert("timeline.subtitle", "Historia wersji konfiguracji Claude oparta na Git");
+        m.insert("timeline.files", "pliki");
+        m.insert("timeline.restore", "Przywróć");
+        m.insert("timeline.confirm_restore_title", "Przywróć konfigurację");
+        m.insert("timeline.confirm_restore_msg", "Spowoduje to przywrócenie wszystkich plików do wybranego commita. Najpierw zostanie zapisana kopia zapasowa bieżącego stanu. Kontynuować?");
+        m.insert("timeline.empty", "Brak wpisów na osi czasu. Zmiany pojawią się tutaj, gdy edytujesz konfigurację.");
+        m.insert("timeline.error", "Nie udało się załadować osi czasu");
+        m.insert("timeline.select_commit", "Wybierz commit, aby zobaczyć zmiany");
+        m.insert("timeline.diff_for", "Zmiany w");
+
+        // ── Czat pomocy ──
+        m.insert("help_chat.title", "Pomoc");
+        m.insert("help_chat.placeholder", "Zapytaj o tę stronę...");
+        m.insert("help_chat.send", "Wyślij");
+        m.insert("help_chat.thinking", "Myślę...");
+        m.insert("help_chat.clear", "Nowa rozmowa");
+        m.insert("help_chat.no_api_key", "Klucz API wymagany do czatu pomocy. Skonfiguruj w Ustawieniach.");
 
         m
     })

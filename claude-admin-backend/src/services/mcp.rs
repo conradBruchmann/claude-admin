@@ -483,6 +483,7 @@ async fn spawn_and_check(
                         .get("description")
                         .and_then(|v| v.as_str())
                         .map(String::from),
+                    input_schema: t.get("inputSchema").cloned(),
                 })
                 .collect()
         })
@@ -492,11 +493,8 @@ async fn spawn_and_check(
     let mut stderr_output = String::new();
     if let Some(mut stderr) = child.stderr.take() {
         let mut buf = vec![0u8; 4096];
-        if let Ok(Ok(n)) = tokio::time::timeout(
-            std::time::Duration::from_millis(500),
-            stderr.read(&mut buf),
-        )
-        .await
+        if let Ok(Ok(n)) =
+            tokio::time::timeout(std::time::Duration::from_millis(500), stderr.read(&mut buf)).await
         {
             stderr_output = String::from_utf8_lossy(&buf[..n]).to_string();
         }

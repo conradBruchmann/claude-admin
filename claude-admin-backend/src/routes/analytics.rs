@@ -15,6 +15,29 @@ pub struct AnalyticsQuery {
     pub to: Option<String>,
 }
 
+pub async fn get_analytics_tips(
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<TeachMeResponse>, ApiError> {
+    let overview = analytics::get_analytics_overview(&state.claude_home)?;
+
+    // Count hooks for tips
+    let settings = crate::services::fs_scanner::scan_settings(&state.claude_home)
+        .await
+        .unwrap_or_else(|_| SettingsOverview {
+            global_settings: serde_json::Value::Object(serde_json::Map::new()),
+            hooks: HooksConfig::default(),
+        });
+    let hooks_count = settings.hooks.pre_tool_use.len()
+        + settings.hooks.post_tool_use.len()
+        + settings.hooks.notification.len()
+        + settings.hooks.stop.len()
+        + settings.hooks.user_prompt_submit.len()
+        + settings.hooks.session_start.len();
+
+    let tips = analytics::generate_tips(&overview, hooks_count);
+    Ok(Json(TeachMeResponse { tips }))
+}
+
 pub async fn get_analytics_overview(
     State(state): State<Arc<AppState>>,
     Query(query): Query<AnalyticsQuery>,

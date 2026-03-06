@@ -51,9 +51,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     std::thread::sleep(std::time::Duration::from_millis(500));
                     tracing::info!("Killed previous instance (PID {})", pid);
                 }
-                #[cfg(not(unix))]
+                #[cfg(windows)]
                 {
-                    eprintln!("Automatic process termination is only supported on Unix.");
+                    use std::process::Command;
+                    let status = Command::new("taskkill")
+                        .args(["/PID", &pid.to_string(), "/F"])
+                        .status();
+                    match status {
+                        Ok(s) if s.success() => {
+                            std::thread::sleep(std::time::Duration::from_millis(500));
+                            tracing::info!("Killed previous instance (PID {})", pid);
+                        }
+                        _ => {
+                            eprintln!(
+                                "Could not terminate PID {}. \
+                                 Please close the existing ClaudeAdmin window and retry.",
+                                pid
+                            );
+                            std::process::exit(1);
+                        }
+                    }
+                }
+                #[cfg(not(any(unix, windows)))]
+                {
+                    eprintln!("Automatic process termination is not supported on this platform.");
                     std::process::exit(1);
                 }
             } else {
@@ -77,7 +98,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// Find the PID of a process listening on the given port using `lsof`.
+/// Find the PID of a process listening on the given port.
+/// Uses `lsof` on Unix and `netstat` on Windows.
 fn find_pid_on_port(port: u16) -> Option<u32> {
     #[cfg(unix)]
     {
@@ -89,7 +111,24 @@ fn find_pid_on_port(port: u16) -> Option<u32> {
         let stdout = String::from_utf8_lossy(&output.stdout);
         stdout.lines().next()?.trim().parse().ok()
     }
-    #[cfg(not(unix))]
+    #[cfg(windows)]
+    {
+        use std::process::Command;
+        // netstat -ano prints lines like: TCP 0.0.0.0:9022 ... LISTENING 1234
+        let output = Command::new("netstat").args(["-ano"]).output().ok()?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        for line in stdout.lines() {
+            let line = line.trim();
+            if line.contains(&format!(":{}", port)) && line.contains("LISTENING") {
+                // last field is PID
+                if let Some(pid_str) = line.split_whitespace().last() {
+                    return pid_str.parse().ok();
+                }
+            }
+        }
+        None
+    }
+    #[cfg(not(any(unix, windows)))]
     {
         None
     }

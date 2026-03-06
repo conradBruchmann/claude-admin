@@ -1,9 +1,14 @@
 use crate::i18n::t;
 use leptos::*;
+use leptos_router::*;
 
 #[component]
 pub fn DocsPage() -> impl IntoView {
-    let active_section = create_rw_signal("overview".to_string());
+    let query = use_query_map();
+    let initial_section = query
+        .with_untracked(|q| q.get("section").cloned())
+        .unwrap_or_else(|| "overview".to_string());
+    let active_section = create_rw_signal(initial_section);
 
     view! {
         <div class="page-header">
@@ -27,6 +32,7 @@ pub fn DocsPage() -> impl IntoView {
                 <TocLink section="plans" active=active_section label=t("docs.toc_plans")/>
                 <div class="docs-toc-divider"></div>
                 <TocLink section="scopes" active=active_section label=t("docs.toc_scopes")/>
+                <TocLink section="optimization" active=active_section label=t("docs.toc_optimization")/>
                 <TocLink section="tips" active=active_section label=t("docs.toc_tips")/>
                 <TocLink section="links" active=active_section label=t("docs.toc_links")/>
             </nav>
@@ -44,6 +50,7 @@ pub fn DocsPage() -> impl IntoView {
                         "mcp" => view! { <SectionMcp/> }.into_view(),
                         "plans" => view! { <SectionPlans/> }.into_view(),
                         "scopes" => view! { <SectionScopes/> }.into_view(),
+                        "optimization" => view! { <SectionOptimization/> }.into_view(),
                         "tips" => view! { <SectionTips/> }.into_view(),
                         "links" => view! { <SectionLinks/> }.into_view(),
                         _ => view! { <SectionOverview/> }.into_view(),
@@ -609,6 +616,96 @@ fn SectionScopes() -> impl IntoView {
                         <li>{t("docs.scopes_project_5")}</li>
                     </ul>
                 </div>
+            </div>
+        </div>
+    }
+}
+
+// ─────────────────────────────────────────────
+// Section: Optimization Guide (linked from Analytics Tips)
+// ─────────────────────────────────────────────
+#[component]
+fn SectionOptimization() -> impl IntoView {
+    view! {
+        <div class="docs-section">
+            <h3 class="docs-heading">{t("docs.opt_heading")}</h3>
+            <div class="docs-callout docs-callout-accent">
+                {t("docs.opt_callout")}
+            </div>
+
+            // 1. Task Tool
+            <h4 class="docs-subheading">{t("docs.opt_task_heading")}</h4>
+            <p class="docs-text"><strong>{t("docs.opt_why")}</strong>" "{t("docs.opt_task_why")}</p>
+            <p class="docs-text"><strong>{t("docs.opt_how")}</strong>" "{t("docs.opt_task_how")}</p>
+            <div class="docs-link-box">
+                <a href="https://docs.anthropic.com/en/docs/claude-code/best-practices" target="_blank" class="docs-ext-link">
+                    {t("docs.opt_task_link")}
+                </a>
+            </div>
+
+            // 2. Hooks
+            <h4 class="docs-subheading">{t("docs.opt_hooks_heading")}</h4>
+            <p class="docs-text"><strong>{t("docs.opt_why")}</strong>" "{t("docs.opt_hooks_why")}</p>
+            <p class="docs-text"><strong>{t("docs.opt_how")}</strong>" "{t("docs.opt_hooks_how")}</p>
+            <div class="docs-link-box">
+                <a href="https://docs.anthropic.com/en/docs/claude-code/hooks" target="_blank" class="docs-ext-link">
+                    {t("docs.opt_hooks_link")}
+                </a>
+            </div>
+
+            // 3. Session Length
+            <h4 class="docs-subheading">{t("docs.opt_sessions_heading")}</h4>
+            <p class="docs-text"><strong>{t("docs.opt_why")}</strong>" "{t("docs.opt_sessions_why")}</p>
+            <p class="docs-text"><strong>{t("docs.opt_how")}</strong>" "{t("docs.opt_sessions_how")}</p>
+            <div class="docs-link-box">
+                <a href="https://docs.anthropic.com/en/docs/claude-code/best-practices" target="_blank" class="docs-ext-link">
+                    {t("docs.opt_sessions_link")}
+                </a>
+            </div>
+
+            // 4. Cost Optimization
+            <h4 class="docs-subheading">{t("docs.opt_cost_heading")}</h4>
+            <p class="docs-text"><strong>{t("docs.opt_why")}</strong>" "{t("docs.opt_cost_why")}</p>
+            <p class="docs-text"><strong>{t("docs.opt_how")}</strong>" "{t("docs.opt_cost_how")}</p>
+            <div class="docs-link-box">
+                <a href="https://docs.anthropic.com/en/docs/claude-code/overview" target="_blank" class="docs-ext-link">
+                    {t("docs.opt_cost_link")}
+                </a>
+            </div>
+
+            // 5. Write vs Edit
+            <h4 class="docs-subheading">{t("docs.opt_write_heading")}</h4>
+            <p class="docs-text"><strong>{t("docs.opt_why")}</strong>" "{t("docs.opt_write_why")}</p>
+            <p class="docs-text"><strong>{t("docs.opt_how")}</strong>" "{t("docs.opt_write_how")}</p>
+
+            // 6. Model Selection
+            <h4 class="docs-subheading">{t("docs.opt_models_heading")}</h4>
+            <p class="docs-text"><strong>{t("docs.opt_why")}</strong>" "{t("docs.opt_models_why")}</p>
+            <p class="docs-text"><strong>{t("docs.opt_how")}</strong>" "{t("docs.opt_models_how")}</p>
+            <div class="docs-link-box">
+                <a href="https://docs.anthropic.com/en/docs/claude-code/overview" target="_blank" class="docs-ext-link">
+                    {t("docs.opt_models_link")}
+                </a>
+            </div>
+
+            // 7. Git Integration
+            <h4 class="docs-subheading">{t("docs.opt_git_heading")}</h4>
+            <p class="docs-text"><strong>{t("docs.opt_why")}</strong>" "{t("docs.opt_git_why")}</p>
+            <p class="docs-text"><strong>{t("docs.opt_how")}</strong>" "{t("docs.opt_git_how")}</p>
+            <div class="docs-link-box">
+                <a href="https://docs.anthropic.com/en/docs/claude-code/best-practices" target="_blank" class="docs-ext-link">
+                    {t("docs.opt_git_link")}
+                </a>
+            </div>
+
+            // 8. Code Churn
+            <h4 class="docs-subheading">{t("docs.opt_churn_heading")}</h4>
+            <p class="docs-text"><strong>{t("docs.opt_why")}</strong>" "{t("docs.opt_churn_why")}</p>
+            <p class="docs-text"><strong>{t("docs.opt_how")}</strong>" "{t("docs.opt_churn_how")}</p>
+            <div class="docs-link-box">
+                <a href="https://docs.anthropic.com/en/docs/claude-code/best-practices" target="_blank" class="docs-ext-link">
+                    {t("docs.opt_churn_link")}
+                </a>
             </div>
         </div>
     }

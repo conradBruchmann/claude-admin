@@ -1,4 +1,4 @@
-use claude_admin_shared::AnalyticsOverview;
+use claude_admin_shared::{AnalyticsOverview, TeachMeResponse, TipCategory};
 use leptos::*;
 
 use crate::api;
@@ -6,8 +6,25 @@ use crate::i18n::t;
 
 #[component]
 pub fn AnalyticsPage() -> impl IntoView {
+    provide_context(create_rw_signal(crate::components::context_help::PageContext {
+        page_name: "Analytics".to_string(),
+        description: "View usage analytics and tips for Claude Code. See session statistics, token usage, cost estimates, and actionable improvement tips.".to_string(),
+        available_actions: vec![
+            "Filter analytics by date range".to_string(),
+            "View usage tips and recommendations".to_string(),
+            "Export analytics data".to_string(),
+            "View per-project analytics".to_string(),
+        ],
+        current_data_summary: String::new(),
+    }));
+
     let from_date = create_rw_signal(String::new());
     let to_date = create_rw_signal(String::new());
+
+    let tips = create_resource(
+        || (),
+        |_| async move { api::get::<TeachMeResponse>("/analytics/tips").await },
+    );
 
     let analytics = create_resource(
         move || (from_date.get(), to_date.get()),
@@ -37,6 +54,63 @@ pub fn AnalyticsPage() -> impl IntoView {
             <h2>{t("analytics.title")}</h2>
             <p>{t("analytics.subtitle")}</p>
         </div>
+
+        // Tips strip
+        {move || tips.get().map(|result| {
+            if let Ok(data) = result {
+                if !data.tips.is_empty() {
+                    return view! {
+                        <div style="margin-bottom: 1.5rem;">
+                            <h4 style="margin-bottom: 0.75rem;">{t("analytics.tips_title")}</h4>
+                            <div style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem;">
+                                {data.tips.into_iter().map(|tip| {
+                                    let cat_color = match tip.category {
+                                        TipCategory::Tool => "#3b82f6",
+                                        TipCategory::Workflow => "#8b5cf6",
+                                        TipCategory::Performance => "#f97316",
+                                        TipCategory::Config => "#22c55e",
+                                    };
+                                    let cat_label = match tip.category {
+                                        TipCategory::Tool => t("analytics.tip_category_tool"),
+                                        TipCategory::Workflow => t("analytics.tip_category_workflow"),
+                                        TipCategory::Performance => t("analytics.tip_category_performance"),
+                                        TipCategory::Config => t("analytics.tip_category_config"),
+                                    };
+                                    view! {
+                                        <div class="card" style=format!(
+                                            "min-width: 280px; max-width: 340px; flex-shrink: 0; border-top: 3px solid {};",
+                                            cat_color
+                                        )>
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                                <span class="badge" style=format!(
+                                                    "background: {}20; color: {};", cat_color, cat_color
+                                                )>{cat_label}</span>
+                                            </div>
+                                            <div style="font-weight: 600; font-size: 0.9375rem; margin-bottom: 0.25rem;">
+                                                {tip.title}
+                                            </div>
+                                            <p style="color: var(--text-secondary); font-size: 0.8125rem; line-height: 1.5; margin-bottom: 0.5rem;">
+                                                {tip.body}
+                                            </p>
+                                            <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">
+                                                {tip.data_point}
+                                            </div>
+                                            {tip.action_url.map(|url| view! {
+                                                <a
+                                                    href=url
+                                                    style="display: inline-block; margin-top: 0.5rem; font-size: 0.8rem; color: var(--accent);"
+                                                >{t("analytics.tips_learn_more")}</a>
+                                            })}
+                                        </div>
+                                    }
+                                }).collect_view()}
+                            </div>
+                        </div>
+                    }.into_view();
+                }
+            }
+            view! {}.into_view()
+        })}
 
         // Date filter controls
         <div class="card" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">

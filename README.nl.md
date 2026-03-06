@@ -121,15 +121,15 @@ Start ClaudeAdmin na de installatie via het Startmenu of het bureaublad — de s
 
 ClaudeAdmin leest en schrijft de standaard Claude Code-configuratie:
 
-| Pad | Beschrijving |
-|-----|--------------|
-| `~/.claude.json` | Projectregister, MCP-servers |
-| `~/.claude/settings.json` | Globale instellingen, hooks |
-| `~/.claude/skills/` | Globale skills |
-| `~/.claude/rules/` | Globale regels |
-| `~/.claude/plans/` | Planbestanden |
-| `~/.claude/projects/<encoded>/memory/` | Per-project geheugen |
-| `~/.claude/backups/` | Automatische back-ups (met tijdstempel) |
+| Pad                                    | Beschrijving                            |
+| -------------------------------------- | --------------------------------------- |
+| `~/.claude.json`                       | Projectregister, MCP-servers            |
+| `~/.claude/settings.json`              | Globale instellingen, hooks             |
+| `~/.claude/skills/`                    | Globale skills                          |
+| `~/.claude/rules/`                     | Globale regels                          |
+| `~/.claude/plans/`                     | Planbestanden                           |
+| `~/.claude/projects/<encoded>/memory/` | Per-project geheugen                    |
+| `~/.claude/backups/`                   | Automatische back-ups (met tijdstempel) |
 
 ## Licentie
 

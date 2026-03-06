@@ -4,7 +4,7 @@ use std::sync::LazyLock;
 use crate::domain::errors::ApiError;
 
 static RESOURCE_NAME_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9][a-zA-Z0-9._-]*$").unwrap());
+    LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9][a-zA-Z0-9._\- ]*$").unwrap());
 
 const MAX_NAME_LEN: usize = 128;
 
@@ -51,7 +51,7 @@ pub fn validate_resource_name(name: &str, resource_type: &str) -> Result<(), Api
 
     if !RESOURCE_NAME_RE.is_match(check_name) {
         return Err(ApiError::BadRequest(format!(
-            "{} name must match pattern: alphanumeric start, then alphanumeric/dot/dash/underscore",
+            "{} name must match pattern: alphanumeric start, then alphanumeric/dot/dash/underscore/space",
             resource_type
         )));
     }
@@ -72,6 +72,12 @@ mod tests {
     }
 
     #[test]
+    fn test_valid_names_with_spaces() {
+        assert!(validate_resource_name("My Custom Prompt", "System prompt").is_ok());
+        assert!(validate_resource_name("code review helper", "System prompt").is_ok());
+    }
+
+    #[test]
     fn test_invalid_names() {
         assert!(validate_resource_name("", "Skill").is_err());
         assert!(validate_resource_name("../etc/passwd", "Skill").is_err());
@@ -80,7 +86,6 @@ mod tests {
         assert!(validate_resource_name("foo\0bar", "Skill").is_err());
         assert!(validate_resource_name(".hidden", "Skill").is_err());
         assert!(validate_resource_name("-dash", "Skill").is_err());
-        assert!(validate_resource_name("has space", "Skill").is_err());
         let long = "a".repeat(129);
         assert!(validate_resource_name(&long, "Skill").is_err());
     }

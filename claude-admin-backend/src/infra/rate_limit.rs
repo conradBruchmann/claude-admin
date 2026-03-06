@@ -43,7 +43,7 @@ pub fn create_rate_limiter() -> RateLimiter {
     let max_rpm: u64 = std::env::var("RATE_LIMIT_RPM")
         .ok()
         .and_then(|v| v.parse().ok())
-        .unwrap_or(120);
+        .unwrap_or(600);
 
     RateLimiter::new(max_rpm)
 }

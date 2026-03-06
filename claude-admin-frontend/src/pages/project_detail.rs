@@ -1,12 +1,13 @@
 use claude_admin_shared::{
-    AdvisorCategory, AdvisorReport, ClaudeMdContent, ClaudeMdUpdateRequest, ProjectDetail,
-    ProjectHealth, ProjectPermissions,
+    ClaudeMdContent, ClaudeMdUpdateRequest, ConflictType, ProjectDetail, ProjectHealth,
+    ProjectPermissions, ProjectProfile,
 };
 use leptos::*;
 use leptos_router::*;
 
 use crate::api;
 use crate::components::markdown_editor::MarkdownEditor;
+use crate::components::project_tabs::advisor_tab::AdvisorTab;
 use crate::i18n::t;
 
 #[component]
@@ -18,7 +19,7 @@ pub fn ProjectDetailPage() -> impl IntoView {
         api::get::<ProjectDetail>(&format!("/projects/{}", id)).await
     });
 
-    let active_tab = create_rw_signal("advisor".to_string());
+    let active_tab = create_rw_signal("profile".to_string());
 
     view! {
         <Suspense fallback=move || view! { <div class="loading">{t("project_detail.loading")}</div> }>
@@ -35,9 +36,9 @@ pub fn ProjectDetailPage() -> impl IntoView {
 
                         <div class="tabs">
                             <button
-                                class=move || if active_tab.get() == "advisor" { "tab active" } else { "tab" }
-                                on:click=move |_| active_tab.set("advisor".to_string())
-                            >{t("project_detail.tab_advisor")}</button>
+                                class=move || if active_tab.get() == "profile" { "tab active" } else { "tab" }
+                                on:click=move |_| active_tab.set("profile".to_string())
+                            >{t("project_detail.tab_profile")}</button>
                             <button
                                 class=move || if active_tab.get() == "claude-md" { "tab active" } else { "tab" }
                                 on:click=move |_| active_tab.set("claude-md".to_string())
@@ -67,9 +68,9 @@ pub fn ProjectDetailPage() -> impl IntoView {
                         {move || {
                             let tab = active_tab.get();
                             match tab.as_str() {
-                                "advisor" => {
+                                "profile" => {
                                     let pid = id();
-                                    view! { <AdvisorTab project_id=pid/> }.into_view()
+                                    view! { <ProfileTab project_id=pid/> }.into_view()
                                 }
                                 "claude-md" => {
                                     let content_signal = create_rw_signal(
@@ -149,22 +150,100 @@ pub fn ProjectDetailPage() -> impl IntoView {
                                     if memory.is_empty() {
                                         view! { <div class="empty-state"><p>{t("project_detail.no_memory")}</p></div> }.into_view()
                                     } else {
+                                        let expanded_memory = create_rw_signal::<Option<String>>(None);
+                                        let memory_save_status = create_rw_signal::<Option<(bool, String)>>(None);
+                                        let pid = id();
+
                                         view! {
-                                            <div class="table-container">
-                                                <table>
-                                                    <thead><tr><th>{t("project_detail.memory_col_file")}</th><th>{t("project_detail.memory_col_size")}</th></tr></thead>
-                                                    <tbody>
-                                                        {memory.into_iter().map(|m| {
-                                                            let size = m.content.len();
-                                                            view! {
-                                                                <tr>
-                                                                    <td>{m.name}</td>
-                                                                    <td>{format!("{} ", size)} {t("project_detail.bytes")}</td>
-                                                                </tr>
-                                                            }
-                                                        }).collect_view()}
-                                                    </tbody>
-                                                </table>
+                                            {move || memory_save_status.get().map(|(ok, msg)| {
+                                                let color = if ok { "var(--success)" } else { "var(--error)" };
+                                                view! {
+                                                    <div class="card" style=format!("margin-bottom: 0.75rem; border-left: 3px solid {};", color)>
+                                                        <span style="font-size: 0.875rem;">{msg}</span>
+                                                    </div>
+                                                }
+                                            })}
+                                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                                {memory.into_iter().map(|m| {
+                                                    let name = m.name.clone();
+                                                    let name_toggle = name.clone();
+                                                    let name_check = name.clone();
+                                                    let name_check2 = name.clone();
+                                                    let size = m.content.len();
+                                                    let edit_signal = create_rw_signal(m.content.clone());
+                                                    let preview: String = m.content.lines().take(3).collect::<Vec<_>>().join(" | ");
+                                                    let pid_for_item = pid.clone();
+
+                                                    view! {
+                                                        <div class="card" style="padding: 0.75rem 1rem;">
+                                                            <div
+                                                                style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;"
+                                                                on:click=move |_| {
+                                                                    let cur = expanded_memory.get();
+                                                                    if cur.as_deref() == Some(&name_toggle) {
+                                                                        expanded_memory.set(None);
+                                                                    } else {
+                                                                        expanded_memory.set(Some(name_toggle.clone()));
+                                                                    }
+                                                                }
+                                                            >
+                                                                <div>
+                                                                    <span style="font-weight: 600;">{name.clone()}</span>
+                                                                    <span style="margin-left: 0.75rem; font-size: 0.75rem; color: var(--text-muted);">
+                                                                        {format!("{} bytes", size)}
+                                                                    </span>
+                                                                </div>
+                                                                <span style="color: var(--text-muted); font-size: 0.8rem;">
+                                                                    {move || if expanded_memory.get().as_deref() == Some(&name_check) { "▲" } else { "▼" }}
+                                                                </span>
+                                                            </div>
+
+                                                            // Collapsed preview
+                                                            {move || if expanded_memory.get().as_deref() != Some(&name_check2) {
+                                                                let p = preview.clone();
+                                                                view! {
+                                                                    <p style="margin-top: 0.25rem; font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                                        {p}
+                                                                    </p>
+                                                                }.into_view()
+                                                            } else {
+                                                                let save_name = name.clone();
+                                                                let pid_save = pid_for_item.clone();
+                                                                view! {
+                                                                    <div style="margin-top: 0.5rem;">
+                                                                        <textarea
+                                                                            style="width: 100%; min-height: 250px; font-family: monospace; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; padding: 0.5rem;"
+                                                                            prop:value=move || edit_signal.get()
+                                                                            on:input=move |ev| edit_signal.set(event_target_value(&ev))
+                                                                        />
+                                                                        <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+                                                                            <button
+                                                                                class="btn btn-primary btn-sm"
+                                                                                on:click=move |_| {
+                                                                                    let content = edit_signal.get();
+                                                                                    let topic = save_name.clone();
+                                                                                    let p = pid_save.clone();
+                                                                                    spawn_local(async move {
+                                                                                        let endpoint = if topic == "MEMORY.md" {
+                                                                                            format!("/memory/{}", p)
+                                                                                        } else {
+                                                                                            format!("/memory/{}/topics/{}", p, topic)
+                                                                                        };
+                                                                                        let req = claude_admin_shared::MemoryUpdateRequest { content };
+                                                                                        match crate::api::put::<claude_admin_shared::MemoryFile, _>(&endpoint, &req).await {
+                                                                                            Ok(_) => memory_save_status.set(Some((true, t("common.saved").get()))),
+                                                                                            Err(e) => memory_save_status.set(Some((false, e))),
+                                                                                        }
+                                                                                    });
+                                                                                }
+                                                                            >{t("common.save")}</button>
+                                                                        </div>
+                                                                    </div>
+                                                                }.into_view()
+                                                            }}
+                                                        </div>
+                                                    }
+                                                }).collect_view()}
                                             </div>
                                         }.into_view()
                                     }
@@ -192,223 +271,152 @@ pub fn ProjectDetailPage() -> impl IntoView {
     }
 }
 
-#[component]
-fn AdvisorTab(#[prop(into)] project_id: String) -> impl IntoView {
-    let pid = project_id.clone();
-    let advisor_data = create_rw_signal::<Option<Result<AdvisorReport, String>>>(None);
-    let loading = create_rw_signal(false);
-    let action_status = create_rw_signal::<Option<(usize, String)>>(None);
+// ─────────────────────────────────────────────
+// Profile Tab (replaces Advisor)
+// ─────────────────────────────────────────────
 
-    let fetch_advisor = move |_| {
-        let pid = pid.clone();
-        loading.set(true);
-        advisor_data.set(None);
-        spawn_local(async move {
-            let result = api::get::<AdvisorReport>(&format!("/projects/{}/advisor", pid)).await;
-            advisor_data.set(Some(result));
-            loading.set(false);
-        });
-    };
+#[component]
+fn ProfileTab(#[prop(into)] project_id: String) -> impl IntoView {
+    let pid = project_id.clone();
+    let pid_for_advisor = store_value(project_id.clone());
+
+    let profile = create_resource(
+        move || pid.clone(),
+        |id| async move { api::get::<ProjectProfile>(&format!("/projects/{}/profile", id)).await },
+    );
 
     view! {
-        <div style="margin-bottom: 1.5rem;">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                <button
-                    class="btn btn-primary"
-                    on:click=fetch_advisor
-                    disabled=loading
-                >
-                    {move || if loading.get() { t("project_detail.advisor_analyzing").get() } else { t("project_detail.advisor_analyze").get() }}
-                </button>
-                <span style="color: var(--text-muted); font-size: 0.8125rem;">
-                    {t("project_detail.advisor_description")}
-                </span>
-            </div>
+        <Suspense fallback=move || view! { <div class="loading">{t("project_detail.loading")}</div> }>
+            {move || profile.get().map(|result| match result {
+                Ok(data) => {
+                    let color = if data.health_score >= 70 { "var(--success)" }
+                        else if data.health_score >= 40 { "var(--warning)" }
+                        else { "var(--error)" };
 
-            {move || if loading.get() {
-                view! {
-                    <div class="loading">{t("project_detail.advisor_loading")}</div>
-                }.into_view()
-            } else {
-                view! {}.into_view()
-            }}
+                    let global_rules: Vec<_> = data.rules.iter()
+                        .filter(|r| r.scope == claude_admin_shared::ConfigScope::Global)
+                        .cloned().collect();
+                    let project_rules: Vec<_> = data.rules.iter()
+                        .filter(|r| r.scope == claude_admin_shared::ConfigScope::Project)
+                        .cloned().collect();
+                    let global_skills: Vec<_> = data.skills.iter()
+                        .filter(|s| s.scope == claude_admin_shared::ConfigScope::Global)
+                        .cloned().collect();
+                    let project_skills: Vec<_> = data.skills.iter()
+                        .filter(|s| s.scope == claude_admin_shared::ConfigScope::Project)
+                        .cloned().collect();
+                    let conflicts = data.conflicts.clone();
 
-            {move || advisor_data.get().map(|result| match result {
-                Ok(report) => {
-                    let summary = report.project_summary.clone();
                     view! {
-                        // Project summary
-                        <div class="card" style="margin-bottom: 1.5rem; border-left: 3px solid var(--accent);">
-                            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem;">
-                                {t("project_detail.advisor_summary")}
+                        // Card grid: summary stats
+                        <div class="card-grid">
+                            <div class="card">
+                                <div class="card-value" style=format!("color: {};", color)>{data.health_score}</div>
+                                <div class="card-label">{t("project_detail.profile_health")}</div>
                             </div>
-                            <div style="font-size: 0.9375rem; line-height: 1.5;">{summary}</div>
+                            <div class="card">
+                                <div class="card-value">{data.rules.len()}</div>
+                                <div class="card-label">{t("project_detail.profile_rules")}</div>
+                            </div>
+                            <div class="card">
+                                <div class="card-value">{data.skills.len()}</div>
+                                <div class="card-label">{t("project_detail.profile_skills")}</div>
+                            </div>
+                            <div class="card">
+                                <div class="card-value">{data.memory_files.len()}</div>
+                                <div class="card-label">{t("project_detail.profile_memory")}</div>
+                            </div>
+                            <div class="card">
+                                <div class="card-value">{data.mcp_servers.len()}</div>
+                                <div class="card-label">{t("project_detail.profile_mcp")}</div>
+                            </div>
+                            <div class="card">
+                                <div class="card-value">{data.hooks_count}</div>
+                                <div class="card-label">{t("project_detail.profile_hooks")}</div>
+                            </div>
                         </div>
 
-                        // Recommendations
-                        <div style="display: flex; flex-direction: column; gap: 1rem;">
-                            {report.recommendations.into_iter().enumerate().map(|(idx, rec)| {
-                                let category_label = category_label(&rec.category);
-                                let category_color = category_color(&rec.category);
-                                let title = rec.title.clone();
-                                let description = rec.description.clone();
-                                let has_action = rec.action.is_some();
-                                let action_label = rec.action.as_ref().map(|a| a.label.clone()).unwrap_or_default();
-                                let action_payload = rec.action.as_ref().map(|a| a.payload.clone()).unwrap_or_default();
-                                let action_type = rec.action.as_ref().map(|a| a.action_type.clone());
-                                let project_id_for_action = project_id.clone();
-
-                                view! {
-                                    <div class="card" style="border-left: 3px solid; border-left-color: var(--border);">
-                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                                            <div>
-                                                <span
-                                                    class="badge"
-                                                    style=format!("background: {}20; color: {};", category_color, category_color)
-                                                >
-                                                    {category_label}
-                                                </span>
-                                                <span style="font-weight: 600; margin-left: 0.5rem;">{title}</span>
-                                            </div>
+                        // Rules list with scope badges
+                        {if !data.rules.is_empty() {
+                            view! {
+                                <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">{t("project_detail.profile_rules")}</h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                                    {global_rules.into_iter().map(|r| view! {
+                                        <div class="badge badge-muted" style="display: inline-flex; gap: 0.25rem; align-items: center;">
+                                            <span style="font-size: 0.65rem; opacity: 0.7;">{t("project_detail.profile_global_scope")}</span>
+                                            {r.name}
                                         </div>
-                                        <p style="color: var(--text-secondary); font-size: 0.875rem; line-height: 1.6; white-space: pre-line;">
-                                            {description}
-                                        </p>
+                                    }).collect_view()}
+                                    {project_rules.into_iter().map(|r| view! {
+                                        <div class="badge badge-success" style="display: inline-flex; gap: 0.25rem; align-items: center;">
+                                            <span style="font-size: 0.65rem; opacity: 0.7;">{t("project_detail.profile_project_scope")}</span>
+                                            {r.name}
+                                        </div>
+                                    }).collect_view()}
+                                </div>
+                            }.into_view()
+                        } else {
+                            view! {}.into_view()
+                        }}
 
-                                        {if has_action {
-                                            let pid = project_id_for_action.clone();
-                                            let payload = action_payload.clone();
-                                            let at = action_type.clone();
-                                            view! {
-                                                <div style="margin-top: 0.75rem; display: flex; align-items: center; gap: 0.75rem;">
-                                                    <button
-                                                        class="btn btn-primary btn-sm"
-                                                        on:click=move |_| {
-                                                            let pid = pid.clone();
-                                                            let payload = payload.clone();
-                                                            let at = at.clone();
-                                                            action_status.set(Some((idx, "running".to_string())));
-                                                            spawn_local(async move {
-                                                                let result = execute_action(&pid, at.as_ref(), &payload).await;
-                                                                match result {
-                                                                    Ok(_) => action_status.set(Some((idx, "done".to_string()))),
-                                                                    Err(e) => action_status.set(Some((idx, format!("error: {}", e)))),
-                                                                }
-                                                            });
-                                                        }
-                                                    >
-                                                        {action_label}
-                                                    </button>
-                                                    {move || action_status.get().and_then(|(i, status)| {
-                                                        if i == idx {
-                                                            Some(if status == "done" {
-                                                                view! { <span style="color: var(--success); font-size: 0.8125rem;">{t("project_detail.advisor_done")}</span> }.into_view()
-                                                            } else if status == "running" {
-                                                                view! { <span style="color: var(--text-muted); font-size: 0.8125rem;">"..."</span> }.into_view()
-                                                            } else {
-                                                                view! { <span style="color: var(--error); font-size: 0.8125rem;">{status}</span> }.into_view()
-                                                            })
-                                                        } else {
-                                                            None
-                                                        }
-                                                    })}
-                                                </div>
-                                            }.into_view()
-                                        } else {
-                                            view! {}.into_view()
-                                        }}
+                        // Skills list with scope badges
+                        {if !data.skills.is_empty() {
+                            view! {
+                                <h4 style="margin-bottom: 0.5rem;">{t("project_detail.profile_skills")}</h4>
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                                    {global_skills.into_iter().map(|s| view! {
+                                        <div class="badge badge-muted" style="display: inline-flex; gap: 0.25rem; align-items: center;">
+                                            <span style="font-size: 0.65rem; opacity: 0.7;">{t("project_detail.profile_global_scope")}</span>
+                                            {s.name}
+                                        </div>
+                                    }).collect_view()}
+                                    {project_skills.into_iter().map(|s| view! {
+                                        <div class="badge badge-success" style="display: inline-flex; gap: 0.25rem; align-items: center;">
+                                            <span style="font-size: 0.65rem; opacity: 0.7;">{t("project_detail.profile_project_scope")}</span>
+                                            {s.name}
+                                        </div>
+                                    }).collect_view()}
+                                </div>
+                            }.into_view()
+                        } else {
+                            view! {}.into_view()
+                        }}
 
-                                        // Show payload preview if there's an action with content
-                                        {if !action_payload.is_empty() && action_payload.len() > 20 {
-                                            view! {
-                                                <details style="margin-top: 0.75rem;">
-                                                    <summary style="cursor: pointer; color: var(--text-muted); font-size: 0.8125rem;">
-                                                        {t("project_detail.advisor_preview")}
-                                                    </summary>
-                                                    <pre style="
-                                                        margin-top: 0.5rem;
-                                                        padding: 0.75rem;
-                                                        background: var(--bg-primary);
-                                                        border-radius: 0.375rem;
-                                                        font-size: 0.8rem;
-                                                        line-height: 1.5;
-                                                        overflow-x: auto;
-                                                        white-space: pre-wrap;
-                                                        color: var(--text-secondary);
-                                                    ">
-                                                        {action_payload}
-                                                    </pre>
-                                                </details>
-                                            }.into_view()
-                                        } else {
-                                            view! {}.into_view()
-                                        }}
-                                    </div>
-                                }
-                            }).collect_view()}
+                        // Conflicts
+                        {if !conflicts.is_empty() {
+                            view! {
+                                <h4 style="margin-bottom: 0.5rem; color: var(--warning);">{t("project_detail.profile_conflicts")} " (" {conflicts.len()} ")"</h4>
+                                <div class="card" style="border-left: 3px solid var(--warning); margin-bottom: 1rem;">
+                                    {conflicts.into_iter().map(|c| {
+                                        let badge = match c.conflict_type {
+                                            ConflictType::NameCollision => t("rules.conflict_name_collision"),
+                                            ConflictType::ContentOverlap => t("rules.conflict_content_overlap"),
+                                            ConflictType::Contradiction => t("rules.conflict_contradiction"),
+                                        };
+                                        view! {
+                                            <div style="padding: 0.25rem 0; font-size: 0.875rem;">
+                                                <span class="badge badge-warning" style="margin-right: 0.5rem;">{badge}</span>
+                                                {c.description}
+                                            </div>
+                                        }
+                                    }).collect_view()}
+                                </div>
+                            }.into_view()
+                        } else {
+                            view! {}.into_view()
+                        }}
+
+                        // Deep analysis with one-click actions
+                        <div style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                            <AdvisorTab project_id=pid_for_advisor.get_value()/>
                         </div>
                     }.into_view()
                 }
                 Err(e) => view! {
-                    <div class="card" style="border-left: 3px solid var(--error);">
-                        <p style="color: var(--error);">{t("common.error_prefix")} {e}</p>
-                    </div>
+                    <div class="empty-state"><p>{t("common.error_prefix")} {e}</p></div>
                 }.into_view(),
             })}
-        </div>
-    }
-}
-
-fn category_label(cat: &AdvisorCategory) -> &'static str {
-    match cat {
-        AdvisorCategory::GlobalSkill => "Skill",
-        AdvisorCategory::GlobalRule => "Rule",
-        AdvisorCategory::ClaudeMd => "CLAUDE.md",
-        AdvisorCategory::Memory => "Memory",
-        AdvisorCategory::Hooks => "Hooks",
-        AdvisorCategory::General => "Tipp",
-    }
-}
-
-fn category_color(cat: &AdvisorCategory) -> &'static str {
-    match cat {
-        AdvisorCategory::GlobalSkill => "#f97316",
-        AdvisorCategory::GlobalRule => "#8b5cf6",
-        AdvisorCategory::ClaudeMd => "#22c55e",
-        AdvisorCategory::Memory => "#3b82f6",
-        AdvisorCategory::Hooks => "#eab308",
-        AdvisorCategory::General => "#94a3b8",
-    }
-}
-
-use claude_admin_shared::AdvisorActionType;
-
-async fn execute_action(
-    project_id: &str,
-    action_type: Option<&AdvisorActionType>,
-    payload: &str,
-) -> Result<(), String> {
-    match action_type {
-        Some(AdvisorActionType::CreateClaudeMd) | Some(AdvisorActionType::UpdateClaudeMd) => {
-            let req = ClaudeMdUpdateRequest {
-                content: payload.to_string(),
-            };
-            api::put::<ClaudeMdContent, _>(&format!("/projects/{}/claude-md", project_id), &req)
-                .await
-                .map(|_| ())
-        }
-        Some(AdvisorActionType::InitMemory) => {
-            let req = claude_admin_shared::MemoryUpdateRequest {
-                content: payload.to_string(),
-            };
-            api::put::<claude_admin_shared::MemoryFile, _>(&format!("/memory/{}", project_id), &req)
-                .await
-                .map(|_| ())
-        }
-        _ => {
-            // Other action types not yet implemented
-            Ok(())
-        }
+        </Suspense>
     }
 }
 

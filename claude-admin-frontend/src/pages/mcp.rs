@@ -12,6 +12,20 @@ use crate::i18n::t;
 pub fn McpServersPage() -> impl IntoView {
     let active_tab = create_rw_signal("servers".to_string());
 
+    provide_context(create_rw_signal(crate::components::context_help::PageContext {
+        page_name: "MCP Servers".to_string(),
+        description: "Manage Model Context Protocol (MCP) servers. MCP servers provide additional tools and resources to Claude Code via stdio or SSE transports.".to_string(),
+        available_actions: vec![
+            "Add new MCP server".to_string(),
+            "Edit server configuration".to_string(),
+            "Delete MCP server".to_string(),
+            "Check server health".to_string(),
+            "Browse MCP catalog".to_string(),
+            "Install from catalog".to_string(),
+        ],
+        current_data_summary: String::new(),
+    }));
+
     view! {
         <div class="page-header">
             <h2>{t("mcp.title")}</h2>
@@ -35,6 +49,10 @@ pub fn McpServersPage() -> impl IntoView {
                 class=move || if active_tab.get() == "browse" { "tab active" } else { "tab" }
                 on:click=move |_| active_tab.set("browse".to_string())
             >{t("mcp.tab_browse")}</button>
+            <button
+                class=move || if active_tab.get() == "tools" { "tab active" } else { "tab" }
+                on:click=move |_| active_tab.set("tools".to_string())
+            >{t("mcp.tab_tools")}</button>
         </div>
 
         {move || match active_tab.get().as_str() {
@@ -42,6 +60,7 @@ pub fn McpServersPage() -> impl IntoView {
             "health" => view! { <HealthCheckTab/> }.into_view(),
             "add" => view! { <AddServerTab/> }.into_view(),
             "browse" => view! { <BrowseCatalogTab/> }.into_view(),
+            "tools" => view! { <ToolExplorerTab/> }.into_view(),
             _ => view! { <ServersTab/> }.into_view(),
         }}
     }
@@ -419,10 +438,51 @@ fn HealthCheckTab() -> impl IntoView {
 #[component]
 fn AddServerTab() -> impl IntoView {
     let name = create_rw_signal(String::new());
+    let command = create_rw_signal(String::new());
+    let args_text = create_rw_signal(String::new());
+    let env_text = create_rw_signal(String::new());
+    let advanced_mode = create_rw_signal(false);
     let config_json = create_rw_signal(
         "{\n  \"command\": \"npx\",\n  \"args\": [\"-y\", \"@modelcontextprotocol/server-name\"],\n  \"env\": {}\n}".to_string()
     );
     let status = create_rw_signal::<Option<(String, bool)>>(None);
+
+    // Build config JSON from structured fields
+    let build_config = move || -> Result<serde_json::Value, String> {
+        if advanced_mode.get() {
+            serde_json::from_str::<serde_json::Value>(&config_json.get())
+                .map_err(|e| format!("Invalid JSON: {}", e))
+        } else {
+            let cmd = command.get();
+            if cmd.trim().is_empty() {
+                return Err("Please enter a command".to_string());
+            }
+            let args: Vec<String> = args_text
+                .get()
+                .lines()
+                .map(|l| l.trim().to_string())
+                .filter(|l| !l.is_empty())
+                .collect();
+            let mut env_map = serde_json::Map::new();
+            for line in env_text.get().lines() {
+                let line = line.trim();
+                if line.is_empty() {
+                    continue;
+                }
+                if let Some((k, v)) = line.split_once('=') {
+                    env_map.insert(
+                        k.trim().to_string(),
+                        serde_json::Value::String(v.trim().to_string()),
+                    );
+                }
+            }
+            Ok(serde_json::json!({
+                "command": cmd.trim(),
+                "args": args,
+                "env": env_map,
+            }))
+        }
+    };
 
     view! {
         <h3 style="margin-bottom: 1rem;">{t("mcp.add.title")}</h3>
@@ -451,43 +511,101 @@ fn AddServerTab() -> impl IntoView {
                 />
             </div>
 
-            <div style="margin-bottom: 1rem;">
-                <label style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.875rem;">{t("mcp.add.config_label")}</label>
-                <div class="editor-container">
-                    <textarea
-                        class="editor-textarea"
-                        style="min-height: 200px; font-family: monospace; font-size: 0.85rem;"
-                        prop:value=move || config_json.get()
-                        on:input=move |ev| config_json.set(event_target_value(&ev))
-                    />
-                </div>
+            // Mode toggle
+            <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                <button
+                    class=move || if !advanced_mode.get() { "btn btn-sm btn-primary" } else { "btn btn-sm btn-secondary" }
+                    on:click=move |_| advanced_mode.set(false)
+                >{t("mcp.add.mode_form")}</button>
+                <button
+                    class=move || if advanced_mode.get() { "btn btn-sm btn-primary" } else { "btn btn-sm btn-secondary" }
+                    on:click=move |_| advanced_mode.set(true)
+                >{t("mcp.add.mode_json")}</button>
             </div>
+
+            {move || if advanced_mode.get() {
+                // Advanced: raw JSON editor
+                view! {
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.875rem;">{t("mcp.add.config_label")}</label>
+                        <div class="editor-container">
+                            <textarea
+                                class="editor-textarea"
+                                style="min-height: 200px; font-family: monospace; font-size: 0.85rem;"
+                                prop:value=move || config_json.get()
+                                on:input=move |ev| config_json.set(event_target_value(&ev))
+                            />
+                        </div>
+                    </div>
+                }.into_view()
+            } else {
+                // Structured form
+                view! {
+                    <div class="form-group">
+                        <label>{t("mcp.add.command_label")}</label>
+                        <input
+                            type="text"
+                            placeholder="e.g. npx, node, uvx, docker"
+                            style="max-width: 400px;"
+                            prop:value=move || command.get()
+                            on:input=move |ev| command.set(event_target_value(&ev))
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label>{t("mcp.add.args_label")}</label>
+                        <textarea
+                            class="editor-textarea"
+                            style="min-height: 80px; font-family: monospace; font-size: 0.85rem;"
+                            placeholder="-y\n@modelcontextprotocol/server-name"
+                            prop:value=move || args_text.get()
+                            on:input=move |ev| args_text.set(event_target_value(&ev))
+                        />
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                            {t("mcp.add.args_hint")}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>{t("mcp.add.env_label")}</label>
+                        <textarea
+                            class="editor-textarea"
+                            style="min-height: 60px; font-family: monospace; font-size: 0.85rem;"
+                            placeholder="API_KEY=your-key\nDEBUG=true"
+                            prop:value=move || env_text.get()
+                            on:input=move |ev| env_text.set(event_target_value(&ev))
+                        />
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                            {t("mcp.add.env_hint")}
+                        </div>
+                    </div>
+                }.into_view()
+            }}
 
             <button
                 class="btn btn-primary"
                 on:click=move |_| {
                     let n = name.get();
-                    let c = config_json.get();
                     if n.trim().is_empty() {
                         status.set(Some(("Please enter a server name".to_string(), false)));
                         return;
                     }
+                    let config = match build_config() {
+                        Ok(c) => c,
+                        Err(e) => {
+                            status.set(Some((e, false)));
+                            return;
+                        }
+                    };
                     spawn_local(async move {
-                        match serde_json::from_str::<serde_json::Value>(&c) {
-                            Ok(config) => {
-                                let req = McpServerCreateRequest {
-                                    name: n.clone(),
-                                    config,
-                                };
-                                match api::post::<McpServerDetail, _>("/mcp", &req).await {
-                                    Ok(_) => {
-                                        status.set(Some((format!("'{}' added successfully!", n), true)));
-                                        name.set(String::new());
-                                    }
-                                    Err(e) => status.set(Some((format!("Error: {}", e), false))),
-                                }
+                        let req = McpServerCreateRequest {
+                            name: n.clone(),
+                            config,
+                        };
+                        match api::post::<McpServerDetail, _>("/mcp", &req).await {
+                            Ok(_) => {
+                                status.set(Some((format!("'{}' added successfully!", n), true)));
+                                name.set(String::new());
                             }
-                            Err(e) => status.set(Some((format!("Invalid JSON: {}", e), false))),
+                            Err(e) => status.set(Some((format!("Error: {}", e), false))),
                         }
                     });
                 }
@@ -693,6 +811,162 @@ fn BrowseCatalogTab() -> impl IntoView {
                     <div class="empty-state"><p>{t("common.error_prefix")} {e}</p></div>
                 }.into_view(),
             })}
+        </Suspense>
+    }
+}
+
+// ─────────────────────────────────────────────
+// Tool Explorer Tab
+// ─────────────────────────────────────────────
+
+#[component]
+fn ToolExplorerTab() -> impl IntoView {
+    let search_query = create_rw_signal(String::new());
+
+    let health_data = create_resource(
+        || (),
+        |_| async move { api::get::<Vec<McpHealthResult>>("/mcp/health").await },
+    );
+
+    view! {
+        <div style="margin-bottom: 1rem;">
+            <input
+                type="text"
+                placeholder=t("mcp.tools.search")
+                style="max-width: 400px;"
+                prop:value=move || search_query.get()
+                on:input=move |ev| search_query.set(event_target_value(&ev))
+            />
+        </div>
+
+        <Suspense fallback=move || view! { <div class="loading">{t("mcp.tools.loading")}</div> }>
+            {move || {
+                let query = search_query.get().to_lowercase();
+
+                health_data.get().map(|result| match result {
+                    Ok(servers) => {
+                        // Flatten all tools grouped by server
+                        let mut tool_cards: Vec<(String, String, claude_admin_shared::McpToolInfo)> = Vec::new();
+                        for server in &servers {
+                            if server.status != claude_admin_shared::McpServerStatus::Running {
+                                continue;
+                            }
+                            for tool in &server.tools {
+                                if !query.is_empty() {
+                                    let name_match = tool.name.to_lowercase().contains(&query);
+                                    let desc_match = tool.description.as_ref()
+                                        .map(|d| d.to_lowercase().contains(&query))
+                                        .unwrap_or(false);
+                                    if !name_match && !desc_match {
+                                        continue;
+                                    }
+                                }
+                                tool_cards.push((
+                                    server.name.clone(),
+                                    server.source.clone(),
+                                    tool.clone(),
+                                ));
+                            }
+                        }
+
+                        if tool_cards.is_empty() {
+                            view! {
+                                <div class="empty-state"><p>{t("mcp.tools.no_tools")}</p></div>
+                            }.into_view()
+                        } else {
+                            // Group by server
+                            let mut grouped: std::collections::BTreeMap<String, Vec<(String, claude_admin_shared::McpToolInfo)>> =
+                                std::collections::BTreeMap::new();
+                            for (server_name, source, tool) in tool_cards {
+                                grouped.entry(server_name).or_default().push((source, tool));
+                            }
+
+                            view! {
+                                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                                    {grouped.into_iter().map(|(server_name, tools)| {
+                                        let source_label = tools.first().map(|(s, _)| source_badge_label(s)).unwrap_or_default();
+                                        view! {
+                                            <div>
+                                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                                    <h4 style="margin: 0;">{server_name}</h4>
+                                                    <span class="badge badge-muted" style="font-size: 0.7rem;">{source_label}</span>
+                                                    <span class="badge badge-muted" style="font-size: 0.7rem;">{tools.len()} " tools"</span>
+                                                </div>
+                                                <div class="skill-grid">
+                                                    {tools.into_iter().map(|(_, tool)| {
+                                                        let has_schema = tool.input_schema.is_some();
+                                                        let required_fields: Vec<String> = tool.input_schema.as_ref()
+                                                            .and_then(|s| s.get("required"))
+                                                            .and_then(|v| v.as_array())
+                                                            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+                                                            .unwrap_or_default();
+                                                        let schema_json = tool.input_schema
+                                                            .as_ref()
+                                                            .map(|s| serde_json::to_string_pretty(s).unwrap_or_default())
+                                                            .unwrap_or_default();
+
+                                                        view! {
+                                                            <div class="card skill-card">
+                                                                <div style="margin-bottom: 0.5rem;">
+                                                                    <span style="font-weight: 600; font-size: 1rem; font-family: monospace;">{tool.name}</span>
+                                                                </div>
+                                                                {tool.description.map(|desc| view! {
+                                                                    <p style="color: var(--text-secondary); font-size: 0.875rem; line-height: 1.5; margin-bottom: 0.5rem;">
+                                                                        {desc}
+                                                                    </p>
+                                                                })}
+                                                                {if !required_fields.is_empty() {
+                                                                    view! {
+                                                                        <div style="margin-bottom: 0.5rem; font-size: 0.75rem;">
+                                                                            <span style="color: var(--text-muted);">{t("mcp.tools.required")} ": "</span>
+                                                                            {required_fields.iter().map(|f| view! {
+                                                                                <code style="margin-right: 0.25rem; background: var(--bg-primary); padding: 0.1rem 0.3rem; border-radius: 0.2rem;">{f.clone()}</code>
+                                                                            }).collect_view()}
+                                                                        </div>
+                                                                    }.into_view()
+                                                                } else {
+                                                                    view! {}.into_view()
+                                                                }}
+                                                                {if has_schema {
+                                                                    view! {
+                                                                        <details style="margin-top: 0.25rem;">
+                                                                            <summary style="cursor: pointer; color: var(--text-muted); font-size: 0.8rem;">
+                                                                                {t("mcp.tools.parameters")}
+                                                                            </summary>
+                                                                            <pre style="
+                                                                                margin-top: 0.5rem;
+                                                                                padding: 0.5rem;
+                                                                                background: var(--bg-primary);
+                                                                                border-radius: 0.375rem;
+                                                                                font-size: 0.75rem;
+                                                                                line-height: 1.4;
+                                                                                overflow-x: auto;
+                                                                                max-height: 200px;
+                                                                                color: var(--text-secondary);
+                                                                            ">
+                                                                                {schema_json}
+                                                                            </pre>
+                                                                        </details>
+                                                                    }.into_view()
+                                                                } else {
+                                                                    view! {}.into_view()
+                                                                }}
+                                                            </div>
+                                                        }
+                                                    }).collect_view()}
+                                                </div>
+                                            </div>
+                                        }
+                                    }).collect_view()}
+                                </div>
+                            }.into_view()
+                        }
+                    }
+                    Err(e) => view! {
+                        <div class="empty-state"><p>{t("common.error_prefix")} {e}</p></div>
+                    }.into_view(),
+                })
+            }}
         </Suspense>
     }
 }

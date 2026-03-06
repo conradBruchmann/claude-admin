@@ -121,15 +121,15 @@ Après l'installation, lancez ClaudeAdmin depuis le menu Démarrer ou le Bureau 
 
 ClaudeAdmin lit et écrit la configuration standard de Claude Code :
 
-| Chemin | Description |
-|--------|-------------|
-| `~/.claude.json` | Registre des projets, serveurs MCP |
-| `~/.claude/settings.json` | Paramètres globaux, hooks |
-| `~/.claude/skills/` | Compétences globales |
-| `~/.claude/rules/` | Règles globales |
-| `~/.claude/plans/` | Fichiers de plans |
-| `~/.claude/projects/<encoded>/memory/` | Mémoire par projet |
-| `~/.claude/backups/` | Sauvegardes automatiques (horodatées) |
+| Chemin                                 | Description                           |
+| -------------------------------------- | ------------------------------------- |
+| `~/.claude.json`                       | Registre des projets, serveurs MCP    |
+| `~/.claude/settings.json`              | Paramètres globaux, hooks             |
+| `~/.claude/skills/`                    | Compétences globales                  |
+| `~/.claude/rules/`                     | Règles globales                       |
+| `~/.claude/plans/`                     | Fichiers de plans                     |
+| `~/.claude/projects/<encoded>/memory/` | Mémoire par projet                    |
+| `~/.claude/backups/`                   | Sauvegardes automatiques (horodatées) |
 
 ## Licence
 

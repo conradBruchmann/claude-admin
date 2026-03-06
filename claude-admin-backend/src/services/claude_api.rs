@@ -226,8 +226,10 @@ pub struct AuthStatus {
 pub async fn get_suggestions(
     client: &AnthropicClient,
     req: &SuggestionRequest,
+    lang: &str,
 ) -> Result<SuggestionResponse, ApiError> {
-    let system_prompt = build_system_prompt(&req.file_type);
+    let lang_hint = crate::domain::extractors::lang_instruction(lang);
+    let system_prompt = format!("{}\n\n{}", build_system_prompt(&req.file_type), lang_hint);
     let user_prompt = format!(
         "Analyze and suggest improvements for this {}:\n\n```\n{}\n```\n\n{}",
         file_type_label(&req.file_type),
@@ -242,12 +244,15 @@ pub async fn get_suggestions(
 pub async fn validate_content(
     client: &AnthropicClient,
     req: &SuggestionRequest,
+    lang: &str,
 ) -> Result<SuggestionResponse, ApiError> {
+    let lang_hint = crate::domain::extractors::lang_instruction(lang);
     let system_prompt = format!(
         "You are a Claude Code configuration validator. Check the following {} for issues, \
          best practices violations, and potential problems. Return a JSON object with keys: \
-         'validation_issues' (array of strings), 'suggestions' (array of strings).",
-        file_type_label(&req.file_type)
+         'validation_issues' (array of strings), 'suggestions' (array of strings).\n\n{}",
+        file_type_label(&req.file_type),
+        lang_hint
     );
 
     let user_prompt = format!("Validate this content:\n\n```\n{}\n```", req.content);
@@ -262,6 +267,31 @@ pub async fn call_claude_raw(
     user: &str,
 ) -> Result<String, ApiError> {
     call_claude(client, system, user).await
+}
+
+/// Send a multi-turn conversation to the Claude API (for chat with history).
+pub async fn call_claude_with_history(
+    client: &AnthropicClient,
+    system: &str,
+    messages: Vec<serde_json::Value>,
+) -> Result<String, ApiError> {
+    match send_claude_request_multi(client, system, &messages).await {
+        Ok(text) => Ok(text),
+        Err(ApiError::Unauthorized(msg)) => {
+            tracing::warn!("Got 401, attempting token refresh: {}", msg);
+            if client.refresh_token() {
+                tracing::info!("Token refreshed, retrying request...");
+                send_claude_request_multi(client, system, &messages).await
+            } else {
+                Err(ApiError::Internal(
+                    "Claude API: Token abgelaufen. Refresh aus Keychain fehlgeschlagen. \
+                     Stelle sicher, dass Claude Code eingeloggt ist."
+                        .to_string(),
+                ))
+            }
+        }
+        Err(e) => Err(e),
+    }
 }
 
 async fn call_claude(
@@ -301,6 +331,66 @@ async fn send_claude_request(
         "messages": [
             {"role": "user", "content": user}
         ]
+    });
+
+    let token = client.current_token();
+
+    let mut req = client
+        .client
+        .post("https://api.anthropic.com/v1/messages")
+        .header("anthropic-version", "2023-06-01")
+        .header("content-type", "application/json");
+
+    req = match &client.auth_mode {
+        AuthMode::ApiKey => req.header("x-api-key", &token),
+        AuthMode::OAuthBearer => req
+            .header("Authorization", format!("Bearer {}", token))
+            .header("anthropic-beta", "oauth-2025-04-20"),
+    };
+
+    let resp = req
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| ApiError::Internal(format!("Claude API request failed: {}", e)))?;
+
+    if !resp.status().is_success() {
+        let status = resp.status();
+        let text = resp.text().await.unwrap_or_default();
+
+        if status.as_u16() == 401 {
+            return Err(ApiError::Unauthorized(format!("Claude API 401: {}", text)));
+        }
+
+        return Err(ApiError::Internal(format!(
+            "Claude API error {}: {}",
+            status, text
+        )));
+    }
+
+    let json: serde_json::Value = resp
+        .json()
+        .await
+        .map_err(|e| ApiError::Internal(format!("Failed to parse Claude response: {}", e)))?;
+
+    let text = json["content"][0]["text"]
+        .as_str()
+        .unwrap_or("")
+        .to_string();
+
+    Ok(text)
+}
+
+async fn send_claude_request_multi(
+    client: &AnthropicClient,
+    system: &str,
+    messages: &[serde_json::Value],
+) -> Result<String, ApiError> {
+    let body = serde_json::json!({
+        "model": "claude-sonnet-4-20250514",
+        "max_tokens": 4096,
+        "system": system,
+        "messages": messages
     });
 
     let token = client.current_token();

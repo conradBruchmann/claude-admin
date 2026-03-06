@@ -121,15 +121,15 @@ After installation, launch ClaudeAdmin from the Start Menu or Desktop — it sta
 
 ClaudeAdmin reads and writes the standard Claude Code configuration:
 
-| Path | Description |
-|------|-------------|
-| `~/.claude.json` | Project registry, MCP servers |
-| `~/.claude/settings.json` | Global settings, hooks |
-| `~/.claude/skills/` | Global skills |
-| `~/.claude/rules/` | Global rules |
-| `~/.claude/plans/` | Plan files |
-| `~/.claude/projects/<encoded>/memory/` | Per-project memory |
-| `~/.claude/backups/` | Automatic backups (timestamped) |
+| Path                                   | Description                     |
+| -------------------------------------- | ------------------------------- |
+| `~/.claude.json`                       | Project registry, MCP servers   |
+| `~/.claude/settings.json`              | Global settings, hooks          |
+| `~/.claude/skills/`                    | Global skills                   |
+| `~/.claude/rules/`                     | Global rules                    |
+| `~/.claude/plans/`                     | Plan files                      |
+| `~/.claude/projects/<encoded>/memory/` | Per-project memory              |
+| `~/.claude/backups/`                   | Automatic backups (timestamped) |
 
 ## License
 

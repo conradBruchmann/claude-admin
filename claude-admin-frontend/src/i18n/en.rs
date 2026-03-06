@@ -44,6 +44,11 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("dashboard.plans", "Plans");
         m.insert("dashboard.config_health", "Config Health");
         m.insert("dashboard.recent_projects", "Recent Projects");
+        m.insert("dashboard.recent_changes", "Recent Changes");
+        m.insert("dashboard.no_recent_changes", "No recent changes");
+        m.insert("dashboard.change_action", "Action");
+        m.insert("dashboard.change_resource", "Resource");
+        m.insert("dashboard.change_time", "Time");
         m.insert("dashboard.loading", "Loading");
         m.insert("dashboard.error_loading", "Error loading dashboard");
         m.insert("dashboard.col_name", "Name");
@@ -60,6 +65,15 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.tab_health", "Health Check");
         m.insert("mcp.tab_add", "New Server");
         m.insert("mcp.tab_browse", "Browse Catalog");
+        m.insert("mcp.tab_tools", "Tool Explorer");
+        m.insert("mcp.tools.title", "Tool Explorer");
+        m.insert("mcp.tools.description", "All tools across all MCP servers");
+        m.insert("mcp.tools.search", "Search tools...");
+        m.insert("mcp.tools.parameters", "Parameters (JSON Schema)");
+        m.insert("mcp.tools.required", "Required");
+        m.insert("mcp.tools.no_tools", "No tools found. Run a health check first.");
+        m.insert("mcp.tools.from_server", "from");
+        m.insert("mcp.tools.loading", "Loading tools...");
         m.insert("mcp.loading", "Loading MCP servers");
         m.insert("mcp.no_servers", "No MCP servers configured");
         m.insert("mcp.no_servers_hint", "Add servers using the 'New Server' tab or the MCP Browser.");
@@ -92,6 +106,13 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.add.name_label", "Server Name");
         m.insert("mcp.add.name_placeholder", "e.g. my-server");
         m.insert("mcp.add.config_label", "Server Configuration (JSON)");
+        m.insert("mcp.add.mode_form", "Form");
+        m.insert("mcp.add.mode_json", "Advanced JSON");
+        m.insert("mcp.add.command_label", "Command");
+        m.insert("mcp.add.args_label", "Arguments");
+        m.insert("mcp.add.args_hint", "One argument per line");
+        m.insert("mcp.add.env_label", "Environment Variables");
+        m.insert("mcp.add.env_hint", "KEY=VALUE format, one per line");
         m.insert("mcp.add.submit", "Add Server");
         m.insert("mcp.add.name_required", "Please enter a server name");
         m.insert("mcp.browse.title", "MCP Server Catalog");
@@ -122,6 +143,8 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp_browser.install_failed", "Failed to install");
 
         // ── Projects ──
+        m.insert("projects.tab_projects", "Projects");
+        m.insert("projects.tab_health", "Health Overview");
         m.insert("projects.title", "Projects");
         m.insert("projects.subtitle", "All projects registered in ~/.claude.json");
         m.insert("projects.loading", "Loading");
@@ -138,6 +161,18 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("project_detail.loading", "Loading project details");
         m.insert("project_detail.error_loading", "Error loading project");
         m.insert("project_detail.tab_advisor", "Advisor");
+        m.insert("project_detail.tab_profile", "Profile");
+        m.insert("project_detail.profile_health", "Health Score");
+        m.insert("project_detail.profile_rules", "Rules");
+        m.insert("project_detail.profile_skills", "Skills");
+        m.insert("project_detail.profile_memory", "Memory");
+        m.insert("project_detail.profile_mcp", "MCP Servers");
+        m.insert("project_detail.profile_hooks", "Hooks");
+        m.insert("project_detail.profile_conflicts", "Conflicts");
+        m.insert("project_detail.profile_analyze", "Run Deep Analysis");
+        m.insert("project_detail.profile_no_mcp", "No MCP servers");
+        m.insert("project_detail.profile_global_scope", "Global");
+        m.insert("project_detail.profile_project_scope", "Project");
         m.insert("project_detail.tab_claude_md", "CLAUDE.md");
         m.insert("project_detail.tab_skills", "Skills");
         m.insert("project_detail.tab_rules", "Rules");
@@ -196,6 +231,9 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("project_detail.unknown_tab", "Unknown tab");
 
         // ── Global Skills ──
+        m.insert("global_skills.tab_my_skills", "My Skills");
+        m.insert("global_skills.tab_browse", "Browse");
+        m.insert("global_skills.tab_templates", "Templates");
         m.insert("global_skills.title", "Global Skills");
         m.insert("global_skills.subtitle", "Manage skills in ~/.claude/skills/");
         m.insert("global_skills.loading", "Loading skills");
@@ -212,6 +250,23 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("global_skills.delete", "Delete");
         m.insert("global_skills.deleted", "Deleted!");
 
+        // ── Skill Builder ──
+        m.insert("global_skills.tab_create", "Create");
+        m.insert("skill_builder.templates", "Templates");
+        m.insert("skill_builder.editor", "Editor");
+        m.insert("skill_builder.preview", "Preview");
+        m.insert("skill_builder.name", "Skill Name");
+        m.insert("skill_builder.name_placeholder", "e.g. my-skill");
+        m.insert("skill_builder.name_required", "Please enter a skill name");
+        m.insert("skill_builder.description", "Description");
+        m.insert("skill_builder.desc_placeholder", "What does this skill do?");
+        m.insert("skill_builder.user_invocable", "User-invocable (callable via /command)");
+        m.insert("skill_builder.content", "Skill Content (Markdown)");
+        m.insert("skill_builder.save", "Save Skill");
+        m.insert("skill_builder.saved", "Skill saved:");
+        m.insert("skill_builder.trigger", "Trigger:");
+        m.insert("skill_builder.preview_hint", "Select a template or start typing to see a live preview.");
+
         // ── Global Rules ──
         m.insert("global_rules.title", "Global Rules");
         m.insert("global_rules.subtitle", "Manage rules in ~/.claude/rules/");
@@ -225,6 +280,16 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("global_rules.saved", "Saved!");
         m.insert("global_rules.delete", "Delete");
         m.insert("global_rules.deleted", "Deleted!");
+
+        // ── Rules Conflicts ──
+        m.insert("rules.conflicts_title", "Rule Conflicts");
+        m.insert("rules.conflicts_found", "Conflicts found");
+        m.insert("rules.conflict_name_collision", "Name Collision");
+        m.insert("rules.conflict_content_overlap", "Content Overlap");
+        m.insert("rules.conflict_contradiction", "Contradiction");
+        m.insert("rules.conflict_global", "Global");
+        m.insert("rules.conflict_project", "Project");
+        m.insert("rules.no_conflicts", "No conflicts detected");
 
         // ── Plans ──
         m.insert("plans.title", "Plans");
@@ -662,6 +727,44 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("docs.scopes_project_4", "Project-specific skills and workflows");
         m.insert("docs.scopes_project_5", "CI/CD hooks and automation");
 
+        // ── Docs: Optimization Guide ──
+        m.insert("docs.toc_optimization", "Optimization Guide");
+        m.insert("docs.opt_heading", "Optimization Guide");
+        m.insert("docs.opt_callout", "Personalized tips from Analytics explained in depth. Each section covers why a pattern matters and how to improve, with links to Anthropic\u{2019}s official documentation.");
+        m.insert("docs.opt_why", "Why:");
+        m.insert("docs.opt_how", "How:");
+        m.insert("docs.opt_task_heading", "Parallel Agents with Task Tool");
+        m.insert("docs.opt_task_why", "The Task tool launches specialized sub-agents that work in parallel. For complex multi-step work (research, code exploration, testing), sub-agents can run simultaneously instead of sequentially, significantly reducing total time.");
+        m.insert("docs.opt_task_how", "Claude Code uses the Task tool automatically when it recognizes opportunities for parallelism. You can also explicitly ask: \u{201c}Research X and Y in parallel\u{201d} or \u{201c}Run tests while fixing the bug.\u{201d} Each agent gets its own context window, so large codebases are explored more efficiently.");
+        m.insert("docs.opt_task_link", "Anthropic Docs: Best Practices \u{2192}");
+        m.insert("docs.opt_hooks_heading", "Automating with Hooks");
+        m.insert("docs.opt_hooks_why", "Hooks are shell commands that run automatically before or after Claude uses a tool. Without hooks, you rely on manually running formatters, linters, and tests. With hooks, every file write can auto-format, every commit can auto-test.");
+        m.insert("docs.opt_hooks_how", "Configure hooks in ~/.claude/settings.json under the \u{201c}hooks\u{201d} key. Use PreToolUse to run actions before a tool executes (e.g., format code before writing). Use PostToolUse for validation after changes (e.g., lint after edit). Use Stop to run checks when Claude finishes.");
+        m.insert("docs.opt_hooks_link", "Anthropic Docs: Hooks \u{2192}");
+        m.insert("docs.opt_sessions_heading", "Optimal Session Length");
+        m.insert("docs.opt_sessions_why", "Long sessions accumulate context that can dilute Claude\u{2019}s focus. After many messages, earlier instructions become less salient. Token costs also increase as the context window fills up with conversation history.");
+        m.insert("docs.opt_sessions_how", "Break complex work into focused sessions. Use /clear to reset context within a session. For multi-step projects, use plan files (Claude writes a plan, then executes steps in focused sessions). Each fresh session starts with maximum attention on your current task.");
+        m.insert("docs.opt_sessions_link", "Anthropic Docs: Best Practices \u{2192}");
+        m.insert("docs.opt_cost_heading", "Cost Optimization");
+        m.insert("docs.opt_cost_why", "Different Claude models have vastly different costs. Opus excels at complex reasoning but costs more per token. Haiku is fast and cheap, ideal for simple tasks. Using the right model for each task can cut costs dramatically.");
+        m.insert("docs.opt_cost_how", "Use /model to switch models mid-session. Use Haiku for: quick fixes, code formatting, simple questions. Use Sonnet for: moderate coding tasks, reviews. Use Opus for: architecture design, complex debugging, multi-file refactoring. The Analytics page shows your cost breakdown by model.");
+        m.insert("docs.opt_cost_link", "Anthropic Docs: Claude Code Overview \u{2192}");
+        m.insert("docs.opt_write_heading", "Write vs Edit: Choosing the Right Tool");
+        m.insert("docs.opt_write_why", "The Write tool creates entire files at once, while Edit makes targeted changes to existing files. For new files, Write is more efficient because Edit requires reading the file first and then specifying exact string replacements.");
+        m.insert("docs.opt_write_how", "Claude generally picks the right tool automatically. But if you\u{2019}re creating new files from scratch (templates, boilerplate, configuration), explicitly saying \u{201c}create a new file\u{201d} helps Claude choose Write. For modifications to existing code, Edit is always preferred.");
+        m.insert("docs.opt_models_heading", "Model Diversity");
+        m.insert("docs.opt_models_why", "Using a single model for all tasks means either overpaying for simple work (Opus for everything) or under-powering complex tasks (Haiku for everything). Each model family has strengths: Haiku for speed, Sonnet for balance, Opus for deep reasoning.");
+        m.insert("docs.opt_models_how", "Switch models with the /model command. A good pattern: start with Opus for planning and architecture, switch to Sonnet for implementation, use Haiku for quick fixes and formatting. The Analytics page shows which model you use most.");
+        m.insert("docs.opt_models_link", "Anthropic Docs: Claude Code Overview \u{2192}");
+        m.insert("docs.opt_git_heading", "Git Integration");
+        m.insert("docs.opt_git_why", "Claude Code can stage, commit, push, and create PRs directly. Without git integration, you manually commit after every Claude session, which breaks the flow and risks forgetting to commit important changes.");
+        m.insert("docs.opt_git_how", "Simply ask Claude to commit: \u{201c}commit these changes\u{201d} or use /commit. Claude writes descriptive commit messages, stages only relevant files, and respects pre-commit hooks. For PRs, ask Claude to \u{201c}create a PR\u{201d} \u{2013} it uses the gh CLI to push and open a pull request with a summary.");
+        m.insert("docs.opt_git_link", "Anthropic Docs: Best Practices \u{2192}");
+        m.insert("docs.opt_churn_heading", "Reducing Code Churn");
+        m.insert("docs.opt_churn_why", "When more lines are deleted than added, it usually means Claude wrote code that had to be rewritten. This wastes tokens and time. Common causes: vague prompts, missing context, or Claude guessing at requirements.");
+        m.insert("docs.opt_churn_how", "Be specific in prompts: reference existing files, name exact functions, describe expected behavior. Use CLAUDE.md to document conventions so Claude doesn\u{2019}t guess. For complex changes, ask Claude to plan first (/plan) before implementing. Review Claude\u{2019}s plan before it starts coding.");
+        m.insert("docs.opt_churn_link", "Anthropic Docs: Best Practices \u{2192}");
+
         // ── Docs: Tips & Best Practices ──
         m.insert("docs.bestpractices_heading", "Tips & Best Practices");
         m.insert("docs.bestpractices_hygiene_heading", "Configuration Hygiene");
@@ -843,6 +946,14 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("analytics.clear", "Clear");
         m.insert("analytics.export_csv", "Export CSV");
         m.insert("analytics.export_json", "Export JSON");
+        m.insert("analytics.tips_title", "Insights & Tips");
+        m.insert("analytics.tips_dismiss", "Dismiss");
+        m.insert("analytics.tips_learn_more", "Learn more");
+        m.insert("analytics.tip_category_tool", "Tool");
+        m.insert("analytics.tip_category_workflow", "Workflow");
+        m.insert("analytics.tip_category_performance", "Performance");
+        m.insert("analytics.tip_category_config", "Config");
+        m.insert("analytics.no_tips", "No tips available");
         m.insert("analytics.est_cost", "Est. Cost");
         m.insert("settings.timeout", "Timeout");
         m.insert("component.confirm.cancel", "Cancel");
@@ -863,6 +974,184 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("component.onboarding.step3_title", "Install a Skill");
         m.insert("component.onboarding.step3_desc", "Browse and install reusable skills.");
         m.insert("component.onboarding.step3_link", "Skill Browser");
+
+        // ── Sidebar New ──
+        m.insert("sidebar.agents", "Agents");
+        m.insert("sidebar.plugins", "Plugins");
+        m.insert("sidebar.launch_profiles", "Launch Profiles");
+        m.insert("sidebar.system_prompts", "System Prompts");
+        m.insert("sidebar.worktrees", "Worktrees");
+
+        // ── Agents ──
+        m.insert("agents.title", "Agents");
+        m.insert("agents.subtitle", "Define and manage custom Claude agents");
+        m.insert("agents.tab_overview", "Overview");
+        m.insert("agents.tab_create", "Create");
+        m.insert("agents.loading", "Loading agents...");
+        m.insert("agents.empty", "No agents defined yet. Create custom agents with specific prompts and tool configurations.");
+        m.insert("agents.name", "Name");
+        m.insert("agents.description", "Description");
+        m.insert("agents.prompt", "Prompt");
+        m.insert("agents.model", "Model");
+        m.insert("agents.allowed_tools", "Allowed Tools");
+        m.insert("agents.disallowed_tools", "Disallowed Tools");
+        m.insert("agents.custom_instructions", "Custom Instructions");
+        m.insert("agents.source", "Source");
+        m.insert("agents.create_success", "Agent created successfully");
+        m.insert("agents.update_success", "Agent updated successfully");
+        m.insert("agents.delete_confirm", "Delete this agent?");
+        m.insert("agents.delete_success", "Agent deleted");
+        m.insert("agents.copy_cli", "Copy CLI flag");
+        m.insert("agents.copied", "Copied to clipboard!");
+
+        // ── Plugins ──
+        m.insert("plugins.title", "Plugins");
+        m.insert("plugins.subtitle", "Manage Claude Code plugins");
+        m.insert("plugins.loading", "Loading plugins...");
+        m.insert("plugins.empty", "No plugins installed. Plugins extend Claude Code with custom tools and capabilities.");
+        m.insert("plugins.name", "Name");
+        m.insert("plugins.version", "Version");
+        m.insert("plugins.path", "Path");
+        m.insert("plugins.status", "Status");
+        m.insert("plugins.enabled", "Enabled");
+        m.insert("plugins.disabled", "Disabled");
+        m.insert("plugins.install", "Install Plugin");
+        m.insert("plugins.install_path", "Plugin directory path");
+        m.insert("plugins.install_success", "Plugin installed successfully");
+        m.insert("plugins.delete_confirm", "Remove this plugin?");
+        m.insert("plugins.delete_success", "Plugin removed");
+
+        // ── Launch Profiles ──
+        m.insert("launch_profiles.title", "Launch Profiles");
+        m.insert("launch_profiles.subtitle", "Reusable CLI configurations for different workflows");
+        m.insert("launch_profiles.tab_profiles", "Profiles");
+        m.insert("launch_profiles.tab_create", "Create");
+        m.insert("launch_profiles.tab_presets", "Presets");
+        m.insert("launch_profiles.loading", "Loading profiles...");
+        m.insert("launch_profiles.empty", "No launch profiles yet. Create reusable CLI configurations combining model, effort, tools, and budget settings.");
+        m.insert("launch_profiles.name", "Name");
+        m.insert("launch_profiles.description", "Description");
+        m.insert("launch_profiles.model", "Model");
+        m.insert("launch_profiles.effort", "Effort Level");
+        m.insert("launch_profiles.permission_mode", "Permission Mode");
+        m.insert("launch_profiles.allowed_tools", "Allowed Tools");
+        m.insert("launch_profiles.disallowed_tools", "Disallowed Tools");
+        m.insert("launch_profiles.system_prompt", "System Prompt");
+        m.insert("launch_profiles.append_system_prompt", "Append System Prompt");
+        m.insert("launch_profiles.max_budget", "Max Budget (USD)");
+        m.insert("launch_profiles.fallback_model", "Fallback Model");
+        m.insert("launch_profiles.debug_filter", "Debug Filter");
+        m.insert("launch_profiles.add_dirs", "Additional Directories");
+        m.insert("launch_profiles.copy_command", "Copy CLI Command");
+        m.insert("launch_profiles.copied", "Copied!");
+        m.insert("launch_profiles.create_success", "Profile created successfully");
+        m.insert("launch_profiles.delete_confirm", "Delete this profile?");
+        m.insert("launch_profiles.delete_success", "Profile deleted");
+        m.insert("launch_profiles.use_template", "Use as Template");
+        m.insert("launch_profiles.preset_code_review", "Code Review");
+        m.insert("launch_profiles.preset_code_review_desc", "Sonnet model, plan mode, read-only tools, low budget");
+        m.insert("launch_profiles.preset_full_dev", "Full Dev");
+        m.insert("launch_profiles.preset_full_dev_desc", "Opus model, high effort, all tools, default permissions");
+        m.insert("launch_profiles.preset_quick_fix", "Quick Fix");
+        m.insert("launch_profiles.preset_quick_fix_desc", "Haiku model, medium effort, Bash + Edit + Read only");
+        m.insert("launch_profiles.preset_research", "Research");
+        m.insert("launch_profiles.preset_research_desc", "Opus model, high effort, web + read tools, plan mode");
+        m.insert("launch_profiles.preset_budget", "Budget Conscious");
+        m.insert("launch_profiles.preset_budget_desc", "Sonnet model, low effort, $1 budget limit");
+
+        // ── System Prompts ──
+        m.insert("system_prompts.title", "System Prompts");
+        m.insert("system_prompts.subtitle", "Create and manage reusable system prompts");
+        m.insert("system_prompts.tab_library", "Library");
+        m.insert("system_prompts.tab_create", "Create");
+        m.insert("system_prompts.loading", "Loading system prompts...");
+        m.insert("system_prompts.empty", "No system prompts yet. Create reusable prompts for different use cases.");
+        m.insert("system_prompts.name", "Name");
+        m.insert("system_prompts.content", "Content");
+        m.insert("system_prompts.modified", "Modified");
+        m.insert("system_prompts.create_success", "System prompt created successfully");
+        m.insert("system_prompts.update_success", "System prompt updated");
+        m.insert("system_prompts.delete_confirm", "Delete this system prompt?");
+        m.insert("system_prompts.delete_success", "System prompt deleted");
+        m.insert("system_prompts.copy_cli", "Copy CLI flag");
+        m.insert("system_prompts.copied", "Copied!");
+        m.insert("system_prompts.use_template", "Use Template");
+        m.insert("system_prompts.template_reviewer", "Code Reviewer");
+        m.insert("system_prompts.template_docs", "Documentation Writer");
+        m.insert("system_prompts.template_security", "Security Auditor");
+        m.insert("system_prompts.template_refactor", "Refactoring Expert");
+
+        // ── Worktrees ──
+        m.insert("worktrees.title", "Worktrees");
+        m.insert("worktrees.subtitle", "Manage git worktrees across your projects");
+        m.insert("worktrees.loading", "Loading worktrees...");
+        m.insert("worktrees.empty", "No active worktrees found. Worktrees allow parallel development on multiple branches.");
+        m.insert("worktrees.project_path", "Project Path");
+        m.insert("worktrees.branch_name", "Branch Name (optional)");
+        m.insert("worktrees.create", "Create Worktree");
+        m.insert("worktrees.create_success", "Worktree created successfully");
+        m.insert("worktrees.delete_confirm", "Remove this worktree?");
+        m.insert("worktrees.delete_success", "Worktree removed");
+        m.insert("worktrees.col_branch", "Branch");
+        m.insert("worktrees.col_path", "Path");
+        m.insert("worktrees.col_head", "HEAD");
+        m.insert("worktrees.col_status", "Status");
+        m.insert("worktrees.col_actions", "Actions");
+        m.insert("worktrees.badge_main", "main");
+        m.insert("worktrees.badge_bare", "bare");
+        m.insert("worktrees.badge_worktree", "worktree");
+
+        // ── Agents (form fields) ──
+        m.insert("agents.field_name", "Name");
+        m.insert("agents.field_description", "Description");
+        m.insert("agents.field_prompt", "Prompt");
+        m.insert("agents.field_model", "Model");
+        m.insert("agents.field_allowed_tools", "Allowed Tools");
+        m.insert("agents.field_disallowed_tools", "Disallowed Tools");
+        m.insert("agents.field_custom_instructions", "Custom Instructions");
+        m.insert("agents.tools_hint", "Comma-separated list, e.g. Bash, Edit, Read");
+        m.insert("agents.tools_placeholder", "Bash, Edit, Read, Write...");
+        m.insert("agents.create_btn", "Create Agent");
+        m.insert("agents.editing", "Editing");
+        m.insert("agents.save_success", "Agent updated successfully");
+        m.insert("agents.confirm_delete", "Delete agent");
+        m.insert("agents.name_required", "Name is required");
+        m.insert("agents.model_default", "Default (inherit)");
+        m.insert("agents.name_placeholder", "e.g. code-reviewer");
+        m.insert("agents.desc_placeholder", "What does this agent do?");
+        m.insert("agents.prompt_placeholder", "You are a code reviewer...");
+        m.insert("agents.instructions_placeholder", "Additional instructions...");
+
+        // ── Plugins (missing) ──
+        m.insert("plugins.actions", "Actions");
+
+        // ── Launch Profiles (missing) ──
+        m.insert("launch_profiles.save_btn", "Create Profile");
+
+        // ── Common (missing) ──
+        m.insert("common.edit", "Edit");
+        m.insert("common.saved", "Saved");
+
+        // ── Timeline ──
+        m.insert("sidebar.timeline", "Timeline");
+        m.insert("timeline.title", "Timeline");
+        m.insert("timeline.subtitle", "Git-based version history of your Claude configuration");
+        m.insert("timeline.files", "files");
+        m.insert("timeline.restore", "Restore");
+        m.insert("timeline.confirm_restore_title", "Restore Configuration");
+        m.insert("timeline.confirm_restore_msg", "This will restore all files to the selected commit. A backup of the current state will be saved first. Continue?");
+        m.insert("timeline.empty", "No timeline entries yet. Changes will appear here as you edit your configuration.");
+        m.insert("timeline.error", "Failed to load timeline");
+        m.insert("timeline.select_commit", "Select a commit to view its changes");
+        m.insert("timeline.diff_for", "Changes in");
+
+        // ── Help Chat ──
+        m.insert("help_chat.title", "Help");
+        m.insert("help_chat.placeholder", "Ask about this page...");
+        m.insert("help_chat.send", "Send");
+        m.insert("help_chat.thinking", "Thinking...");
+        m.insert("help_chat.clear", "New conversation");
+        m.insert("help_chat.no_api_key", "API key required for help chat. Configure in Settings.");
 
         m
     })

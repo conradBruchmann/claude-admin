@@ -19,9 +19,18 @@ fn api_base() -> String {
     "/api/v1".to_string()
 }
 
+/// Read current UI language from localStorage for Accept-Language header.
+fn current_lang() -> String {
+    web_sys::window()
+        .and_then(|w| w.local_storage().ok().flatten())
+        .and_then(|s| s.get_item("claude_admin_lang").ok().flatten())
+        .unwrap_or_else(|| "de".to_string())
+}
+
 pub async fn get<T: DeserializeOwned>(path: &str) -> Result<T, String> {
     let url = format!("{}{}", api_base(), path);
     let resp = Request::get(&url)
+        .header("Accept-Language", &current_lang())
         .send()
         .await
         .map_err(|e| format!("Request failed: {}", e))?;
@@ -40,6 +49,7 @@ pub async fn get<T: DeserializeOwned>(path: &str) -> Result<T, String> {
 pub async fn put<T: DeserializeOwned, B: Serialize>(path: &str, body: &B) -> Result<T, String> {
     let url = format!("{}{}", api_base(), path);
     let resp = Request::put(&url)
+        .header("Accept-Language", &current_lang())
         .json(body)
         .map_err(|e| format!("Serialize error: {}", e))?
         .send()
@@ -60,6 +70,7 @@ pub async fn put<T: DeserializeOwned, B: Serialize>(path: &str, body: &B) -> Res
 pub async fn post<T: DeserializeOwned, B: Serialize>(path: &str, body: &B) -> Result<T, String> {
     let url = format!("{}{}", api_base(), path);
     let resp = Request::post(&url)
+        .header("Accept-Language", &current_lang())
         .json(body)
         .map_err(|e| format!("Serialize error: {}", e))?
         .send()
@@ -80,6 +91,7 @@ pub async fn post<T: DeserializeOwned, B: Serialize>(path: &str, body: &B) -> Re
 pub async fn delete(path: &str) -> Result<serde_json::Value, String> {
     let url = format!("{}{}", api_base(), path);
     let resp = Request::delete(&url)
+        .header("Accept-Language", &current_lang())
         .send()
         .await
         .map_err(|e| format!("Request failed: {}", e))?;
@@ -101,6 +113,7 @@ pub async fn delete_with_body<T: DeserializeOwned, B: Serialize>(
 ) -> Result<T, String> {
     let url = format!("{}{}", api_base(), path);
     let resp = Request::delete(&url)
+        .header("Accept-Language", &current_lang())
         .json(body)
         .map_err(|e| format!("Serialize error: {}", e))?
         .send()

@@ -4,4 +4,4 @@ claude-admin-frontend/dist/
 *.swp
 *.swo
 .env
-konzept.txt
+docs/konzept.txt

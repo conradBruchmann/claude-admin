@@ -6,6 +6,18 @@ use crate::i18n::t;
 
 #[component]
 pub fn SessionsPage() -> impl IntoView {
+    provide_context(create_rw_signal(crate::components::context_help::PageContext {
+        page_name: "Sessions".to_string(),
+        description: "Browse and search Claude Code session history. View past conversations, search through history, and inspect session transcripts.".to_string(),
+        available_actions: vec![
+            "Browse session list".to_string(),
+            "Search session history".to_string(),
+            "View session details".to_string(),
+            "View session transcript".to_string(),
+        ],
+        current_data_summary: String::new(),
+    }));
+
     let page_offset = create_rw_signal(0u64);
     let search_query = create_rw_signal(String::new());
     let search_results = create_rw_signal::<Option<Vec<HistoryEntry>>>(None);

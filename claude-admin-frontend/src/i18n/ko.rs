@@ -44,6 +44,11 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("dashboard.plans", "플랜");
         m.insert("dashboard.config_health", "구성 상태 점검");
         m.insert("dashboard.recent_projects", "최근 프로젝트");
+        m.insert("dashboard.recent_changes", "최근 변경사항");
+        m.insert("dashboard.no_recent_changes", "최근 변경사항 없음");
+        m.insert("dashboard.change_action", "작업");
+        m.insert("dashboard.change_resource", "리소스");
+        m.insert("dashboard.change_time", "시간");
         m.insert("dashboard.loading", "로딩 중");
         m.insert("dashboard.error_loading", "대시보드 로딩 오류");
         m.insert("dashboard.col_name", "이름");
@@ -92,6 +97,13 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.add.name_label", "서버 이름");
         m.insert("mcp.add.name_placeholder", "예: my-server");
         m.insert("mcp.add.config_label", "서버 구성 (JSON)");
+        m.insert("mcp.add.mode_form", "폼");
+        m.insert("mcp.add.mode_json", "고급 JSON");
+        m.insert("mcp.add.command_label", "명령어");
+        m.insert("mcp.add.args_label", "인수");
+        m.insert("mcp.add.args_hint", "한 줄에 하나의 인수");
+        m.insert("mcp.add.env_label", "환경 변수");
+        m.insert("mcp.add.env_hint", "KEY=VALUE 형식, 한 줄에 하나");
         m.insert("mcp.add.submit", "서버 추가");
         m.insert("mcp.add.name_required", "서버 이름을 입력하세요");
         m.insert("mcp.browse.title", "MCP 서버 카탈로그");
@@ -109,6 +121,16 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.source.claude_code", "Claude Code");
         m.insert("mcp.source.claude_desktop", "Claude Desktop");
 
+        // ── MCP Tools (Feature 7) ──
+        m.insert("mcp.tab_tools", "도구 탐색기");
+        m.insert("mcp.tools.title", "도구 탐색기");
+        m.insert("mcp.tools.description", "모든 MCP 서버의 모든 도구");
+        m.insert("mcp.tools.search", "도구 검색...");
+        m.insert("mcp.tools.parameters", "매개변수 (JSON Schema)");
+        m.insert("mcp.tools.required", "필수");
+        m.insert("mcp.tools.no_tools", "도구를 찾을 수 없습니다. 먼저 상태 점검을 실행하세요.");
+        m.insert("mcp.tools.from_server", "서버");
+
         // ── MCP Browser ──
         m.insert("mcp_browser.title", "MCP 브라우저");
         m.insert("mcp_browser.subtitle", "Claude Code용 MCP 서버를 탐색하고 설치");
@@ -122,6 +144,8 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp_browser.install_failed", "설치에 실패했습니다");
 
         // ── Projects ──
+        m.insert("projects.tab_projects", "프로젝트");
+        m.insert("projects.tab_health", "건강 개요");
         m.insert("projects.title", "프로젝트");
         m.insert("projects.subtitle", "~/.claude.json에 등록된 모든 프로젝트");
         m.insert("projects.loading", "로딩 중");
@@ -195,7 +219,24 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("project_detail.bytes", "바이트");
         m.insert("project_detail.unknown_tab", "알 수 없는 탭");
 
+        // ── Project Profile (Feature 1) ──
+        m.insert("project_detail.tab_profile", "프로필");
+        m.insert("project_detail.profile_health", "상태 점수");
+        m.insert("project_detail.profile_rules", "규칙");
+        m.insert("project_detail.profile_skills", "Skills");
+        m.insert("project_detail.profile_memory", "메모리");
+        m.insert("project_detail.profile_mcp", "MCP 서버");
+        m.insert("project_detail.profile_hooks", "Hooks");
+        m.insert("project_detail.profile_conflicts", "충돌");
+        m.insert("project_detail.profile_analyze", "심층 분석 실행");
+        m.insert("project_detail.profile_no_mcp", "MCP 서버 없음");
+        m.insert("project_detail.profile_global_scope", "글로벌");
+        m.insert("project_detail.profile_project_scope", "프로젝트");
+
         // ── Global Skills ──
+        m.insert("global_skills.tab_my_skills", "내 스킬");
+        m.insert("global_skills.tab_browse", "탐색");
+        m.insert("global_skills.tab_templates", "템플릿");
         m.insert("global_skills.title", "글로벌 Skills");
         m.insert("global_skills.subtitle", "~/.claude/skills/의 Skills 관리");
         m.insert("global_skills.loading", "Skills 로딩 중");
@@ -212,6 +253,23 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("global_skills.delete", "삭제");
         m.insert("global_skills.deleted", "삭제되었습니다!");
 
+        // ── Skill Builder (Feature 2) ──
+        m.insert("global_skills.tab_create", "새로 만들기");
+        m.insert("skill_builder.templates", "템플릿");
+        m.insert("skill_builder.editor", "편집기");
+        m.insert("skill_builder.preview", "미리보기");
+        m.insert("skill_builder.name", "Skill 이름");
+        m.insert("skill_builder.name_placeholder", "예: my-skill");
+        m.insert("skill_builder.name_required", "Skill 이름을 입력하세요");
+        m.insert("skill_builder.description", "설명");
+        m.insert("skill_builder.desc_placeholder", "이 Skill은 무엇을 하나요?");
+        m.insert("skill_builder.user_invocable", "사용자 호출 가능 (/command로 호출 가능)");
+        m.insert("skill_builder.content", "Skill 내용 (Markdown)");
+        m.insert("skill_builder.save", "Skill 저장");
+        m.insert("skill_builder.saved", "Skill 저장됨:");
+        m.insert("skill_builder.trigger", "트리거:");
+        m.insert("skill_builder.preview_hint", "템플릿을 선택하거나 입력을 시작하면 실시간 미리보기가 표시됩니다.");
+
         // ── Global Rules ──
         m.insert("global_rules.title", "글로벌 규칙");
         m.insert("global_rules.subtitle", "~/.claude/rules/의 규칙 관리");
@@ -225,6 +283,16 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("global_rules.saved", "저장되었습니다!");
         m.insert("global_rules.delete", "삭제");
         m.insert("global_rules.deleted", "삭제되었습니다!");
+
+        // ── Rules Conflicts (Feature 6) ──
+        m.insert("rules.conflicts_title", "규칙 충돌");
+        m.insert("rules.conflicts_found", "충돌 발견");
+        m.insert("rules.conflict_name_collision", "이름 충돌");
+        m.insert("rules.conflict_content_overlap", "내용 중복");
+        m.insert("rules.conflict_contradiction", "모순");
+        m.insert("rules.conflict_global", "글로벌");
+        m.insert("rules.conflict_project", "프로젝트");
+        m.insert("rules.no_conflicts", "충돌이 감지되지 않았습니다");
 
         // ── Plans ──
         m.insert("plans.title", "플랜");
@@ -336,6 +404,16 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("analytics.languages", "언어");
         m.insert("analytics.session_outcomes", "세션 결과");
         m.insert("analytics.outcomes", "결과");
+
+        // ── Teach Me Tips (Feature 5) ──
+        m.insert("analytics.tips_title", "인사이트 및 팁");
+        m.insert("analytics.tips_dismiss", "닫기");
+        m.insert("analytics.tips_learn_more", "자세히 보기");
+        m.insert("analytics.tip_category_tool", "도구");
+        m.insert("analytics.tip_category_workflow", "워크플로우");
+        m.insert("analytics.tip_category_performance", "성능");
+        m.insert("analytics.tip_category_config", "구성");
+        m.insert("analytics.no_tips", "사용 가능한 팁이 없습니다");
 
         // ── Sessions ──
         m.insert("sessions.title", "세션");
@@ -662,6 +740,44 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("docs.scopes_project_4", "프로젝트 전용 Skills 및 워크플로우");
         m.insert("docs.scopes_project_5", "CI/CD Hooks 및 자동화");
 
+        // ── Docs: Optimization Guide ──
+        m.insert("docs.toc_optimization", "최적화 가이드");
+        m.insert("docs.opt_heading", "최적화 가이드");
+        m.insert("docs.opt_callout", "분석에서 제공하는 맞춤형 팁을 심층적으로 설명합니다. 각 섹션은 패턴이 중요한 이유와 개선 방법을 Anthropic 공식 문서 링크와 함께 다룹니다.");
+        m.insert("docs.opt_why", "이유:");
+        m.insert("docs.opt_how", "방법:");
+        m.insert("docs.opt_task_heading", "Task 도구를 사용한 병렬 에이전트");
+        m.insert("docs.opt_task_why", "Task 도구는 병렬로 작업하는 전문 하위 에이전트를 실행합니다. 복잡한 다단계 작업(조사, 코드 탐색, 테스트)의 경우 하위 에이전트가 순차적이 아닌 동시에 실행될 수 있어 총 시간을 크게 줄입니다.");
+        m.insert("docs.opt_task_how", "Claude Code는 병렬화 기회를 인식하면 자동으로 Task 도구를 사용합니다. 명시적으로 요청할 수도 있습니다: \u{201c}X와 Y를 병렬로 조사해\u{201d} 또는 \u{201c}버그를 수정하면서 테스트를 실행해.\u{201d} 각 에이전트는 자체 컨텍스트 윈도우를 가져 대규모 코드베이스 탐색이 더 효율적입니다.");
+        m.insert("docs.opt_task_link", "Anthropic Docs: 모범 사례 \u{2192}");
+        m.insert("docs.opt_hooks_heading", "Hooks를 활용한 자동화");
+        m.insert("docs.opt_hooks_why", "Hooks는 Claude가 도구를 사용하기 전후에 자동으로 실행되는 셸 명령입니다. Hooks 없이는 포매터, 린터, 테스트를 수동으로 실행해야 합니다. Hooks를 사용하면 파일 작성마다 자동 포맷, 커밋마다 자동 테스트가 가능합니다.");
+        m.insert("docs.opt_hooks_how", "~/.claude/settings.json의 \u{201c}hooks\u{201d} 키에서 Hooks를 설정합니다. PreToolUse로 도구 실행 전 작업을 수행합니다(예: 쓰기 전 코드 포맷). PostToolUse로 변경 후 검증을 수행합니다(예: 편집 후 lint). Stop으로 Claude 완료 시 검사를 실행합니다.");
+        m.insert("docs.opt_hooks_link", "Anthropic Docs: Hooks \u{2192}");
+        m.insert("docs.opt_sessions_heading", "최적 세션 길이");
+        m.insert("docs.opt_sessions_why", "긴 세션은 Claude의 집중력을 희석시키는 컨텍스트를 축적합니다. 많은 메시지 후에는 이전 지시사항이 덜 눈에 띄게 됩니다. 컨텍스트 윈도우가 대화 기록으로 채워지면서 토큰 비용도 증가합니다.");
+        m.insert("docs.opt_sessions_how", "복잡한 작업을 집중된 세션으로 나누세요. /clear를 사용하여 세션 내에서 컨텍스트를 초기화하세요. 다단계 프로젝트의 경우 계획 파일을 사용하세요(Claude가 계획을 작성한 후 집중된 세션에서 단계를 실행). 각 새 세션은 현재 작업에 최대한의 주의를 기울이며 시작됩니다.");
+        m.insert("docs.opt_sessions_link", "Anthropic Docs: 모범 사례 \u{2192}");
+        m.insert("docs.opt_cost_heading", "비용 최적화");
+        m.insert("docs.opt_cost_why", "Claude 모델마다 비용이 크게 다릅니다. Opus는 복잡한 추론에 뛰어나지만 토큰당 비용이 더 높습니다. Haiku는 빠르고 저렴하여 간단한 작업에 이상적입니다. 각 작업에 적합한 모델을 사용하면 비용을 크게 절감할 수 있습니다.");
+        m.insert("docs.opt_cost_how", "/model을 사용하여 세션 중 모델을 전환하세요. Haiku 용도: 빠른 수정, 코드 포맷, 간단한 질문. Sonnet 용도: 중간 수준의 코딩 작업, 리뷰. Opus 용도: 아키텍처 설계, 복잡한 디버깅, 다중 파일 리팩토링. 분석 페이지에서 모델별 비용 내역을 확인할 수 있습니다.");
+        m.insert("docs.opt_cost_link", "Anthropic Docs: Claude Code 개요 \u{2192}");
+        m.insert("docs.opt_write_heading", "Write vs Edit: 올바른 도구 선택");
+        m.insert("docs.opt_write_why", "Write 도구는 파일 전체를 한 번에 생성하고, Edit는 기존 파일에 대상을 지정하여 변경합니다. 새 파일의 경우 Edit는 먼저 파일을 읽고 정확한 문자열 대체를 지정해야 하므로 Write가 더 효율적입니다.");
+        m.insert("docs.opt_write_how", "Claude는 일반적으로 자동으로 올바른 도구를 선택합니다. 그러나 처음부터 새 파일을 만드는 경우(템플릿, 보일러플레이트, 설정) 명시적으로 \u{201c}새 파일을 만들어\u{201d}라고 하면 Claude가 Write를 선택하는 데 도움이 됩니다. 기존 코드 수정에는 항상 Edit가 선호됩니다.");
+        m.insert("docs.opt_models_heading", "모델 다양성");
+        m.insert("docs.opt_models_why", "모든 작업에 단일 모델을 사용하면 간단한 작업에 과다 지불(모든 것에 Opus)하거나 복잡한 작업에 파워 부족(모든 것에 Haiku)이 됩니다. 각 모델 패밀리는 강점이 있습니다: 속도의 Haiku, 균형의 Sonnet, 깊은 추론의 Opus.");
+        m.insert("docs.opt_models_how", "/model 명령으로 모델을 전환하세요. 좋은 패턴: Opus로 계획과 아키텍처를 시작하고, Sonnet으로 전환하여 구현, Haiku로 빠른 수정과 포맷을 수행합니다. 분석 페이지에서 가장 많이 사용하는 모델을 확인할 수 있습니다.");
+        m.insert("docs.opt_models_link", "Anthropic Docs: Claude Code 개요 \u{2192}");
+        m.insert("docs.opt_git_heading", "Git 통합");
+        m.insert("docs.opt_git_why", "Claude Code는 스테이지, 커밋, 푸시 및 PR 생성을 직접 수행할 수 있습니다. Git 통합 없이는 Claude 세션마다 수동으로 커밋해야 하므로 워크플로가 중단되고 중요한 변경 사항을 잊을 위험이 있습니다.");
+        m.insert("docs.opt_git_how", "Claude에게 커밋을 요청하기만 하면 됩니다: \u{201c}이 변경 사항을 커밋해\u{201d} 또는 /commit을 사용합니다. Claude는 설명적인 커밋 메시지를 작성하고, 관련 파일만 스테이지하며, pre-commit hooks를 존중합니다. PR의 경우 Claude에게 \u{201c}PR을 만들어\u{201d}라고 요청하면 gh CLI를 사용하여 푸시하고 요약이 포함된 풀 리퀘스트를 엽니다.");
+        m.insert("docs.opt_git_link", "Anthropic Docs: 모범 사례 \u{2192}");
+        m.insert("docs.opt_churn_heading", "코드 변동 줄이기");
+        m.insert("docs.opt_churn_why", "추가된 줄보다 삭제된 줄이 많으면 보통 Claude가 다시 작성해야 하는 코드를 작성했다는 의미입니다. 이는 토큰과 시간의 낭비입니다. 일반적인 원인: 모호한 프롬프트, 누락된 컨텍스트, 요구 사항 추측.");
+        m.insert("docs.opt_churn_how", "프롬프트에서 구체적으로: 기존 파일을 참조하고, 정확한 함수명을 지정하고, 예상 동작을 설명하세요. CLAUDE.md를 사용하여 규칙을 문서화해 Claude가 추측하지 않도록 하세요. 복잡한 변경의 경우 구현 전에 먼저 Claude에게 계획을 세우도록 요청하세요(/plan). 코딩을 시작하기 전에 Claude의 계획을 검토하세요.");
+        m.insert("docs.opt_churn_link", "Anthropic Docs: 모범 사례 \u{2192}");
+
         // ── Docs: Tips & Best Practices ──
         m.insert("docs.bestpractices_heading", "팁과 모범 사례");
         m.insert("docs.bestpractices_hygiene_heading", "구성 위생");
@@ -815,6 +931,183 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("settings.user_prompt_submit", "UserPromptSubmit");
         m.insert("settings.session_start", "SessionStart");
 
+        // ── Sidebar (new) ──
+        m.insert("sidebar.agents", "에이전트");
+        m.insert("sidebar.plugins", "플러그인");
+        m.insert("sidebar.launch_profiles", "실행 프로필");
+        m.insert("sidebar.system_prompts", "시스템 프롬프트");
+        m.insert("sidebar.worktrees", "워크트리");
+
+        // ── Agents ──
+        m.insert("agents.title", "에이전트");
+        m.insert("agents.subtitle", "커스텀 에이전트 구성 관리");
+        m.insert("agents.tab_overview", "개요");
+        m.insert("agents.tab_create", "새로 만들기");
+        m.insert("agents.loading", "로딩 중...");
+        m.insert("agents.empty", "에이전트가 없습니다");
+        m.insert("agents.name", "이름");
+        m.insert("agents.description", "설명");
+        m.insert("agents.prompt", "프롬프트");
+        m.insert("agents.model", "모델");
+        m.insert("agents.allowed_tools", "허용된 도구");
+        m.insert("agents.disallowed_tools", "차단된 도구");
+        m.insert("agents.custom_instructions", "커스텀 지시사항");
+        m.insert("agents.source", "소스");
+        m.insert("agents.create_success", "에이전트가 생성되었습니다");
+        m.insert("agents.update_success", "에이전트가 업데이트되었습니다");
+        m.insert("agents.delete_confirm", "이 에이전트를 삭제하시겠습니까?");
+        m.insert("agents.delete_success", "에이전트가 삭제되었습니다");
+        m.insert("agents.copy_cli", "CLI 명령어 복사");
+        m.insert("agents.copied", "복사됨");
+
+        // ── Plugins ──
+        m.insert("plugins.title", "플러그인");
+        m.insert("plugins.subtitle", "설치된 플러그인 관리");
+        m.insert("plugins.loading", "로딩 중...");
+        m.insert("plugins.empty", "플러그인이 없습니다");
+        m.insert("plugins.name", "이름");
+        m.insert("plugins.version", "버전");
+        m.insert("plugins.path", "경로");
+        m.insert("plugins.status", "상태");
+        m.insert("plugins.enabled", "활성");
+        m.insert("plugins.disabled", "비활성");
+        m.insert("plugins.install", "설치");
+        m.insert("plugins.install_path", "설치 경로");
+        m.insert("plugins.install_success", "플러그인이 설치되었습니다");
+        m.insert("plugins.delete_confirm", "이 플러그인을 삭제하시겠습니까?");
+        m.insert("plugins.delete_success", "플러그인이 삭제되었습니다");
+
+        // ── Launch Profiles ──
+        m.insert("launch_profiles.title", "실행 프로필");
+        m.insert("launch_profiles.subtitle", "Claude Code 실행 구성 관리");
+        m.insert("launch_profiles.tab_profiles", "프로필");
+        m.insert("launch_profiles.tab_create", "새로 만들기");
+        m.insert("launch_profiles.tab_presets", "프리셋");
+        m.insert("launch_profiles.loading", "로딩 중...");
+        m.insert("launch_profiles.empty", "프로필이 없습니다");
+        m.insert("launch_profiles.name", "이름");
+        m.insert("launch_profiles.description", "설명");
+        m.insert("launch_profiles.model", "모델");
+        m.insert("launch_profiles.effort", "추론 수준");
+        m.insert("launch_profiles.permission_mode", "권한 모드");
+        m.insert("launch_profiles.allowed_tools", "허용된 도구");
+        m.insert("launch_profiles.disallowed_tools", "차단된 도구");
+        m.insert("launch_profiles.system_prompt", "시스템 프롬프트");
+        m.insert("launch_profiles.append_system_prompt", "시스템 프롬프트에 추가");
+        m.insert("launch_profiles.max_budget", "최대 예산");
+        m.insert("launch_profiles.fallback_model", "대체 모델");
+        m.insert("launch_profiles.debug_filter", "디버그 필터");
+        m.insert("launch_profiles.add_dirs", "디렉토리 추가");
+        m.insert("launch_profiles.copy_command", "명령어 복사");
+        m.insert("launch_profiles.copied", "복사됨");
+        m.insert("launch_profiles.create_success", "프로필이 생성되었습니다");
+        m.insert("launch_profiles.delete_confirm", "이 프로필을 삭제하시겠습니까?");
+        m.insert("launch_profiles.delete_success", "프로필이 삭제되었습니다");
+        m.insert("launch_profiles.use_template", "템플릿 사용");
+        m.insert("launch_profiles.preset_code_review", "코드 리뷰");
+        m.insert("launch_profiles.preset_code_review_desc", "읽기 전용 코드 리뷰 프로필");
+        m.insert("launch_profiles.preset_full_dev", "풀 개발");
+        m.insert("launch_profiles.preset_full_dev_desc", "전체 권한을 가진 개발 프로필");
+        m.insert("launch_profiles.preset_quick_fix", "빠른 수정");
+        m.insert("launch_profiles.preset_quick_fix_desc", "간단한 수정을 위한 경량 프로필");
+        m.insert("launch_profiles.preset_research", "리서치");
+        m.insert("launch_profiles.preset_research_desc", "코드베이스 조사용 프로필");
+        m.insert("launch_profiles.preset_budget", "예산 제한");
+        m.insert("launch_profiles.preset_budget_desc", "비용 제한이 있는 프로필");
+
+        // ── System Prompts ──
+        m.insert("system_prompts.title", "시스템 프롬프트");
+        m.insert("system_prompts.subtitle", "재사용 가능한 시스템 프롬프트 관리");
+        m.insert("system_prompts.tab_library", "라이브러리");
+        m.insert("system_prompts.tab_create", "새로 만들기");
+        m.insert("system_prompts.loading", "로딩 중...");
+        m.insert("system_prompts.empty", "시스템 프롬프트가 없습니다");
+        m.insert("system_prompts.name", "이름");
+        m.insert("system_prompts.content", "내용");
+        m.insert("system_prompts.modified", "수정일");
+        m.insert("system_prompts.create_success", "시스템 프롬프트가 생성되었습니다");
+        m.insert("system_prompts.update_success", "시스템 프롬프트가 업데이트되었습니다");
+        m.insert("system_prompts.delete_confirm", "이 시스템 프롬프트를 삭제하시겠습니까?");
+        m.insert("system_prompts.delete_success", "시스템 프롬프트가 삭제되었습니다");
+        m.insert("system_prompts.copy_cli", "CLI 명령어 복사");
+        m.insert("system_prompts.copied", "복사됨");
+        m.insert("system_prompts.use_template", "템플릿 사용");
+        m.insert("system_prompts.template_reviewer", "코드 리뷰어");
+        m.insert("system_prompts.template_docs", "문서 작성자");
+        m.insert("system_prompts.template_security", "보안 감사");
+        m.insert("system_prompts.template_refactor", "리팩토링");
+
+        // ── Worktrees ──
+        m.insert("worktrees.title", "워크트리");
+        m.insert("worktrees.subtitle", "Git 워크트리 관리");
+        m.insert("worktrees.loading", "로딩 중...");
+        m.insert("worktrees.empty", "워크트리가 없습니다");
+        m.insert("worktrees.project_path", "프로젝트 경로");
+        m.insert("worktrees.branch_name", "브랜치 이름");
+        m.insert("worktrees.create", "생성");
+        m.insert("worktrees.create_success", "워크트리가 생성되었습니다");
+        m.insert("worktrees.delete_confirm", "이 워크트리를 삭제하시겠습니까?");
+        m.insert("worktrees.delete_success", "워크트리가 삭제되었습니다");
+        m.insert("worktrees.col_branch", "브랜치");
+        m.insert("worktrees.col_path", "경로");
+        m.insert("worktrees.col_head", "HEAD");
+        m.insert("worktrees.col_status", "상태");
+        m.insert("worktrees.col_actions", "작업");
+        m.insert("worktrees.badge_main", "메인");
+        m.insert("worktrees.badge_bare", "베어");
+        m.insert("worktrees.badge_worktree", "워크트리");
+
+        // ── 에이전트 (폼 필드) ──
+        m.insert("agents.field_name", "이름");
+        m.insert("agents.field_description", "설명");
+        m.insert("agents.field_prompt", "프롬프트");
+        m.insert("agents.field_model", "모델");
+        m.insert("agents.field_allowed_tools", "허용된 도구");
+        m.insert("agents.field_disallowed_tools", "차단된 도구");
+        m.insert("agents.field_custom_instructions", "커스텀 지시사항");
+        m.insert("agents.tools_hint", "쉼표로 구분된 목록, 예: Bash, Edit, Read");
+        m.insert("agents.tools_placeholder", "Bash, Edit, Read, Write...");
+        m.insert("agents.create_btn", "에이전트 생성");
+        m.insert("agents.editing", "편집 중");
+        m.insert("agents.save_success", "에이전트가 업데이트되었습니다");
+        m.insert("agents.confirm_delete", "에이전트 삭제");
+        m.insert("agents.name_required", "이름은 필수입니다");
+        m.insert("agents.model_default", "기본값 (상속)");
+        m.insert("agents.name_placeholder", "예: code-reviewer");
+        m.insert("agents.desc_placeholder", "이 에이전트는 무엇을 하나요?");
+        m.insert("agents.prompt_placeholder", "당신은 코드 리뷰어입니다...");
+        m.insert("agents.instructions_placeholder", "추가 지시사항...");
+
+        // ── 플러그인 (누락) ──
+        m.insert("plugins.actions", "작업");
+
+        // ── 실행 프로필 (누락) ──
+        m.insert("launch_profiles.save_btn", "프로필 생성");
+
+        // ── 공통 (누락) ──
+        m.insert("common.edit", "편집");
+        m.insert("common.saved", "저장됨");
+
+        // ── Timeline ──
+        m.insert("sidebar.timeline", "타임라인");
+        m.insert("timeline.title", "타임라인");
+        m.insert("timeline.subtitle", "Claude 구성의 Git 기반 버전 기록");
+        m.insert("timeline.files", "파일");
+        m.insert("timeline.restore", "복원");
+        m.insert("timeline.confirm_restore_title", "구성 복원");
+        m.insert("timeline.confirm_restore_msg", "선택한 커밋으로 모든 파일을 복원합니다. 현재 상태의 백업이 먼저 저장됩니다. 계속하시겠습니까?");
+        m.insert("timeline.empty", "아직 타임라인 항목이 없습니다. 구성을 편집하면 여기에 변경 사항이 표시됩니다.");
+        m.insert("timeline.error", "타임라인 로드 실패");
+        m.insert("timeline.select_commit", "커밋을 선택하여 변경 사항 보기");
+        m.insert("timeline.diff_for", "변경 사항");
+
+        // ── 도움말 채팅 ──
+        m.insert("help_chat.title", "도움말");
+        m.insert("help_chat.placeholder", "이 페이지에 대해 질문하세요...");
+        m.insert("help_chat.send", "보내기");
+        m.insert("help_chat.thinking", "생각 중...");
+        m.insert("help_chat.clear", "새 대화");
+        m.insert("help_chat.no_api_key", "도움말 채팅에는 API 키가 필요합니다. 설정에서 구성하세요.");
 
         m
     })

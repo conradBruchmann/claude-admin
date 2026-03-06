@@ -2,6 +2,7 @@ use leptos::*;
 use leptos_meta::*;
 use leptos_router::*;
 
+use crate::components::context_help::ContextHelpChat;
 use crate::components::footer::Footer;
 use crate::components::keyboard_shortcuts::KeyboardShortcuts;
 use crate::components::sidebar::Sidebar;
@@ -25,14 +26,16 @@ pub fn App() -> impl IntoView {
                         <Route path="/projects" view=pages::projects::ProjectsPage/>
                         <Route path="/projects/:id" view=pages::project_detail::ProjectDetailPage/>
                         <Route path="/skills" view=pages::global_skills::GlobalSkillsPage/>
-                        <Route path="/skill-browser" view=pages::skill_browser::SkillBrowserPage/>
                         <Route path="/rules" view=pages::global_rules::GlobalRulesPage/>
                         <Route path="/plans" view=pages::plans::PlansPage/>
                         <Route path="/mcp" view=pages::mcp::McpServersPage/>
-                        <Route path="/mcp-browser" view=pages::mcp_browser::McpBrowserPage/>
+                        <Route path="/agents" view=pages::agents::AgentsPage/>
+                        <Route path="/plugins" view=pages::plugins::PluginsPage/>
+                        <Route path="/launch-profiles" view=pages::launch_profiles::LaunchProfilesPage/>
+                        <Route path="/system-prompts" view=pages::system_prompts::SystemPromptsPage/>
                         <Route path="/permissions" view=pages::permissions::PermissionsPage/>
                         <Route path="/permissions/:id" view=pages::permissions::PermissionDetailPage/>
-                        <Route path="/health" view=pages::permissions::ConfigHealthPage/>
+                        <Route path="/worktrees" view=pages::worktrees::WorktreesPage/>
                         <Route path="/settings" view=pages::settings::SettingsPage/>
                         <Route path="/sessions" view=pages::sessions::SessionsPage/>
                         <Route path="/github" view=pages::github::GitHubPage/>
@@ -40,12 +43,13 @@ pub fn App() -> impl IntoView {
                         <Route path="/help" view=pages::help::HelpPage/>
                         <Route path="/licenses" view=pages::licenses::LicensesPage/>
                         <Route path="/backups" view=pages::backups::BackupsPage/>
+                        <Route path="/timeline" view=pages::timeline::TimelinePage/>
                         <Route path="/search" view=pages::search::SearchPage/>
-                        <Route path="/templates" view=pages::templates::TemplatesPage/>
                     </Routes>
                 </main>
                 <Footer/>
             </div>
+            <ContextHelpChat/>
         </Router>
     }
 }

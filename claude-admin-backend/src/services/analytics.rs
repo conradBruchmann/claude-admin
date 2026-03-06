@@ -289,9 +289,7 @@ fn aggregate_session_meta(claude_home: &Path) -> SessionAggregation {
             agg.session_count += 1;
 
             // Tool counts (snake_case or camelCase)
-            let tools_val = json
-                .get("tool_counts")
-                .or_else(|| json.get("toolCounts"));
+            let tools_val = json.get("tool_counts").or_else(|| json.get("toolCounts"));
             if let Some(tools) = tools_val.and_then(|v| v.as_object()) {
                 for (tool, count) in tools {
                     let c = count.as_u64().unwrap_or(0);
@@ -365,4 +363,167 @@ fn parse_facets(claude_home: &Path) -> Vec<(String, u64)> {
     let mut outcomes: Vec<(String, u64)> = outcome_counts.into_iter().collect();
     outcomes.sort_by(|a, b| b.1.cmp(&a.1));
     outcomes
+}
+
+/// Generate personalized tips based on analytics data.
+/// Rule-based heuristics, no LLM call required.
+pub fn generate_tips(analytics: &AnalyticsOverview, hooks_count: usize) -> Vec<TeachMeTip> {
+    let mut tips = Vec::new();
+
+    // 1. Task vs Bash ratio
+    let bash_count = analytics
+        .tool_ranking
+        .iter()
+        .find(|(name, _)| name == "Bash")
+        .map(|(_, c)| *c)
+        .unwrap_or(0);
+    let task_count = analytics
+        .tool_ranking
+        .iter()
+        .find(|(name, _)| name == "Task")
+        .map(|(_, c)| *c)
+        .unwrap_or(0);
+    if bash_count > 100 && task_count < bash_count / 10 {
+        tips.push(TeachMeTip {
+            id: "task_underused".to_string(),
+            category: TipCategory::Tool,
+            title: "Task tool underused".to_string(),
+            body: format!(
+                "You use Bash {}x but Task only {}x. Task can launch parallel agents for complex work.",
+                bash_count, task_count
+            ),
+            data_point: format!("Bash: {}, Task: {}", bash_count, task_count),
+            action_url: Some("/docs?section=optimization".to_string()),
+        });
+    }
+
+    // 2. No hooks configured
+    if analytics.total_git_commits > 20 && hooks_count == 0 {
+        tips.push(TeachMeTip {
+            id: "no_hooks".to_string(),
+            category: TipCategory::Config,
+            title: "No hooks configured".to_string(),
+            body: format!(
+                "{} git commits but no hooks configured. Hooks can automate tests before commits.",
+                analytics.total_git_commits
+            ),
+            data_point: format!("{} commits, 0 hooks", analytics.total_git_commits),
+            action_url: Some("/docs?section=optimization".to_string()),
+        });
+    }
+
+    // 3. Long sessions
+    if analytics.total_sessions > 10 {
+        let avg_messages = analytics.total_messages as f64 / analytics.total_sessions as f64;
+        if avg_messages > 50.0 {
+            tips.push(TeachMeTip {
+                id: "long_sessions".to_string(),
+                category: TipCategory::Performance,
+                title: "Very long sessions detected".to_string(),
+                body: format!(
+                    "Average {:.0} messages per session. Smaller, focused tasks usually yield better results.",
+                    avg_messages
+                ),
+                data_point: format!("{:.0} avg messages/session", avg_messages),
+                action_url: Some("/docs?section=optimization".to_string()),
+            });
+        }
+    }
+
+    // 4. High cost
+    if analytics.estimated_total_cost_usd > 50.0 {
+        tips.push(TeachMeTip {
+            id: "high_cost".to_string(),
+            category: TipCategory::Performance,
+            title: "Cost optimization opportunity".to_string(),
+            body: format!(
+                "Estimated ${:.2} total spend. Consider using Haiku for simpler tasks to reduce costs.",
+                analytics.estimated_total_cost_usd
+            ),
+            data_point: format!("${:.2} estimated total", analytics.estimated_total_cost_usd),
+            action_url: Some("/docs?section=optimization".to_string()),
+        });
+    }
+
+    // 5. Write tool underused
+    let write_count = analytics
+        .tool_ranking
+        .iter()
+        .find(|(name, _)| name == "Write")
+        .map(|(_, c)| *c)
+        .unwrap_or(0);
+    let edit_count = analytics
+        .tool_ranking
+        .iter()
+        .find(|(name, _)| name == "Edit")
+        .map(|(_, c)| *c)
+        .unwrap_or(0);
+    if edit_count > 100 && write_count < 5 {
+        tips.push(TeachMeTip {
+            id: "write_underused".to_string(),
+            category: TipCategory::Tool,
+            title: "Write tool rarely used".to_string(),
+            body: format!(
+                "You use Edit {}x but Write only {}x. For new files, Write is more efficient.",
+                edit_count, write_count
+            ),
+            data_point: format!("Edit: {}, Write: {}", edit_count, write_count),
+            action_url: Some("/docs?section=optimization".to_string()),
+        });
+    }
+
+    // 6. Single model usage
+    if analytics.model_usage.len() == 1 && analytics.total_sessions > 20 {
+        let model = &analytics.model_usage[0].model;
+        tips.push(TeachMeTip {
+            id: "single_model".to_string(),
+            category: TipCategory::Workflow,
+            title: "Only using one model".to_string(),
+            body: format!(
+                "All {} sessions use {}. Try Haiku for quick tasks or Opus for complex reasoning.",
+                analytics.total_sessions, model
+            ),
+            data_point: format!("100% {}", model),
+            action_url: Some("/docs?section=optimization".to_string()),
+        });
+    }
+
+    // 7. No git integration
+    if analytics.total_git_commits == 0 && analytics.total_sessions > 30 {
+        tips.push(TeachMeTip {
+            id: "no_git".to_string(),
+            category: TipCategory::Workflow,
+            title: "No git commits found".to_string(),
+            body: format!(
+                "{} sessions but 0 git commits tracked. Claude can commit changes directly.",
+                analytics.total_sessions
+            ),
+            data_point: format!("{} sessions, 0 commits", analytics.total_sessions),
+            action_url: Some("/docs?section=optimization".to_string()),
+        });
+    }
+
+    // 8. Heavy code deletion
+    if analytics.total_lines_removed > analytics.total_lines_added * 2
+        && analytics.total_lines_removed > 1000
+    {
+        tips.push(TeachMeTip {
+            id: "heavy_deletion".to_string(),
+            category: TipCategory::Workflow,
+            title: "More code deleted than added".to_string(),
+            body: format!(
+                "+{} / -{} lines. Consider being more specific in prompts to reduce rework.",
+                analytics.total_lines_added, analytics.total_lines_removed
+            ),
+            data_point: format!(
+                "+{} / -{}",
+                analytics.total_lines_added, analytics.total_lines_removed
+            ),
+            action_url: Some("/docs?section=optimization".to_string()),
+        });
+    }
+
+    // Cap at 5 tips
+    tips.truncate(5);
+    tips
 }

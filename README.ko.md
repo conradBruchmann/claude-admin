@@ -121,15 +121,15 @@ xattr -dr com.apple.quarantine /Applications/ClaudeAdmin.app
 
 ClaudeAdmin은 표준 Claude Code 설정을 읽고 씁니다:
 
-| 경로 | 설명 |
-|------|------|
-| `~/.claude.json` | 프로젝트 레지스트리, MCP 서버 |
-| `~/.claude/settings.json` | 전역 설정, 훅 |
-| `~/.claude/skills/` | 전역 스킬 |
-| `~/.claude/rules/` | 전역 규칙 |
-| `~/.claude/plans/` | 플랜 파일 |
-| `~/.claude/projects/<encoded>/memory/` | 프로젝트별 메모리 |
-| `~/.claude/backups/` | 자동 백업 (타임스탬프) |
+| 경로                                   | 설명                          |
+| -------------------------------------- | ----------------------------- |
+| `~/.claude.json`                       | 프로젝트 레지스트리, MCP 서버 |
+| `~/.claude/settings.json`              | 전역 설정, 훅                 |
+| `~/.claude/skills/`                    | 전역 스킬                     |
+| `~/.claude/rules/`                     | 전역 규칙                     |
+| `~/.claude/plans/`                     | 플랜 파일                     |
+| `~/.claude/projects/<encoded>/memory/` | 프로젝트별 메모리             |
+| `~/.claude/backups/`                   | 자동 백업 (타임스탬프)        |
 
 ## 라이선스
 

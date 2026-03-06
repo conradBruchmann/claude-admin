@@ -1,5 +1,5 @@
 use claude_admin_shared::{
-    DashboardHealthScore, DashboardOverview, ProjectStatus, ProjectSummaryLite,
+    AuditLogResponse, DashboardHealthScore, DashboardOverview, ProjectStatus, ProjectSummaryLite,
 };
 use leptos::*;
 
@@ -18,6 +18,12 @@ pub fn DashboardPage() -> impl IntoView {
     let health = create_resource(
         || (),
         |_| async move { api::get::<DashboardHealthScore>("/dashboard/health").await },
+    );
+
+    // Recent changes from audit log
+    let recent_changes = create_resource(
+        || (),
+        |_| async move { api::get::<AuditLogResponse>("/audit?limit=5").await },
     );
 
     view! {
@@ -104,6 +110,59 @@ pub fn DashboardPage() -> impl IntoView {
                             </tbody>
                         </table>
                     </div>
+
+                    // Recent Changes section
+                    <h3 style="margin-top: 2rem; margin-bottom: 1rem;">{t("dashboard.recent_changes")}</h3>
+                    <Suspense fallback=move || view! { <div style="color: var(--text-muted); font-size: 0.875rem;">"..."</div> }>
+                        {move || recent_changes.get().map(|result| match result {
+                            Ok(audit) if !audit.entries.is_empty() => {
+                                view! {
+                                    <div class="table-container">
+                                        <table>
+                                            <thead>
+                                                <tr>
+                                                    <th>{t("dashboard.change_action")}</th>
+                                                    <th>{t("dashboard.change_resource")}</th>
+                                                    <th>{t("dashboard.change_time")}</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {audit.entries.into_iter().map(|entry| {
+                                                    let action_badge = match entry.action.as_str() {
+                                                        "create" => "badge badge-success",
+                                                        "delete" => "badge badge-danger",
+                                                        _ => "badge badge-warning",
+                                                    };
+                                                    // Format timestamp to readable form
+                                                    let time_display = entry.timestamp.get(..16).unwrap_or(&entry.timestamp).replace('T', " ");
+                                                    view! {
+                                                        <tr>
+                                                            <td>
+                                                                <span class=action_badge>{entry.action}</span>
+                                                            </td>
+                                                            <td>
+                                                                <span style="font-weight: 500;">{&entry.resource_type}</span>
+                                                                " "
+                                                                <span style="color: var(--text-secondary);">{entry.resource_name}</span>
+                                                            </td>
+                                                            <td style="color: var(--text-muted); font-size: 0.8125rem;">
+                                                                {time_display}
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                }).collect_view()}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }.into_view()
+                            }
+                            _ => view! {
+                                <div style="color: var(--text-muted); font-size: 0.875rem; padding: 1rem;">
+                                    {t("dashboard.no_recent_changes")}
+                                </div>
+                            }.into_view(),
+                        })}
+                    </Suspense>
                 }.into_view()
                 },
                 Err(e) => view! {

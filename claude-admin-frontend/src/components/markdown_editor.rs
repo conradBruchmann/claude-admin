@@ -43,7 +43,10 @@ pub fn MarkdownEditor(
                 .await
                 {
                     Ok(resp) => setter.set(resp.html),
-                    Err(_) => setter.set(format!("<p>{}</p>", t("component.markdown.preview_unavailable").get_untracked())),
+                    Err(_) => setter.set(format!(
+                        "<p>{}</p>",
+                        t("component.markdown.preview_unavailable").get_untracked()
+                    )),
                 }
             });
         }

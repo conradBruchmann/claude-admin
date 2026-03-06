@@ -121,15 +121,15 @@ xattr -dr com.apple.quarantine /Applications/ClaudeAdmin.app
 
 ClaudeAdmin は標準の Claude Code 設定を読み書きします：
 
-| パス | 説明 |
-|------|------|
-| `~/.claude.json` | プロジェクトレジストリ、MCP サーバー |
-| `~/.claude/settings.json` | グローバル設定、フック |
-| `~/.claude/skills/` | グローバルスキル |
-| `~/.claude/rules/` | グローバルルール |
-| `~/.claude/plans/` | プランファイル |
-| `~/.claude/projects/<encoded>/memory/` | プロジェクトごとのメモリ |
-| `~/.claude/backups/` | 自動バックアップ（タイムスタンプ付き） |
+| パス                                   | 説明                                   |
+| -------------------------------------- | -------------------------------------- |
+| `~/.claude.json`                       | プロジェクトレジストリ、MCP サーバー   |
+| `~/.claude/settings.json`              | グローバル設定、フック                 |
+| `~/.claude/skills/`                    | グローバルスキル                       |
+| `~/.claude/rules/`                     | グローバルルール                       |
+| `~/.claude/plans/`                     | プランファイル                         |
+| `~/.claude/projects/<encoded>/memory/` | プロジェクトごとのメモリ               |
+| `~/.claude/backups/`                   | 自動バックアップ（タイムスタンプ付き） |
 
 ## ライセンス
 

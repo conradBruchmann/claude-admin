@@ -121,15 +121,15 @@ Tras la instalación, inicia ClaudeAdmin desde el Menú Inicio o el Escritorio �
 
 ClaudeAdmin lee y escribe la configuración estándar de Claude Code:
 
-| Ruta | Descripción |
-|------|-------------|
-| `~/.claude.json` | Registro de proyectos, servidores MCP |
-| `~/.claude/settings.json` | Configuración global, hooks |
-| `~/.claude/skills/` | Habilidades globales |
-| `~/.claude/rules/` | Reglas globales |
-| `~/.claude/plans/` | Archivos de planes |
-| `~/.claude/projects/<encoded>/memory/` | Memoria por proyecto |
-| `~/.claude/backups/` | Copias de seguridad automáticas (con marca de tiempo) |
+| Ruta                                   | Descripción                                           |
+| -------------------------------------- | ----------------------------------------------------- |
+| `~/.claude.json`                       | Registro de proyectos, servidores MCP                 |
+| `~/.claude/settings.json`              | Configuración global, hooks                           |
+| `~/.claude/skills/`                    | Habilidades globales                                  |
+| `~/.claude/rules/`                     | Reglas globales                                       |
+| `~/.claude/plans/`                     | Archivos de planes                                    |
+| `~/.claude/projects/<encoded>/memory/` | Memoria por proyecto                                  |
+| `~/.claude/backups/`                   | Copias de seguridad automáticas (con marca de tiempo) |
 
 ## Licencia
 

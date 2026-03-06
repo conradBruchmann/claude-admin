@@ -3,6 +3,7 @@ use std::path::Path;
 
 /// Write content to a file, creating a backup first if the file exists.
 /// Uses atomic write (write to .tmp, then rename).
+/// Also commits to the git timeline if the file is inside claude_home.
 pub async fn write_with_backup(
     claude_home: &Path,
     file_path: &Path,
@@ -23,6 +24,26 @@ pub async fn write_with_backup(
     let tmp_path = file_path.with_extension("tmp");
     tokio::fs::write(&tmp_path, content).await?;
     tokio::fs::rename(&tmp_path, file_path).await?;
+
+    // Auto-commit to git timeline (best-effort, don't fail the write)
+    if file_path.starts_with(claude_home) {
+        let relative = file_path
+            .strip_prefix(claude_home)
+            .unwrap_or(file_path)
+            .to_string_lossy();
+        let action = if file_path.exists() {
+            "Update"
+        } else {
+            "Create"
+        };
+        let msg = format!("{} {}", action, relative);
+        let home = claude_home.to_path_buf();
+        tokio::spawn(async move {
+            if let Err(e) = crate::services::timeline::commit_all(&home, &msg).await {
+                tracing::debug!("Timeline commit skipped: {}", e);
+            }
+        });
+    }
 
     Ok(())
 }

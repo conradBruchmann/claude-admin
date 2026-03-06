@@ -44,6 +44,11 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("dashboard.plans", "计划");
         m.insert("dashboard.config_health", "配置健康");
         m.insert("dashboard.recent_projects", "最近项目");
+        m.insert("dashboard.recent_changes", "最近更改");
+        m.insert("dashboard.no_recent_changes", "没有最近的更改");
+        m.insert("dashboard.change_action", "操作");
+        m.insert("dashboard.change_resource", "资源");
+        m.insert("dashboard.change_time", "时间");
         m.insert("dashboard.loading", "加载中");
         m.insert("dashboard.error_loading", "加载仪表板时出错");
         m.insert("dashboard.col_name", "名称");
@@ -92,6 +97,13 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.add.name_label", "服务器名称");
         m.insert("mcp.add.name_placeholder", "例如 my-server");
         m.insert("mcp.add.config_label", "服务器配置 (JSON)");
+        m.insert("mcp.add.mode_form", "表单");
+        m.insert("mcp.add.mode_json", "高级 JSON");
+        m.insert("mcp.add.command_label", "命令");
+        m.insert("mcp.add.args_label", "参数");
+        m.insert("mcp.add.args_hint", "每行一个参数");
+        m.insert("mcp.add.env_label", "环境变量");
+        m.insert("mcp.add.env_hint", "KEY=VALUE 格式，每行一个");
         m.insert("mcp.add.submit", "添加服务器");
         m.insert("mcp.add.name_required", "请输入服务器名称");
         m.insert("mcp.browse.title", "MCP 服务器目录");
@@ -109,6 +121,16 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.source.claude_code", "Claude Code");
         m.insert("mcp.source.claude_desktop", "Claude Desktop");
 
+        // ── MCP Tools (Feature 7) ──
+        m.insert("mcp.tab_tools", "工具浏览器");
+        m.insert("mcp.tools.title", "工具浏览器");
+        m.insert("mcp.tools.description", "所有 MCP 服务器的所有工具");
+        m.insert("mcp.tools.search", "搜索工具...");
+        m.insert("mcp.tools.parameters", "参数 (JSON Schema)");
+        m.insert("mcp.tools.required", "必填");
+        m.insert("mcp.tools.no_tools", "未找到工具。请先运行健康检查。");
+        m.insert("mcp.tools.from_server", "来自");
+
         // ── MCP Browser ──
         m.insert("mcp_browser.title", "MCP 浏览器");
         m.insert("mcp_browser.subtitle", "发现并安装 Claude Code 的 MCP 服务器");
@@ -122,6 +144,8 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp_browser.install_failed", "安装失败");
 
         // ── Projects ──
+        m.insert("projects.tab_projects", "项目");
+        m.insert("projects.tab_health", "健康概览");
         m.insert("projects.title", "项目");
         m.insert("projects.subtitle", "所有在 ~/.claude.json 中注册的项目");
         m.insert("projects.loading", "加载中");
@@ -195,7 +219,24 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("project_detail.bytes", "字节");
         m.insert("project_detail.unknown_tab", "未知标签页");
 
+        // ── Project Profile (Feature 1) ──
+        m.insert("project_detail.tab_profile", "概况");
+        m.insert("project_detail.profile_health", "健康评分");
+        m.insert("project_detail.profile_rules", "规则");
+        m.insert("project_detail.profile_skills", "Skills");
+        m.insert("project_detail.profile_memory", "记忆");
+        m.insert("project_detail.profile_mcp", "MCP 服务器");
+        m.insert("project_detail.profile_hooks", "Hooks");
+        m.insert("project_detail.profile_conflicts", "冲突");
+        m.insert("project_detail.profile_analyze", "运行深度分析");
+        m.insert("project_detail.profile_no_mcp", "无 MCP 服务器");
+        m.insert("project_detail.profile_global_scope", "全局");
+        m.insert("project_detail.profile_project_scope", "项目");
+
         // ── Global Skills ──
+        m.insert("global_skills.tab_my_skills", "我的技能");
+        m.insert("global_skills.tab_browse", "浏览");
+        m.insert("global_skills.tab_templates", "模板");
         m.insert("global_skills.title", "全局 Skills");
         m.insert("global_skills.subtitle", "管理 ~/.claude/skills/ 中的 Skills");
         m.insert("global_skills.loading", "加载 Skills 中");
@@ -212,6 +253,23 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("global_skills.delete", "删除");
         m.insert("global_skills.deleted", "已删除！");
 
+        // ── Skill Builder (Feature 2) ──
+        m.insert("global_skills.tab_create", "创建");
+        m.insert("skill_builder.templates", "模板");
+        m.insert("skill_builder.editor", "编辑器");
+        m.insert("skill_builder.preview", "预览");
+        m.insert("skill_builder.name", "Skill 名称");
+        m.insert("skill_builder.name_placeholder", "例如 my-skill");
+        m.insert("skill_builder.name_required", "请输入 Skill 名称");
+        m.insert("skill_builder.description", "描述");
+        m.insert("skill_builder.desc_placeholder", "这个 Skill 做什么？");
+        m.insert("skill_builder.user_invocable", "用户可调用（可通过 /command 调用）");
+        m.insert("skill_builder.content", "Skill 内容 (Markdown)");
+        m.insert("skill_builder.save", "保存 Skill");
+        m.insert("skill_builder.saved", "Skill 已保存：");
+        m.insert("skill_builder.trigger", "触发器：");
+        m.insert("skill_builder.preview_hint", "选择模板或开始输入以查看实时预览。");
+
         // ── Global Rules ──
         m.insert("global_rules.title", "全局规则");
         m.insert("global_rules.subtitle", "管理 ~/.claude/rules/ 中的规则");
@@ -225,6 +283,16 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("global_rules.saved", "已保存！");
         m.insert("global_rules.delete", "删除");
         m.insert("global_rules.deleted", "已删除！");
+
+        // ── Rules Conflicts (Feature 6) ──
+        m.insert("rules.conflicts_title", "规则冲突");
+        m.insert("rules.conflicts_found", "发现冲突");
+        m.insert("rules.conflict_name_collision", "名称冲突");
+        m.insert("rules.conflict_content_overlap", "内容重叠");
+        m.insert("rules.conflict_contradiction", "矛盾");
+        m.insert("rules.conflict_global", "全局");
+        m.insert("rules.conflict_project", "项目");
+        m.insert("rules.no_conflicts", "未检测到冲突");
 
         // ── Plans ──
         m.insert("plans.title", "计划");
@@ -336,6 +404,16 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("analytics.languages", "编程语言");
         m.insert("analytics.session_outcomes", "会话结果");
         m.insert("analytics.outcomes", "结果");
+
+        // ── Teach Me Tips (Feature 5) ──
+        m.insert("analytics.tips_title", "洞察与提示");
+        m.insert("analytics.tips_dismiss", "关闭");
+        m.insert("analytics.tips_learn_more", "了解更多");
+        m.insert("analytics.tip_category_tool", "工具");
+        m.insert("analytics.tip_category_workflow", "工作流");
+        m.insert("analytics.tip_category_performance", "性能");
+        m.insert("analytics.tip_category_config", "配置");
+        m.insert("analytics.no_tips", "暂无提示");
 
         // ── Sessions ──
         m.insert("sessions.title", "会话");
@@ -662,6 +740,44 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("docs.scopes_project_4", "项目特定 Skills 和工作流");
         m.insert("docs.scopes_project_5", "CI/CD Hooks 和自动化");
 
+        // ── Docs: Optimization Guide ──
+        m.insert("docs.toc_optimization", "优化指南");
+        m.insert("docs.opt_heading", "优化指南");
+        m.insert("docs.opt_callout", "来自分析的个性化提示深度解析。每个部分介绍某个模式为何重要以及如何改进，并附有 Anthropic 官方文档链接。");
+        m.insert("docs.opt_why", "为什么：");
+        m.insert("docs.opt_how", "如何做：");
+        m.insert("docs.opt_task_heading", "使用 Task 工具的并行代理");
+        m.insert("docs.opt_task_why", "Task 工具启动并行工作的专业子代理。对于复杂的多步骤工作（研究、代码探索、测试），子代理可以同时运行而不是依次运行，从而大大减少总时间。");
+        m.insert("docs.opt_task_how", "Claude Code 在识别到并行化机会时会自动使用 Task 工具。你也可以明确请求：\u{201c}并行研究 X 和 Y\u{201d}或\u{201c}修复 bug 的同时运行测试。\u{201d}每个代理获得自己的上下文窗口，使大型代码库的探索更加高效。");
+        m.insert("docs.opt_task_link", "Anthropic Docs：最佳实践 \u{2192}");
+        m.insert("docs.opt_hooks_heading", "使用 Hooks 自动化");
+        m.insert("docs.opt_hooks_why", "Hooks 是在 Claude 使用工具前后自动运行的 shell 命令。没有 Hooks，你需要手动运行格式化器、检查器和测试。有了 Hooks，每次文件写入可以自动格式化，每次提交可以自动测试。");
+        m.insert("docs.opt_hooks_how", "在 ~/.claude/settings.json 的\u{201c}hooks\u{201d}键下配置 Hooks。使用 PreToolUse 在工具执行前运行操作（例如：写入前格式化代码）。使用 PostToolUse 在更改后进行验证（例如：编辑后 lint）。使用 Stop 在 Claude 完成时运行检查。");
+        m.insert("docs.opt_hooks_link", "Anthropic Docs：Hooks \u{2192}");
+        m.insert("docs.opt_sessions_heading", "最佳会话时长");
+        m.insert("docs.opt_sessions_why", "长会话会积累稀释 Claude 注意力的上下文。在许多消息之后，先前的指令变得不那么突出。随着上下文窗口被对话历史填满，Token 成本也会增加。");
+        m.insert("docs.opt_sessions_how", "将复杂工作拆分为专注的会话。使用 /clear 在会话内重置上下文。对于多步骤项目，使用计划文件（Claude 编写计划，然后在专注的会话中执行步骤）。每个新会话都以对当前任务的最大关注度开始。");
+        m.insert("docs.opt_sessions_link", "Anthropic Docs：最佳实践 \u{2192}");
+        m.insert("docs.opt_cost_heading", "成本优化");
+        m.insert("docs.opt_cost_why", "不同的 Claude 模型成本差异很大。Opus 擅长复杂推理但每个 Token 成本更高。Haiku 快速且便宜，适合简单任务。为每个任务使用合适的模型可以大幅降低成本。");
+        m.insert("docs.opt_cost_how", "使用 /model 在会话中切换模型。Haiku 适用于：快速修复、代码格式化、简单问题。Sonnet 适用于：中等编码任务、审查。Opus 适用于：架构设计、复杂调试、多文件重构。分析页面显示按模型划分的成本明细。");
+        m.insert("docs.opt_cost_link", "Anthropic Docs：Claude Code 概览 \u{2192}");
+        m.insert("docs.opt_write_heading", "Write vs Edit：选择正确的工具");
+        m.insert("docs.opt_write_why", "Write 工具一次创建整个文件，而 Edit 对现有文件进行有针对性的更改。对于新文件，Write 更高效，因为 Edit 需要先读取文件然后指定精确的字符串替换。");
+        m.insert("docs.opt_write_how", "Claude 通常会自动选择正确的工具。但如果你从头创建新文件（模板、样板、配置），明确说\u{201c}创建一个新文件\u{201d}有助于 Claude 选择 Write。对于现有代码的修改，始终首选 Edit。");
+        m.insert("docs.opt_models_heading", "模型多样性");
+        m.insert("docs.opt_models_why", "对所有任务使用单一模型意味着要么为简单工作多付费（所有事都用 Opus），要么对复杂任务动力不足（所有事都用 Haiku）。每个模型系列都有优势：Haiku 注重速度，Sonnet 注重平衡，Opus 注重深度推理。");
+        m.insert("docs.opt_models_how", "使用 /model 命令切换模型。一个好的模式：从 Opus 开始进行规划和架构设计，切换到 Sonnet 进行实现，使用 Haiku 进行快速修复和格式化。分析页面显示你最常使用的模型。");
+        m.insert("docs.opt_models_link", "Anthropic Docs：Claude Code 概览 \u{2192}");
+        m.insert("docs.opt_git_heading", "Git 集成");
+        m.insert("docs.opt_git_why", "Claude Code 可以直接进行暂存、提交、推送和创建 PR。没有 Git 集成，你需要在每个 Claude 会话后手动提交，这会打断工作流程并有忘记重要更改的风险。");
+        m.insert("docs.opt_git_how", "只需请求 Claude 提交：\u{201c}提交这些更改\u{201d}或使用 /commit。Claude 会编写描述性的提交消息，仅暂存相关文件，并遵守 pre-commit hooks。对于 PR，请求 Claude\u{201c}创建一个 PR\u{201d}\u{2014}它使用 gh CLI 推送并打开带有摘要的拉取请求。");
+        m.insert("docs.opt_git_link", "Anthropic Docs：最佳实践 \u{2192}");
+        m.insert("docs.opt_churn_heading", "减少代码变动");
+        m.insert("docs.opt_churn_why", "当删除的行多于添加的行时，通常意味着 Claude 写了需要重写的代码。这浪费了 Token 和时间。常见原因：模糊的提示、缺少上下文、或 Claude 猜测需求。");
+        m.insert("docs.opt_churn_how", "在提示中要具体：引用现有文件、命名精确的函数、描述预期行为。使用 CLAUDE.md 记录约定，这样 Claude 就不会猜测。对于复杂更改，要求 Claude 先制定计划（/plan）再实施。在 Claude 开始编码之前审查其计划。");
+        m.insert("docs.opt_churn_link", "Anthropic Docs：最佳实践 \u{2192}");
+
         // ── Docs: Tips & Best Practices ──
         m.insert("docs.bestpractices_heading", "技巧和最佳实践");
         m.insert("docs.bestpractices_hygiene_heading", "配置卫生");
@@ -815,6 +931,183 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("settings.user_prompt_submit", "UserPromptSubmit");
         m.insert("settings.session_start", "SessionStart");
 
+        // ── Sidebar (new) ──
+        m.insert("sidebar.agents", "代理");
+        m.insert("sidebar.plugins", "插件");
+        m.insert("sidebar.launch_profiles", "启动配置");
+        m.insert("sidebar.system_prompts", "系统提示词");
+        m.insert("sidebar.worktrees", "工作树");
+
+        // ── Agents ──
+        m.insert("agents.title", "代理");
+        m.insert("agents.subtitle", "管理自定义代理配置");
+        m.insert("agents.tab_overview", "概览");
+        m.insert("agents.tab_create", "新建");
+        m.insert("agents.loading", "加载中...");
+        m.insert("agents.empty", "未找到代理");
+        m.insert("agents.name", "名称");
+        m.insert("agents.description", "描述");
+        m.insert("agents.prompt", "提示词");
+        m.insert("agents.model", "模型");
+        m.insert("agents.allowed_tools", "允许的工具");
+        m.insert("agents.disallowed_tools", "禁止的工具");
+        m.insert("agents.custom_instructions", "自定义指令");
+        m.insert("agents.source", "来源");
+        m.insert("agents.create_success", "代理已创建");
+        m.insert("agents.update_success", "代理已更新");
+        m.insert("agents.delete_confirm", "确定要删除此代理吗？");
+        m.insert("agents.delete_success", "代理已删除");
+        m.insert("agents.copy_cli", "复制 CLI 命令");
+        m.insert("agents.copied", "已复制");
+
+        // ── Plugins ──
+        m.insert("plugins.title", "插件");
+        m.insert("plugins.subtitle", "管理已安装的插件");
+        m.insert("plugins.loading", "加载中...");
+        m.insert("plugins.empty", "未找到插件");
+        m.insert("plugins.name", "名称");
+        m.insert("plugins.version", "版本");
+        m.insert("plugins.path", "路径");
+        m.insert("plugins.status", "状态");
+        m.insert("plugins.enabled", "已启用");
+        m.insert("plugins.disabled", "已禁用");
+        m.insert("plugins.install", "安装");
+        m.insert("plugins.install_path", "安装路径");
+        m.insert("plugins.install_success", "插件已安装");
+        m.insert("plugins.delete_confirm", "确定要删除此插件吗？");
+        m.insert("plugins.delete_success", "插件已删除");
+
+        // ── Launch Profiles ──
+        m.insert("launch_profiles.title", "启动配置");
+        m.insert("launch_profiles.subtitle", "管理 Claude Code 启动配置");
+        m.insert("launch_profiles.tab_profiles", "配置列表");
+        m.insert("launch_profiles.tab_create", "新建");
+        m.insert("launch_profiles.tab_presets", "预设");
+        m.insert("launch_profiles.loading", "加载中...");
+        m.insert("launch_profiles.empty", "未找到配置");
+        m.insert("launch_profiles.name", "名称");
+        m.insert("launch_profiles.description", "描述");
+        m.insert("launch_profiles.model", "模型");
+        m.insert("launch_profiles.effort", "推理级别");
+        m.insert("launch_profiles.permission_mode", "权限模式");
+        m.insert("launch_profiles.allowed_tools", "允许的工具");
+        m.insert("launch_profiles.disallowed_tools", "禁止的工具");
+        m.insert("launch_profiles.system_prompt", "系统提示词");
+        m.insert("launch_profiles.append_system_prompt", "追加系统提示词");
+        m.insert("launch_profiles.max_budget", "最大预算");
+        m.insert("launch_profiles.fallback_model", "备用模型");
+        m.insert("launch_profiles.debug_filter", "调试过滤器");
+        m.insert("launch_profiles.add_dirs", "添加目录");
+        m.insert("launch_profiles.copy_command", "复制命令");
+        m.insert("launch_profiles.copied", "已复制");
+        m.insert("launch_profiles.create_success", "配置已创建");
+        m.insert("launch_profiles.delete_confirm", "确定要删除此配置吗？");
+        m.insert("launch_profiles.delete_success", "配置已删除");
+        m.insert("launch_profiles.use_template", "使用模板");
+        m.insert("launch_profiles.preset_code_review", "代码审查");
+        m.insert("launch_profiles.preset_code_review_desc", "只读代码审查配置");
+        m.insert("launch_profiles.preset_full_dev", "完整开发");
+        m.insert("launch_profiles.preset_full_dev_desc", "拥有完整权限的开发配置");
+        m.insert("launch_profiles.preset_quick_fix", "快速修复");
+        m.insert("launch_profiles.preset_quick_fix_desc", "用于小修改的轻量配置");
+        m.insert("launch_profiles.preset_research", "研究");
+        m.insert("launch_profiles.preset_research_desc", "代码库调查用配置");
+        m.insert("launch_profiles.preset_budget", "预算限制");
+        m.insert("launch_profiles.preset_budget_desc", "带成本限制的配置");
+
+        // ── System Prompts ──
+        m.insert("system_prompts.title", "系统提示词");
+        m.insert("system_prompts.subtitle", "管理可复用的系统提示词");
+        m.insert("system_prompts.tab_library", "库");
+        m.insert("system_prompts.tab_create", "新建");
+        m.insert("system_prompts.loading", "加载中...");
+        m.insert("system_prompts.empty", "未找到系统提示词");
+        m.insert("system_prompts.name", "名称");
+        m.insert("system_prompts.content", "内容");
+        m.insert("system_prompts.modified", "修改时间");
+        m.insert("system_prompts.create_success", "系统提示词已创建");
+        m.insert("system_prompts.update_success", "系统提示词已更新");
+        m.insert("system_prompts.delete_confirm", "确定要删除此系统提示词吗？");
+        m.insert("system_prompts.delete_success", "系统提示词已删除");
+        m.insert("system_prompts.copy_cli", "复制 CLI 命令");
+        m.insert("system_prompts.copied", "已复制");
+        m.insert("system_prompts.use_template", "使用模板");
+        m.insert("system_prompts.template_reviewer", "代码审查员");
+        m.insert("system_prompts.template_docs", "文档编写者");
+        m.insert("system_prompts.template_security", "安全审计");
+        m.insert("system_prompts.template_refactor", "重构");
+
+        // ── Worktrees ──
+        m.insert("worktrees.title", "工作树");
+        m.insert("worktrees.subtitle", "管理 Git 工作树");
+        m.insert("worktrees.loading", "加载中...");
+        m.insert("worktrees.empty", "未找到工作树");
+        m.insert("worktrees.project_path", "项目路径");
+        m.insert("worktrees.branch_name", "分支名称");
+        m.insert("worktrees.create", "创建");
+        m.insert("worktrees.create_success", "工作树已创建");
+        m.insert("worktrees.delete_confirm", "确定要删除此工作树吗？");
+        m.insert("worktrees.delete_success", "工作树已删除");
+        m.insert("worktrees.col_branch", "分支");
+        m.insert("worktrees.col_path", "路径");
+        m.insert("worktrees.col_head", "HEAD");
+        m.insert("worktrees.col_status", "状态");
+        m.insert("worktrees.col_actions", "操作");
+        m.insert("worktrees.badge_main", "主分支");
+        m.insert("worktrees.badge_bare", "裸仓库");
+        m.insert("worktrees.badge_worktree", "工作树");
+
+        // ── 代理（表单字段） ──
+        m.insert("agents.field_name", "名称");
+        m.insert("agents.field_description", "描述");
+        m.insert("agents.field_prompt", "提示词");
+        m.insert("agents.field_model", "模型");
+        m.insert("agents.field_allowed_tools", "允许的工具");
+        m.insert("agents.field_disallowed_tools", "禁止的工具");
+        m.insert("agents.field_custom_instructions", "自定义指令");
+        m.insert("agents.tools_hint", "逗号分隔列表，例如 Bash, Edit, Read");
+        m.insert("agents.tools_placeholder", "Bash, Edit, Read, Write...");
+        m.insert("agents.create_btn", "创建代理");
+        m.insert("agents.editing", "编辑中");
+        m.insert("agents.save_success", "代理已更新");
+        m.insert("agents.confirm_delete", "删除代理");
+        m.insert("agents.name_required", "名称为必填项");
+        m.insert("agents.model_default", "默认（继承）");
+        m.insert("agents.name_placeholder", "例如 code-reviewer");
+        m.insert("agents.desc_placeholder", "这个代理做什么？");
+        m.insert("agents.prompt_placeholder", "你是一个代码审查员...");
+        m.insert("agents.instructions_placeholder", "附加指令...");
+
+        // ── 插件（缺失） ──
+        m.insert("plugins.actions", "操作");
+
+        // ── 启动配置（缺失） ──
+        m.insert("launch_profiles.save_btn", "创建配置");
+
+        // ── 通用（缺失） ──
+        m.insert("common.edit", "编辑");
+        m.insert("common.saved", "已保存");
+
+        // ── Timeline ──
+        m.insert("sidebar.timeline", "时间线");
+        m.insert("timeline.title", "时间线");
+        m.insert("timeline.subtitle", "基于 Git 的 Claude 配置版本历史");
+        m.insert("timeline.files", "文件");
+        m.insert("timeline.restore", "恢复");
+        m.insert("timeline.confirm_restore_title", "恢复配置");
+        m.insert("timeline.confirm_restore_msg", "这将把所有文件恢复到所选提交。当前状态的备份将会先被保存。是否继续？");
+        m.insert("timeline.empty", "暂无时间线条目。编辑配置后，更改将显示在此处。");
+        m.insert("timeline.error", "加载时间线失败");
+        m.insert("timeline.select_commit", "选择一个提交以查看其更改");
+        m.insert("timeline.diff_for", "更改内容");
+
+        // ── 帮助聊天 ──
+        m.insert("help_chat.title", "帮助");
+        m.insert("help_chat.placeholder", "询问关于此页面的问题...");
+        m.insert("help_chat.send", "发送");
+        m.insert("help_chat.thinking", "思考中...");
+        m.insert("help_chat.clear", "新对话");
+        m.insert("help_chat.no_api_key", "帮助聊天需要API密钥。请在设置中配置。");
 
         m
     })

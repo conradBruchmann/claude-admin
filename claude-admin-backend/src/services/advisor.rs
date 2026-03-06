@@ -11,12 +11,13 @@ pub async fn analyze_project(
     state: &AppState,
     client: &AnthropicClient,
     project_path: &str,
+    lang: &str,
 ) -> Result<AdvisorReport, ApiError> {
     // Gather context
     let context = gather_project_context(state, project_path).await?;
 
     // Build prompt and call Claude
-    let system = build_advisor_system_prompt();
+    let system = build_advisor_system_prompt(lang);
     let user = build_advisor_user_prompt(&context);
 
     let response = crate::services::claude_api::call_claude_raw(client, &system, &user).await?;
@@ -193,41 +194,42 @@ async fn read_readme_snippet(project_path: &Path) -> Option<String> {
     None
 }
 
-fn build_advisor_system_prompt() -> String {
-    r#"Du bist ein erfahrener Claude Code Konfigurationsberater. Du analysierst ein Projekt und
-gibst konkrete, hilfreiche Empfehlungen, wie der Entwickler sein Claude Code Setup für dieses
-Projekt verbessern kann.
-
-Antworte IMMER auf Deutsch.
-
-Antworte als JSON mit diesem Schema:
-{
-  "project_summary": "Kurze Beschreibung, worum es in dem Projekt geht (1-2 Sätze)",
-  "recommendations": [
-    {
-      "category": "global_skill" | "global_rule" | "claude_md" | "memory" | "hooks" | "general",
-      "title": "Kurzer Titel",
-      "description": "Ausführliche Erklärung warum das hilft und was konkret zu tun ist",
-      "action": {
-        "label": "Button-Text für die Aktion",
-        "action_type": "create_claude_md" | "update_claude_md" | "enable_skill" | "create_rule" | "init_memory",
-        "payload": "Inhalt der Datei oder Konfiguration die erstellt/geändert werden soll"
-      }
-    }
-  ]
-}
-
-Regeln für Empfehlungen:
-- Maximal 6 Empfehlungen, sortiert nach Wichtigkeit
-- Jede Empfehlung muss konkret und umsetzbar sein
-- Wenn das Projekt schon gut konfiguriert ist, sag das! Keine leeren Empfehlungen erzwingen
-- "action" ist optional - nur setzen wenn die Aktion automatisch durchführbar ist
-- Bei action.payload: Schreibe den KOMPLETTEN Inhalt der Datei, die erstellt werden soll
-- Berücksichtige den Tech-Stack des Projekts (Rust, Node.js, Python etc.)
-- Beziehe dich auf die verfügbaren globalen Skills und erkläre welche dem Projekt helfen
-- Prüfe ob CLAUDE.md fehlt oder verbessert werden kann
-- Prüfe ob Memory sinnvoll wäre
-- Prüfe ob projekt-spezifische Rules helfen würden"#.to_string()
+fn build_advisor_system_prompt(lang: &str) -> String {
+    let lang_instruction = crate::domain::extractors::lang_instruction(lang);
+    format!(
+        "You are an experienced Claude Code configuration advisor. You analyze a project and \
+         provide concrete, helpful recommendations on how the developer can improve their Claude \
+         Code setup for this project.\n\n\
+         {}\n\n\
+         Respond as JSON with this schema:\n\
+         {{\n\
+           \"project_summary\": \"Brief description of what the project is about (1-2 sentences)\",\n\
+           \"recommendations\": [\n\
+             {{\n\
+               \"category\": \"global_skill\" | \"global_rule\" | \"claude_md\" | \"memory\" | \"hooks\" | \"general\",\n\
+               \"title\": \"Short title\",\n\
+               \"description\": \"Detailed explanation of why this helps and what to do\",\n\
+               \"action\": {{\n\
+                 \"label\": \"Button text for the action\",\n\
+                 \"action_type\": \"create_claude_md\" | \"update_claude_md\" | \"enable_skill\" | \"create_rule\" | \"init_memory\",\n\
+                 \"payload\": \"Content of the file or config to be created/changed\"\n\
+               }}\n\
+             }}\n\
+           ]\n\
+         }}\n\n\
+         Rules for recommendations:\n\
+         - Maximum 6 recommendations, sorted by importance\n\
+         - Each recommendation must be concrete and actionable\n\
+         - If the project is already well configured, say so! Don't force empty recommendations\n\
+         - \"action\" is optional - only set when the action can be performed automatically\n\
+         - For action.payload: Write the COMPLETE content of the file to be created\n\
+         - Consider the project's tech stack (Rust, Node.js, Python etc.)\n\
+         - Reference available global skills and explain which ones help the project\n\
+         - Check if CLAUDE.md is missing or can be improved\n\
+         - Check if memory would be useful\n\
+         - Check if project-specific rules would help",
+        lang_instruction
+    )
 }
 
 fn build_advisor_user_prompt(ctx: &ProjectContext) -> String {

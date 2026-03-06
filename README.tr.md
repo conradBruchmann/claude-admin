@@ -121,15 +121,15 @@ Kurulumun ardından ClaudeAdmin'i Başlat Menüsü'nden veya Masaüstü'nden ba�
 
 ClaudeAdmin, standart Claude Code yapılandırmasını okur ve yazar:
 
-| Yol | Açıklama |
-|-----|----------|
-| `~/.claude.json` | Proje kayıt defteri, MCP sunucuları |
-| `~/.claude/settings.json` | Küresel ayarlar, kancalar |
-| `~/.claude/skills/` | Küresel beceriler |
-| `~/.claude/rules/` | Küresel kurallar |
-| `~/.claude/plans/` | Plan dosyaları |
-| `~/.claude/projects/<encoded>/memory/` | Projeye özgü bellek |
-| `~/.claude/backups/` | Otomatik yedeklemeler (zaman damgalı) |
+| Yol                                    | Açıklama                              |
+| -------------------------------------- | ------------------------------------- |
+| `~/.claude.json`                       | Proje kayıt defteri, MCP sunucuları   |
+| `~/.claude/settings.json`              | Küresel ayarlar, kancalar             |
+| `~/.claude/skills/`                    | Küresel beceriler                     |
+| `~/.claude/rules/`                     | Küresel kurallar                      |
+| `~/.claude/plans/`                     | Plan dosyaları                        |
+| `~/.claude/projects/<encoded>/memory/` | Projeye özgü bellek                   |
+| `~/.claude/backups/`                   | Otomatik yedeklemeler (zaman damgalı) |
 
 ## Lisans
 

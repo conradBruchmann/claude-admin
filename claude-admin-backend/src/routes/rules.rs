@@ -6,8 +6,18 @@ use crate::app::AppState;
 use crate::domain::errors::ApiError;
 use crate::domain::extractors::AppJson;
 use crate::domain::validation::validate_resource_name;
-use crate::services::{audit, file_ops, fs_scanner};
-use claude_admin_shared::{ConfigScope, RuleCreateRequest, RuleFile, RuleUpdateRequest};
+use crate::services::{audit, config_health, file_ops, fs_scanner};
+use claude_admin_shared::{
+    ConfigScope, RuleConflictsResponse, RuleCreateRequest, RuleFile, RuleUpdateRequest,
+};
+
+pub async fn get_rule_conflicts(
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<RuleConflictsResponse>, ApiError> {
+    let conflicts =
+        config_health::detect_all_rule_conflicts(&state.claude_home, &state.claude_json_path).await;
+    Ok(Json(RuleConflictsResponse { conflicts }))
+}
 
 pub async fn list_rules(
     State(state): State<Arc<AppState>>,

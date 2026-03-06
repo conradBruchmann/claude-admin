@@ -47,7 +47,11 @@ pub async fn scan_dashboard(
         mcp_servers_count: mcp_count,
         plans_count: plans,
         recent_projects: recent,
-        conflicts: vec![],  // Phase 6
+        conflicts: crate::services::config_health::detect_all_rule_conflicts(
+            claude_home,
+            claude_json_path,
+        )
+        .await,
         health_score: None, // Loaded lazily via /api/v1/dashboard/health
     })
 }

@@ -121,15 +121,15 @@ xattr -dr com.apple.quarantine /Applications/ClaudeAdmin.app
 
 ClaudeAdmin 读写标准的 Claude Code 配置：
 
-| 路径 | 描述 |
-|------|------|
-| `~/.claude.json` | 项目注册表、MCP 服务器 |
-| `~/.claude/settings.json` | 全局设置、钩子 |
-| `~/.claude/skills/` | 全局技能 |
-| `~/.claude/rules/` | 全局规则 |
-| `~/.claude/plans/` | 计划文件 |
-| `~/.claude/projects/<encoded>/memory/` | 每个项目的记忆 |
-| `~/.claude/backups/` | 自动备份（带时间戳） |
+| 路径                                   | 描述                   |
+| -------------------------------------- | ---------------------- |
+| `~/.claude.json`                       | 项目注册表、MCP 服务器 |
+| `~/.claude/settings.json`              | 全局设置、钩子         |
+| `~/.claude/skills/`                    | 全局技能               |
+| `~/.claude/rules/`                     | 全局规则               |
+| `~/.claude/plans/`                     | 计划文件               |
+| `~/.claude/projects/<encoded>/memory/` | 每个项目的记忆         |
+| `~/.claude/backups/`                   | 自动备份（带时间戳）   |
 
 ## 许可证
 

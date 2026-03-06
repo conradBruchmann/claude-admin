@@ -213,12 +213,27 @@ pub struct DashboardOverview {
     pub health_score: Option<u8>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum ConflictType {
+    NameCollision,
+    ContentOverlap,
+    Contradiction,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConflictInfo {
     pub name: String,
     pub file_type: ClaudeFileType,
     pub global_path: String,
     pub project_path: String,
+    pub conflict_type: ConflictType,
+    pub description: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuleConflictsResponse {
+    pub conflicts: Vec<ConflictInfo>,
 }
 
 // === Projects ===
@@ -419,6 +434,8 @@ pub struct McpHealthResult {
 pub struct McpToolInfo {
     pub name: String,
     pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub input_schema: Option<serde_json::Value>,
 }
 
 /// Accepts both wrapper format `{"name":"x","config":{...}}` and
@@ -577,6 +594,20 @@ pub enum AdvisorActionType {
     InitMemory,
 }
 
+// === Project Profile ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProjectProfile {
+    pub has_claude_md: bool,
+    pub rules: Vec<RuleFile>,
+    pub skills: Vec<SkillFile>,
+    pub memory_files: Vec<String>,
+    pub mcp_servers: Vec<String>,
+    pub hooks_count: usize,
+    pub health_score: u8,
+    pub conflicts: Vec<ConflictInfo>,
+}
+
 // === Health ===
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -705,6 +736,32 @@ pub struct SkillInstallRequest {
     pub content: String,
 }
 
+// === Skill Builder ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SkillTemplate {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub category: String,
+    pub trigger_example: String,
+    pub frontmatter: SkillFrontmatter,
+    pub content_template: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SkillPreviewRequest {
+    pub frontmatter: SkillFrontmatter,
+    pub content: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SkillPreviewResponse {
+    pub rendered: String,
+    pub trigger: Option<String>,
+    pub warnings: Vec<String>,
+}
+
 // === Phase 10: Settings Hierarchy ===
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -782,6 +839,32 @@ pub struct ProjectAnalytics {
     pub total_output_tokens: u64,
     pub estimated_cost_usd: f64,
     pub languages: Vec<(String, u64)>,
+}
+
+// === Teach Me Tips ===
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum TipCategory {
+    Tool,
+    Workflow,
+    Performance,
+    Config,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TeachMeTip {
+    pub id: String,
+    pub category: TipCategory,
+    pub title: String,
+    pub body: String,
+    pub data_point: String,
+    pub action_url: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TeachMeResponse {
+    pub tips: Vec<TeachMeTip>,
 }
 
 // === Phase 12: Sessions ===
@@ -989,4 +1072,278 @@ pub struct PermissionOptimization {
     pub current_entries: Vec<String>,
     pub suggested_entry: String,
     pub entries_saved: usize,
+}
+
+// === Agents ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentDefinition {
+    pub name: String,
+    pub description: String,
+    pub prompt: String,
+    #[serde(default)]
+    pub model: Option<String>,
+    #[serde(default)]
+    pub allowed_tools: Vec<String>,
+    #[serde(default)]
+    pub disallowed_tools: Vec<String>,
+    #[serde(default)]
+    pub custom_instructions: Option<String>,
+    pub source: String, // "settings.json", "project", "cli"
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentCreateRequest {
+    pub name: String,
+    pub description: String,
+    pub prompt: String,
+    #[serde(default)]
+    pub model: Option<String>,
+    #[serde(default)]
+    pub allowed_tools: Vec<String>,
+    #[serde(default)]
+    pub disallowed_tools: Vec<String>,
+    #[serde(default)]
+    pub custom_instructions: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AgentUpdateRequest {
+    pub description: Option<String>,
+    pub prompt: Option<String>,
+    pub model: Option<String>,
+    pub allowed_tools: Option<Vec<String>>,
+    pub disallowed_tools: Option<Vec<String>>,
+    pub custom_instructions: Option<String>,
+}
+
+// === Plugins ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PluginInfo {
+    pub name: String,
+    pub path: String,
+    pub description: Option<String>,
+    pub version: Option<String>,
+    pub enabled: bool,
+    pub source: String, // "global", "session"
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PluginInstallRequest {
+    pub path: String,
+}
+
+// === Launch Profiles ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LaunchProfile {
+    pub name: String,
+    pub description: String,
+    #[serde(default)]
+    pub model: Option<String>,
+    #[serde(default)]
+    pub effort: Option<String>,
+    #[serde(default)]
+    pub permission_mode: Option<String>,
+    #[serde(default)]
+    pub allowed_tools: Vec<String>,
+    #[serde(default)]
+    pub disallowed_tools: Vec<String>,
+    #[serde(default)]
+    pub system_prompt: Option<String>,
+    #[serde(default)]
+    pub append_system_prompt: Option<String>,
+    #[serde(default)]
+    pub max_budget_usd: Option<f64>,
+    #[serde(default)]
+    pub fallback_model: Option<String>,
+    #[serde(default)]
+    pub mcp_config: Option<String>,
+    #[serde(default)]
+    pub debug: Option<String>,
+    #[serde(default)]
+    pub add_dirs: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LaunchProfileCreateRequest {
+    pub name: String,
+    pub description: String,
+    #[serde(default)]
+    pub model: Option<String>,
+    #[serde(default)]
+    pub effort: Option<String>,
+    #[serde(default)]
+    pub permission_mode: Option<String>,
+    #[serde(default)]
+    pub allowed_tools: Vec<String>,
+    #[serde(default)]
+    pub disallowed_tools: Vec<String>,
+    #[serde(default)]
+    pub system_prompt: Option<String>,
+    #[serde(default)]
+    pub append_system_prompt: Option<String>,
+    #[serde(default)]
+    pub max_budget_usd: Option<f64>,
+    #[serde(default)]
+    pub fallback_model: Option<String>,
+    #[serde(default)]
+    pub mcp_config: Option<String>,
+    #[serde(default)]
+    pub debug: Option<String>,
+    #[serde(default)]
+    pub add_dirs: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LaunchProfileUpdateRequest {
+    pub description: Option<String>,
+    pub model: Option<String>,
+    pub effort: Option<String>,
+    pub permission_mode: Option<String>,
+    pub allowed_tools: Option<Vec<String>>,
+    pub disallowed_tools: Option<Vec<String>>,
+    pub system_prompt: Option<String>,
+    pub append_system_prompt: Option<String>,
+    pub max_budget_usd: Option<f64>,
+    pub fallback_model: Option<String>,
+    pub mcp_config: Option<String>,
+    pub debug: Option<String>,
+    pub add_dirs: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LaunchCommand {
+    pub command: String,
+}
+
+// === System Prompts ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemPromptFile {
+    pub name: String,
+    pub path: String,
+    pub content: String,
+    pub modified: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemPromptCreateRequest {
+    pub name: String,
+    pub content: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemPromptUpdateRequest {
+    pub content: String,
+}
+
+// === Tool Access Control ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolAccessConfig {
+    pub project_id: Option<String>,
+    pub project_name: Option<String>,
+    pub allowed_tools: Vec<String>,
+    pub disallowed_tools: Vec<String>,
+    pub available_tools: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolAccessUpdateRequest {
+    pub allowed_tools: Vec<String>,
+    pub disallowed_tools: Vec<String>,
+}
+
+// === Worktrees ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorktreeInfo {
+    pub path: String,
+    pub branch: String,
+    pub head_commit: String,
+    pub is_main: bool,
+    pub is_bare: bool,
+    pub project_name: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorktreeCreateRequest {
+    pub project_path: String,
+    pub name: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorktreeCreateResult {
+    pub path: String,
+    pub branch: String,
+}
+
+// === IDE & Chrome Integration ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IdeStatus {
+    pub connected_ides: Vec<IdeConnection>,
+    pub chrome_enabled: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IdeConnection {
+    pub name: String,
+    pub ide_type: String, // "vscode", "cursor", "jetbrains", etc.
+    pub status: String,   // "connected", "available", "unavailable"
+}
+
+// === Auth & Update Status ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AuthStatus {
+    pub authenticated: bool,
+    pub auth_method: Option<String>, // "oauth", "api_key", "token"
+    pub account_name: Option<String>,
+    pub account_email: Option<String>,
+    pub subscription_type: Option<String>,
+    pub expires_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpdateStatus {
+    pub current_version: String,
+    pub latest_version: Option<String>,
+    pub update_available: bool,
+    pub auto_updater_healthy: bool,
+    pub last_check: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DoctorResult {
+    pub checks: Vec<DoctorCheck>,
+    pub overall_healthy: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DoctorCheck {
+    pub name: String,
+    pub status: String, // "ok", "warning", "error"
+    pub message: String,
+}
+
+// === Debug Profiles ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DebugProfile {
+    pub name: String,
+    pub filter: String, // e.g. "api,hooks", "!1p,!file"
+    pub debug_file: Option<String>,
+    pub description: String,
+}
+
+// === Combined System Status (for Settings page) ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SystemStatus {
+    pub auth: AuthStatus,
+    pub update: UpdateStatus,
+    pub ide: IdeStatus,
 }

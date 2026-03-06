@@ -7,8 +7,11 @@ use crate::domain::errors::ApiError;
 use crate::domain::extractors::AppJson;
 use crate::domain::frontmatter;
 use crate::domain::validation::validate_resource_name;
-use crate::services::{audit, file_ops, fs_scanner};
-use claude_admin_shared::{ConfigScope, SkillCreateRequest, SkillFile, SkillUpdateRequest};
+use crate::services::{audit, file_ops, fs_scanner, skill_builder};
+use claude_admin_shared::{
+    ConfigScope, SkillCreateRequest, SkillFile, SkillPreviewRequest, SkillPreviewResponse,
+    SkillTemplate, SkillUpdateRequest,
+};
 
 pub async fn list_skills(
     State(state): State<Arc<AppState>>,
@@ -134,6 +137,16 @@ pub async fn delete_skill(
     audit::log_audit(&state.claude_home, "delete", "skill", &name, None).await;
 
     Ok(Json(serde_json::json!({"deleted": name})))
+}
+
+pub async fn list_skill_templates() -> Result<Json<Vec<SkillTemplate>>, ApiError> {
+    Ok(Json(skill_builder::get_skill_templates()))
+}
+
+pub async fn preview_skill(
+    AppJson(req): AppJson<SkillPreviewRequest>,
+) -> Result<Json<SkillPreviewResponse>, ApiError> {
+    Ok(Json(skill_builder::preview_skill(&req)))
 }
 
 fn parse_scope(s: &str) -> Result<ConfigScope, ApiError> {

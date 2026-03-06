@@ -18,7 +18,6 @@ use crate::services::claude_api::AnthropicClient;
 use crate::services::watcher::FileChangeEvent;
 
 #[derive(Clone)]
-#[allow(dead_code)]
 pub struct AppState {
     pub config: Config,
     pub claude_home: PathBuf,
@@ -256,6 +255,11 @@ pub async fn create_app(config: Config) -> Result<Router, Box<dyn std::error::Er
     crate::infra::auth::spawn_token_purge_task(token_store.clone());
     crate::services::backups::spawn_backup_prune_task(claude_home.clone());
 
+    // Initialize git timeline (best-effort)
+    if let Err(e) = crate::services::timeline::ensure_git_repo(&claude_home).await {
+        tracing::warn!("Timeline git init skipped: {}", e);
+    }
+
     // RBAC cache — loaded once, reloaded on users.json changes
     let rbac_config = Arc::new(tokio::sync::RwLock::new(RbacConfig::load(&claude_home)));
     {
@@ -359,8 +363,18 @@ async fn serve_frontend(uri: axum::http::Uri) -> Response {
     (StatusCode::NOT_FOUND, "Not Found").into_response()
 }
 
+/// Returns the user's home directory.
+/// Panics with a clear message if HOME is not set — a silent /tmp fallback
+/// would silently corrupt a different directory tree.
 fn dirs_home() -> PathBuf {
     std::env::var("HOME")
         .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from("/tmp"))
+        .unwrap_or_else(|_| {
+            eprintln!(
+                "ERROR: HOME environment variable is not set. \
+                 ClaudeAdmin cannot determine where ~/.claude/ is located. \
+                 Please set HOME and try again."
+            );
+            std::process::exit(1);
+        })
 }

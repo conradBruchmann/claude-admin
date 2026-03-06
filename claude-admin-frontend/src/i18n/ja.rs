@@ -44,6 +44,11 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("dashboard.plans", "プラン");
         m.insert("dashboard.config_health", "構成ヘルスチェック");
         m.insert("dashboard.recent_projects", "最近のプロジェクト");
+        m.insert("dashboard.recent_changes", "最近の変更");
+        m.insert("dashboard.no_recent_changes", "最近の変更はありません");
+        m.insert("dashboard.change_action", "アクション");
+        m.insert("dashboard.change_resource", "リソース");
+        m.insert("dashboard.change_time", "時刻");
         m.insert("dashboard.loading", "読み込み中");
         m.insert("dashboard.error_loading", "ダッシュボードの読み込みエラー");
         m.insert("dashboard.col_name", "名前");
@@ -92,6 +97,13 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.add.name_label", "サーバー名");
         m.insert("mcp.add.name_placeholder", "例: my-server");
         m.insert("mcp.add.config_label", "サーバー構成 (JSON)");
+        m.insert("mcp.add.mode_form", "フォーム");
+        m.insert("mcp.add.mode_json", "詳細 JSON");
+        m.insert("mcp.add.command_label", "コマンド");
+        m.insert("mcp.add.args_label", "引数");
+        m.insert("mcp.add.args_hint", "1行に1つの引数");
+        m.insert("mcp.add.env_label", "環境変数");
+        m.insert("mcp.add.env_hint", "KEY=VALUE 形式、1行に1つ");
         m.insert("mcp.add.submit", "サーバーを追加");
         m.insert("mcp.add.name_required", "サーバー名を入力してください");
         m.insert("mcp.browse.title", "MCP サーバーカタログ");
@@ -106,6 +118,14 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp.browse.cat_api", "API");
         m.insert("mcp.browse.cat_specialized", "専門ツール");
         m.insert("mcp.browse.npm", "npm");
+        m.insert("mcp.tab_tools", "\u{30c4}\u{30fc}\u{30eb}\u{30a8}\u{30af}\u{30b9}\u{30d7}\u{30ed}\u{30fc}\u{30e9}\u{30fc}");
+        m.insert("mcp.tools.title", "\u{30c4}\u{30fc}\u{30eb}\u{30a8}\u{30af}\u{30b9}\u{30d7}\u{30ed}\u{30fc}\u{30e9}\u{30fc}");
+        m.insert("mcp.tools.description", "\u{5168} MCP \u{30b5}\u{30fc}\u{30d0}\u{30fc}\u{306e}\u{5168}\u{30c4}\u{30fc}\u{30eb}");
+        m.insert("mcp.tools.search", "\u{30c4}\u{30fc}\u{30eb}\u{3092}\u{691c}\u{7d22}...");
+        m.insert("mcp.tools.parameters", "\u{30d1}\u{30e9}\u{30e1}\u{30fc}\u{30bf} (JSON Schema)");
+        m.insert("mcp.tools.required", "\u{5fc5}\u{9808}");
+        m.insert("mcp.tools.no_tools", "\u{30c4}\u{30fc}\u{30eb}\u{304c}\u{898b}\u{3064}\u{304b}\u{308a}\u{307e}\u{305b}\u{3093}\u{3002}\u{307e}\u{305a}\u{30d8}\u{30eb}\u{30b9}\u{30c1}\u{30a7}\u{30c3}\u{30af}\u{3092}\u{5b9f}\u{884c}\u{3057}\u{3066}\u{304f}\u{3060}\u{3055}\u{3044}\u{3002}");
+        m.insert("mcp.tools.from_server", "\u{63d0}\u{4f9b}\u{5143}");
         m.insert("mcp.source.claude_code", "Claude Code");
         m.insert("mcp.source.claude_desktop", "Claude Desktop");
 
@@ -122,6 +142,8 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("mcp_browser.install_failed", "インストールに失敗しました");
 
         // ── Projects ──
+        m.insert("projects.tab_projects", "プロジェクト");
+        m.insert("projects.tab_health", "ヘルス概要");
         m.insert("projects.title", "プロジェクト");
         m.insert("projects.subtitle", "~/.claude.json に登録されている全プロジェクト");
         m.insert("projects.loading", "読み込み中");
@@ -193,9 +215,24 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("project_detail.memory_col_file", "ファイル");
         m.insert("project_detail.memory_col_size", "サイズ");
         m.insert("project_detail.bytes", "バイト");
+        m.insert("project_detail.tab_profile", "プロフィール");
+        m.insert("project_detail.profile_health", "ヘルススコア");
+        m.insert("project_detail.profile_rules", "ルール");
+        m.insert("project_detail.profile_skills", "Skills");
+        m.insert("project_detail.profile_memory", "メモリ");
+        m.insert("project_detail.profile_mcp", "MCP サーバー");
+        m.insert("project_detail.profile_hooks", "Hooks");
+        m.insert("project_detail.profile_conflicts", "競合");
+        m.insert("project_detail.profile_analyze", "詳細分析を実行");
+        m.insert("project_detail.profile_no_mcp", "MCP サーバーなし");
+        m.insert("project_detail.profile_global_scope", "グローバル");
+        m.insert("project_detail.profile_project_scope", "プロジェクト");
         m.insert("project_detail.unknown_tab", "不明なタブ");
 
         // ── Global Skills ──
+        m.insert("global_skills.tab_my_skills", "マイスキル");
+        m.insert("global_skills.tab_browse", "ブラウズ");
+        m.insert("global_skills.tab_templates", "テンプレート");
         m.insert("global_skills.title", "グローバル Skills");
         m.insert("global_skills.subtitle", "~/.claude/skills/ の Skills を管理");
         m.insert("global_skills.loading", "Skills を読み込み中");
@@ -211,6 +248,21 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("global_skills.saved", "保存しました！");
         m.insert("global_skills.delete", "削除");
         m.insert("global_skills.deleted", "削除しました！");
+        m.insert("global_skills.tab_create", "作成");
+        m.insert("skill_builder.templates", "テンプレート");
+        m.insert("skill_builder.editor", "エディタ");
+        m.insert("skill_builder.preview", "プレビュー");
+        m.insert("skill_builder.name", "Skill 名");
+        m.insert("skill_builder.name_placeholder", "例: my-skill");
+        m.insert("skill_builder.name_required", "Skill 名を入力してください");
+        m.insert("skill_builder.description", "説明");
+        m.insert("skill_builder.desc_placeholder", "この Skill は何をしますか？");
+        m.insert("skill_builder.user_invocable", "ユーザー呼び出し可能（/command で呼び出し可能）");
+        m.insert("skill_builder.content", "Skill コンテンツ (Markdown)");
+        m.insert("skill_builder.save", "Skill を保存");
+        m.insert("skill_builder.saved", "Skill を保存しました:");
+        m.insert("skill_builder.trigger", "トリガー:");
+        m.insert("skill_builder.preview_hint", "テンプレートを選択するか入力を開始すると、ライブプレビューが表示されます。");
 
         // ── Global Rules ──
         m.insert("global_rules.title", "グローバルルール");
@@ -225,6 +277,14 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("global_rules.saved", "保存しました！");
         m.insert("global_rules.delete", "削除");
         m.insert("global_rules.deleted", "削除しました！");
+        m.insert("rules.conflicts_title", "ルールの競合");
+        m.insert("rules.conflicts_found", "競合が見つかりました");
+        m.insert("rules.conflict_name_collision", "名前の衝突");
+        m.insert("rules.conflict_content_overlap", "内容の重複");
+        m.insert("rules.conflict_contradiction", "矛盾");
+        m.insert("rules.conflict_global", "グローバル");
+        m.insert("rules.conflict_project", "プロジェクト");
+        m.insert("rules.no_conflicts", "競合は検出されませんでした");
 
         // ── Plans ──
         m.insert("plans.title", "プラン");
@@ -336,6 +396,14 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("analytics.languages", "言語");
         m.insert("analytics.session_outcomes", "セッション結果");
         m.insert("analytics.outcomes", "結果");
+        m.insert("analytics.tips_title", "インサイトとヒント");
+        m.insert("analytics.tips_dismiss", "閉じる");
+        m.insert("analytics.tips_learn_more", "詳細を見る");
+        m.insert("analytics.tip_category_tool", "ツール");
+        m.insert("analytics.tip_category_workflow", "ワークフロー");
+        m.insert("analytics.tip_category_performance", "パフォーマンス");
+        m.insert("analytics.tip_category_config", "設定");
+        m.insert("analytics.no_tips", "ヒントはありません");
 
         // ── Sessions ──
         m.insert("sessions.title", "セッション");
@@ -662,6 +730,44 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("docs.scopes_project_4", "プロジェクト固有の Skills とワークフロー");
         m.insert("docs.scopes_project_5", "CI/CD Hooks と自動化");
 
+        // ── Docs: Optimization Guide ──
+        m.insert("docs.toc_optimization", "最適化ガイド");
+        m.insert("docs.opt_heading", "最適化ガイド");
+        m.insert("docs.opt_callout", "アナリティクスからのパーソナライズされたヒントを詳細に解説。各セクションでは、パターンが重要な理由と改善方法を、Anthropic の公式ドキュメントへのリンクとともに説明します。");
+        m.insert("docs.opt_why", "理由:");
+        m.insert("docs.opt_how", "方法:");
+        m.insert("docs.opt_task_heading", "Task ツールによる並列エージェント");
+        m.insert("docs.opt_task_why", "Task ツールは並列で動作する専門のサブエージェントを起動します。複雑な複数ステップの作業（調査、コード探索、テスト）では、サブエージェントが順次ではなく同時に実行できるため、合計時間を大幅に短縮します。");
+        m.insert("docs.opt_task_how", "Claude Code は並列処理の機会を認識すると自動的に Task ツールを使用します。明示的にリクエストすることもできます：「X と Y を並列で調査して」または「バグを修正しながらテストを実行して」。各エージェントは独自のコンテキストウィンドウを持つため、大規模なコードベースの探索がより効率的になります。");
+        m.insert("docs.opt_task_link", "Anthropic Docs: ベストプラクティス \u{2192}");
+        m.insert("docs.opt_hooks_heading", "Hooks による自動化");
+        m.insert("docs.opt_hooks_why", "Hooks は Claude がツールを使用する前後に自動的に実行されるシェルコマンドです。Hooks がなければ、フォーマッター、リンター、テストを手動で実行する必要があります。Hooks を使えば、ファイル書き込みごとに自動フォーマット、コミットごとに自動テストが可能です。");
+        m.insert("docs.opt_hooks_how", "~/.claude/settings.json の「hooks」キーで Hooks を設定します。PreToolUse でツール実行前のアクション（例：書き込み前のコードフォーマット）を実行します。PostToolUse で変更後のバリデーション（例：編集後の lint）を実行します。Stop で Claude 完了時のチェックを実行します。");
+        m.insert("docs.opt_hooks_link", "Anthropic Docs: Hooks \u{2192}");
+        m.insert("docs.opt_sessions_heading", "最適なセッション長");
+        m.insert("docs.opt_sessions_why", "長いセッションは Claude の焦点を薄めるコンテキストを蓄積します。多くのメッセージの後、以前の指示は目立たなくなります。コンテキストウィンドウが会話履歴で埋まるにつれて、トークンコストも増加します。");
+        m.insert("docs.opt_sessions_how", "複雑な作業を集中したセッションに分割しましょう。セッション内で /clear を使用してコンテキストをリセットします。複数ステップのプロジェクトには、プランファイルを使用します（Claude がプランを書き、集中したセッションでステップを実行）。各新しいセッションは、現在のタスクに最大限の注意を払って開始されます。");
+        m.insert("docs.opt_sessions_link", "Anthropic Docs: ベストプラクティス \u{2192}");
+        m.insert("docs.opt_cost_heading", "コスト最適化");
+        m.insert("docs.opt_cost_why", "Claude の各モデルはコストが大きく異なります。Opus は複雑な推論に優れますが、トークンあたりのコストが高くなります。Haiku は高速で安価で、シンプルなタスクに最適です。各タスクに適切なモデルを使用することで、コストを大幅に削減できます。");
+        m.insert("docs.opt_cost_how", "/model を使用してセッション中にモデルを切り替えます。Haiku の用途：クイックフィックス、コードフォーマット、簡単な質問。Sonnet の用途：中程度のコーディングタスク、レビュー。Opus の用途：アーキテクチャ設計、複雑なデバッグ、マルチファイルリファクタリング。アナリティクスページでモデル別のコスト内訳を確認できます。");
+        m.insert("docs.opt_cost_link", "Anthropic Docs: Claude Code 概要 \u{2192}");
+        m.insert("docs.opt_write_heading", "Write vs Edit：適切なツールの選択");
+        m.insert("docs.opt_write_why", "Write ツールはファイル全体を一度に作成し、Edit は既存ファイルに対象を絞った変更を行います。新しいファイルの場合、Edit はファイルを先に読み取って正確な文字列置換を指定する必要があるため、Write の方が効率的です。");
+        m.insert("docs.opt_write_how", "Claude は通常、自動的に適切なツールを選択します。ただし、ゼロから新しいファイルを作成する場合（テンプレート、ボイラープレート、設定）、明示的に「新しいファイルを作成して」と言うと、Claude が Write を選択しやすくなります。既存コードの変更には、Edit が常に推奨されます。");
+        m.insert("docs.opt_models_heading", "モデルの多様性");
+        m.insert("docs.opt_models_why", "すべてのタスクに単一のモデルを使用するということは、単純な作業に対して過剰に支払う（すべてに Opus）か、複雑なタスクに対してパワー不足（すべてに Haiku）のどちらかです。各モデルファミリーには強みがあります：速度の Haiku、バランスの Sonnet、深い推論の Opus。");
+        m.insert("docs.opt_models_how", "/model コマンドでモデルを切り替えます。良いパターン：Opus で計画とアーキテクチャを開始し、Sonnet に切り替えて実装、Haiku でクイックフィックスとフォーマットを行います。アナリティクスページで最も使用しているモデルを確認できます。");
+        m.insert("docs.opt_models_link", "Anthropic Docs: Claude Code 概要 \u{2192}");
+        m.insert("docs.opt_git_heading", "Git 連携");
+        m.insert("docs.opt_git_why", "Claude Code はステージ、コミット、プッシュ、PR の作成を直接行えます。Git 連携がなければ、Claude セッションの後に手動でコミットする必要があり、ワークフローが中断され、重要な変更を忘れるリスクがあります。");
+        m.insert("docs.opt_git_how", "Claude にコミットを依頼するだけです：「これらの変更をコミットして」または /commit を使用します。Claude は説明的なコミットメッセージを書き、関連するファイルのみをステージし、pre-commit hooks を尊重します。PR については「PR を作成して」と依頼すると、gh CLI を使用してプッシュし、サマリー付きのプルリクエストを開きます。");
+        m.insert("docs.opt_git_link", "Anthropic Docs: ベストプラクティス \u{2192}");
+        m.insert("docs.opt_churn_heading", "コードチャーンの削減");
+        m.insert("docs.opt_churn_why", "追加された行よりも削除された行が多い場合、通常は Claude が書き直す必要のあるコードを書いたことを意味します。これはトークンと時間の浪費です。一般的な原因：曖昧なプロンプト、コンテキストの不足、要件の推測。");
+        m.insert("docs.opt_churn_how", "プロンプトでは具体的に：既存のファイルを参照し、正確な関数名を指定し、期待される動作を説明しましょう。CLAUDE.md を使用して規約を文書化し、Claude が推測しないようにします。複雑な変更の場合、実装前にまず Claude に計画を立てさせましょう（/plan）。コーディングを開始する前に Claude のプランを確認しましょう。");
+        m.insert("docs.opt_churn_link", "Anthropic Docs: ベストプラクティス \u{2192}");
+
         // ── Docs: Tips & Best Practices ──
         m.insert("docs.bestpractices_heading", "ヒントとベストプラクティス");
         m.insert("docs.bestpractices_hygiene_heading", "構成の衛生");
@@ -815,6 +921,183 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("settings.user_prompt_submit", "UserPromptSubmit");
         m.insert("settings.session_start", "SessionStart");
 
+        // ── Sidebar (new) ──
+        m.insert("sidebar.agents", "エージェント");
+        m.insert("sidebar.plugins", "プラグイン");
+        m.insert("sidebar.launch_profiles", "起動プロファイル");
+        m.insert("sidebar.system_prompts", "システムプロンプト");
+        m.insert("sidebar.worktrees", "ワークツリー");
+
+        // ── Agents ──
+        m.insert("agents.title", "エージェント");
+        m.insert("agents.subtitle", "カスタムエージェント構成の管理");
+        m.insert("agents.tab_overview", "一覧");
+        m.insert("agents.tab_create", "新規作成");
+        m.insert("agents.loading", "読み込み中...");
+        m.insert("agents.empty", "エージェントが見つかりません");
+        m.insert("agents.name", "名前");
+        m.insert("agents.description", "説明");
+        m.insert("agents.prompt", "プロンプト");
+        m.insert("agents.model", "モデル");
+        m.insert("agents.allowed_tools", "許可されたツール");
+        m.insert("agents.disallowed_tools", "拒否されたツール");
+        m.insert("agents.custom_instructions", "カスタム指示");
+        m.insert("agents.source", "ソース");
+        m.insert("agents.create_success", "エージェントを作成しました");
+        m.insert("agents.update_success", "エージェントを更新しました");
+        m.insert("agents.delete_confirm", "このエージェントを削除してもよろしいですか？");
+        m.insert("agents.delete_success", "エージェントを削除しました");
+        m.insert("agents.copy_cli", "CLIコマンドをコピー");
+        m.insert("agents.copied", "コピーしました");
+
+        // ── Plugins ──
+        m.insert("plugins.title", "プラグイン");
+        m.insert("plugins.subtitle", "インストール済みプラグインの管理");
+        m.insert("plugins.loading", "読み込み中...");
+        m.insert("plugins.empty", "プラグインが見つかりません");
+        m.insert("plugins.name", "名前");
+        m.insert("plugins.version", "バージョン");
+        m.insert("plugins.path", "パス");
+        m.insert("plugins.status", "ステータス");
+        m.insert("plugins.enabled", "有効");
+        m.insert("plugins.disabled", "無効");
+        m.insert("plugins.install", "インストール");
+        m.insert("plugins.install_path", "インストールパス");
+        m.insert("plugins.install_success", "プラグインをインストールしました");
+        m.insert("plugins.delete_confirm", "このプラグインを削除してもよろしいですか？");
+        m.insert("plugins.delete_success", "プラグインを削除しました");
+
+        // ── Launch Profiles ──
+        m.insert("launch_profiles.title", "起動プロファイル");
+        m.insert("launch_profiles.subtitle", "Claude Code 起動構成の管理");
+        m.insert("launch_profiles.tab_profiles", "プロファイル");
+        m.insert("launch_profiles.tab_create", "新規作成");
+        m.insert("launch_profiles.tab_presets", "プリセット");
+        m.insert("launch_profiles.loading", "読み込み中...");
+        m.insert("launch_profiles.empty", "プロファイルが見つかりません");
+        m.insert("launch_profiles.name", "名前");
+        m.insert("launch_profiles.description", "説明");
+        m.insert("launch_profiles.model", "モデル");
+        m.insert("launch_profiles.effort", "推論レベル");
+        m.insert("launch_profiles.permission_mode", "権限モード");
+        m.insert("launch_profiles.allowed_tools", "許可されたツール");
+        m.insert("launch_profiles.disallowed_tools", "拒否されたツール");
+        m.insert("launch_profiles.system_prompt", "システムプロンプト");
+        m.insert("launch_profiles.append_system_prompt", "システムプロンプトに追加");
+        m.insert("launch_profiles.max_budget", "最大予算");
+        m.insert("launch_profiles.fallback_model", "フォールバックモデル");
+        m.insert("launch_profiles.debug_filter", "デバッグフィルター");
+        m.insert("launch_profiles.add_dirs", "ディレクトリを追加");
+        m.insert("launch_profiles.copy_command", "コマンドをコピー");
+        m.insert("launch_profiles.copied", "コピーしました");
+        m.insert("launch_profiles.create_success", "プロファイルを作成しました");
+        m.insert("launch_profiles.delete_confirm", "このプロファイルを削除してもよろしいですか？");
+        m.insert("launch_profiles.delete_success", "プロファイルを削除しました");
+        m.insert("launch_profiles.use_template", "テンプレートを使用");
+        m.insert("launch_profiles.preset_code_review", "コードレビュー");
+        m.insert("launch_profiles.preset_code_review_desc", "読み取り専用のコードレビュー用プロファイル");
+        m.insert("launch_profiles.preset_full_dev", "フル開発");
+        m.insert("launch_profiles.preset_full_dev_desc", "完全な権限を持つ開発プロファイル");
+        m.insert("launch_profiles.preset_quick_fix", "クイックフィックス");
+        m.insert("launch_profiles.preset_quick_fix_desc", "小さな修正用の軽量プロファイル");
+        m.insert("launch_profiles.preset_research", "リサーチ");
+        m.insert("launch_profiles.preset_research_desc", "コードベース調査用プロファイル");
+        m.insert("launch_profiles.preset_budget", "予算制限");
+        m.insert("launch_profiles.preset_budget_desc", "コスト制限付きプロファイル");
+
+        // ── System Prompts ──
+        m.insert("system_prompts.title", "システムプロンプト");
+        m.insert("system_prompts.subtitle", "再利用可能なシステムプロンプトの管理");
+        m.insert("system_prompts.tab_library", "ライブラリ");
+        m.insert("system_prompts.tab_create", "新規作成");
+        m.insert("system_prompts.loading", "読み込み中...");
+        m.insert("system_prompts.empty", "システムプロンプトが見つかりません");
+        m.insert("system_prompts.name", "名前");
+        m.insert("system_prompts.content", "内容");
+        m.insert("system_prompts.modified", "更新日時");
+        m.insert("system_prompts.create_success", "システムプロンプトを作成しました");
+        m.insert("system_prompts.update_success", "システムプロンプトを更新しました");
+        m.insert("system_prompts.delete_confirm", "このシステムプロンプトを削除してもよろしいですか？");
+        m.insert("system_prompts.delete_success", "システムプロンプトを削除しました");
+        m.insert("system_prompts.copy_cli", "CLIコマンドをコピー");
+        m.insert("system_prompts.copied", "コピーしました");
+        m.insert("system_prompts.use_template", "テンプレートを使用");
+        m.insert("system_prompts.template_reviewer", "コードレビュアー");
+        m.insert("system_prompts.template_docs", "ドキュメント作成者");
+        m.insert("system_prompts.template_security", "セキュリティ監査");
+        m.insert("system_prompts.template_refactor", "リファクタリング");
+
+        // ── Worktrees ──
+        m.insert("worktrees.title", "ワークツリー");
+        m.insert("worktrees.subtitle", "Git ワークツリーの管理");
+        m.insert("worktrees.loading", "読み込み中...");
+        m.insert("worktrees.empty", "ワークツリーが見つかりません");
+        m.insert("worktrees.project_path", "プロジェクトパス");
+        m.insert("worktrees.branch_name", "ブランチ名");
+        m.insert("worktrees.create", "作成");
+        m.insert("worktrees.create_success", "ワークツリーを作成しました");
+        m.insert("worktrees.delete_confirm", "このワークツリーを削除してもよろしいですか？");
+        m.insert("worktrees.delete_success", "ワークツリーを削除しました");
+        m.insert("worktrees.col_branch", "ブランチ");
+        m.insert("worktrees.col_path", "パス");
+        m.insert("worktrees.col_head", "HEAD");
+        m.insert("worktrees.col_status", "ステータス");
+        m.insert("worktrees.col_actions", "操作");
+        m.insert("worktrees.badge_main", "メイン");
+        m.insert("worktrees.badge_bare", "ベア");
+        m.insert("worktrees.badge_worktree", "ワークツリー");
+
+        // ── エージェント（フォームフィールド） ──
+        m.insert("agents.field_name", "名前");
+        m.insert("agents.field_description", "説明");
+        m.insert("agents.field_prompt", "プロンプト");
+        m.insert("agents.field_model", "モデル");
+        m.insert("agents.field_allowed_tools", "許可されたツール");
+        m.insert("agents.field_disallowed_tools", "拒否されたツール");
+        m.insert("agents.field_custom_instructions", "カスタム指示");
+        m.insert("agents.tools_hint", "カンマ区切りリスト、例: Bash, Edit, Read");
+        m.insert("agents.tools_placeholder", "Bash, Edit, Read, Write...");
+        m.insert("agents.create_btn", "エージェントを作成");
+        m.insert("agents.editing", "編集中");
+        m.insert("agents.save_success", "エージェントを更新しました");
+        m.insert("agents.confirm_delete", "エージェントを削除");
+        m.insert("agents.name_required", "名前は必須です");
+        m.insert("agents.model_default", "デフォルト（継承）");
+        m.insert("agents.name_placeholder", "例: code-reviewer");
+        m.insert("agents.desc_placeholder", "このエージェントは何をしますか？");
+        m.insert("agents.prompt_placeholder", "あなたはコードレビュアーです...");
+        m.insert("agents.instructions_placeholder", "追加の指示...");
+
+        // ── プラグイン（不足） ──
+        m.insert("plugins.actions", "操作");
+
+        // ── 起動プロファイル（不足） ──
+        m.insert("launch_profiles.save_btn", "プロファイルを作成");
+
+        // ── 共通（不足） ──
+        m.insert("common.edit", "編集");
+        m.insert("common.saved", "保存済み");
+
+        // ── Timeline ──
+        m.insert("sidebar.timeline", "タイムライン");
+        m.insert("timeline.title", "タイムライン");
+        m.insert("timeline.subtitle", "Claude設定のGitベースのバージョン履歴");
+        m.insert("timeline.files", "ファイル");
+        m.insert("timeline.restore", "復元");
+        m.insert("timeline.confirm_restore_title", "設定を復元");
+        m.insert("timeline.confirm_restore_msg", "選択したコミットにすべてのファイルを復元します。現在の状態のバックアップが先に保存されます。続行しますか？");
+        m.insert("timeline.empty", "タイムラインのエントリがまだありません。設定を編集すると、ここに変更が表示されます。");
+        m.insert("timeline.error", "タイムラインの読み込みに失敗しました");
+        m.insert("timeline.select_commit", "コミットを選択して変更を表示");
+        m.insert("timeline.diff_for", "変更内容");
+
+        // ── ヘルプチャット ──
+        m.insert("help_chat.title", "ヘルプ");
+        m.insert("help_chat.placeholder", "このページについて質問...");
+        m.insert("help_chat.send", "送信");
+        m.insert("help_chat.thinking", "考え中...");
+        m.insert("help_chat.clear", "新しい会話");
+        m.insert("help_chat.no_api_key", "ヘルプチャットにはAPIキーが必要です。設定で構成してください。");
 
         m
     })

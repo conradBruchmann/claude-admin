@@ -1,6 +1,4 @@
-use claude_admin_shared::{
-    HealthOverview, PermissionDeleteRequest, ProjectPermissionSummary, ProjectPermissions,
-};
+use claude_admin_shared::{PermissionDeleteRequest, ProjectPermissionSummary, ProjectPermissions};
 use leptos::*;
 use leptos_router::*;
 
@@ -10,6 +8,18 @@ use crate::i18n::t;
 
 #[component]
 pub fn PermissionsPage() -> impl IntoView {
+    provide_context(create_rw_signal(crate::components::context_help::PageContext {
+        page_name: "Permissions".to_string(),
+        description: "View and manage Claude Code permissions per project. Permissions control which tools and operations Claude can perform without asking.".to_string(),
+        available_actions: vec![
+            "View permission summaries".to_string(),
+            "Open project permission details".to_string(),
+            "Delete permission entries".to_string(),
+            "Optimize permissions".to_string(),
+        ],
+        current_data_summary: String::new(),
+    }));
+
     let permissions = create_resource(
         || (),
         |_| async move { api::get::<Vec<ProjectPermissionSummary>>("/permissions").await },
@@ -237,98 +247,6 @@ pub fn PermissionDetailPage() -> impl IntoView {
                 });
             })
         />
-    }
-}
-
-#[component]
-pub fn ConfigHealthPage() -> impl IntoView {
-    let health = create_resource(
-        || (),
-        |_| async move { api::get::<HealthOverview>("/health/overview").await },
-    );
-
-    view! {
-        <div class="page-header">
-            <h2>{t("permissions.health_title")}</h2>
-            <p>{t("permissions.health_subtitle_scores")}</p>
-        </div>
-
-        <Suspense fallback=move || view! { <div class="loading">{t("permissions.health_loading")}</div> }>
-            {move || health.get().map(|result| match result {
-                Ok(data) => {
-                    let avg = data.average_score;
-                    let color = score_color(avg);
-
-                    view! {
-                        <div class="card-grid">
-                            <div class="card">
-                                <div class="card-value" style=format!("color: {};", color)>{avg}</div>
-                                <div class="card-label">{t("permissions.health_avg_score")}</div>
-                            </div>
-                            <div class="card">
-                                <div class="card-value">{data.projects.len()}</div>
-                                <div class="card-label">{t("permissions.health_projects_analyzed")}</div>
-                            </div>
-                        </div>
-
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>{t("permissions.health_col_project")}</th>
-                                        <th>{t("permissions.health_col_score")}</th>
-                                        <th>{t("permissions.health_col_issues")}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.projects.into_iter().map(|p| {
-                                        let color = score_color(p.score);
-                                        view! {
-                                            <tr>
-                                                <td>{p.name}</td>
-                                                <td>
-                                                    <span class="badge" style=format!(
-                                                        "background: {}20; color: {};", color, color
-                                                    )>
-                                                        {p.score} "/100"
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    {if p.issues.is_empty() {
-                                                        view! { <span style="color: var(--success);">{t("permissions.health_no_issues")}</span> }.into_view()
-                                                    } else {
-                                                        view! {
-                                                            <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.8125rem; color: var(--text-secondary);">
-                                                                {p.issues.into_iter().map(|issue| view! {
-                                                                    <li>{issue}</li>
-                                                                }).collect_view()}
-                                                            </ul>
-                                                        }.into_view()
-                                                    }}
-                                                </td>
-                                            </tr>
-                                        }
-                                    }).collect_view()}
-                                </tbody>
-                            </table>
-                        </div>
-                    }.into_view()
-                }
-                Err(e) => view! {
-                    <div class="empty-state"><p>{t("common.error_prefix")} {e}</p></div>
-                }.into_view(),
-            })}
-        </Suspense>
-    }
-}
-
-fn score_color(score: u8) -> &'static str {
-    if score >= 70 {
-        "#22c55e"
-    } else if score >= 40 {
-        "#eab308"
-    } else {
-        "#ef4444"
     }
 }
 

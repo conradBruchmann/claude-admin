@@ -25,6 +25,19 @@ struct SetApiKeyRequest {
 pub fn SettingsPage() -> impl IntoView {
     let active_tab = create_rw_signal("overview".to_string());
 
+    provide_context(create_rw_signal(crate::components::context_help::PageContext {
+        page_name: "Settings".to_string(),
+        description: "Configure global Claude Code settings including hooks, API key, storage info, and import/export bundles.".to_string(),
+        available_actions: vec![
+            "View and edit global settings".to_string(),
+            "Configure hooks pipeline".to_string(),
+            "Set API key".to_string(),
+            "View storage usage".to_string(),
+            "Export/import configuration bundles".to_string(),
+        ],
+        current_data_summary: String::new(),
+    }));
+
     view! {
         <div class="page-header">
             <h2>{t("settings.title")}</h2>

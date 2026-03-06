@@ -28,8 +28,16 @@ fn project_routes() -> Router<Arc<AppState>> {
             get(routes::projects::get_claude_md).put(routes::projects::put_claude_md),
         )
         .route(
+            "/api/v1/projects/:id/profile",
+            get(routes::projects::get_project_profile),
+        )
+        .route(
             "/api/v1/projects/:id/advisor",
             get(routes::advisor::get_advisor_report),
+        )
+        .route(
+            "/api/v1/projects/:id/advisor/apply",
+            post(routes::advisor::apply_advisor_action),
         )
 }
 
@@ -44,6 +52,14 @@ fn skill_routes() -> Router<Arc<AppState>> {
             get(routes::skills::get_skill)
                 .put(routes::skills::update_skill)
                 .delete(routes::skills::delete_skill),
+        )
+        .route(
+            "/api/v1/skills/templates",
+            get(routes::skills::list_skill_templates),
+        )
+        .route(
+            "/api/v1/skills/preview",
+            post(routes::skills::preview_skill),
         )
         .route(
             "/api/v1/skill-browser/official",
@@ -64,6 +80,10 @@ fn rule_routes() -> Router<Arc<AppState>> {
         .route(
             "/api/v1/rules",
             get(routes::rules::list_rules).post(routes::rules::create_rule),
+        )
+        .route(
+            "/api/v1/rules/conflicts",
+            get(routes::rules::get_rule_conflicts),
         )
         .route(
             "/api/v1/rules/:scope/:name",
@@ -128,6 +148,7 @@ fn ai_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/api/v1/ai/suggest", post(routes::ai::suggest))
         .route("/api/v1/ai/validate", post(routes::ai::validate))
+        .route("/api/v1/ai/help-chat", post(routes::ai::help_chat))
 }
 
 fn permission_routes() -> Router<Arc<AppState>> {
@@ -160,6 +181,10 @@ fn permission_routes() -> Router<Arc<AppState>> {
 
 fn analytics_routes() -> Router<Arc<AppState>> {
     Router::new()
+        .route(
+            "/api/v1/analytics/tips",
+            get(routes::analytics::get_analytics_tips),
+        )
         .route(
             "/api/v1/analytics/overview",
             get(routes::analytics::get_analytics_overview),
@@ -219,6 +244,122 @@ fn mcp_routes() -> Router<Arc<AppState>> {
         .route(
             "/api/v1/mcp-browser/install",
             post(routes::mcp::install_mcp_server),
+        )
+}
+
+fn agent_routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route(
+            "/api/v1/agents",
+            get(routes::agents::list_agents).post(routes::agents::create_agent),
+        )
+        .route(
+            "/api/v1/agents/:name",
+            get(routes::agents::get_agent)
+                .put(routes::agents::update_agent)
+                .delete(routes::agents::delete_agent),
+        )
+}
+
+fn plugin_routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route(
+            "/api/v1/plugins",
+            get(routes::plugins::list_plugins).post(routes::plugins::install_plugin),
+        )
+        .route(
+            "/api/v1/plugins/:name",
+            delete(routes::plugins::delete_plugin),
+        )
+}
+
+fn launch_profile_routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route(
+            "/api/v1/launch-profiles",
+            get(routes::launch_profiles::list_profiles)
+                .post(routes::launch_profiles::create_profile),
+        )
+        .route(
+            "/api/v1/launch-profiles/:name",
+            get(routes::launch_profiles::get_profile)
+                .put(routes::launch_profiles::update_profile)
+                .delete(routes::launch_profiles::delete_profile),
+        )
+        .route(
+            "/api/v1/launch-profiles/:name/command",
+            get(routes::launch_profiles::generate_command),
+        )
+}
+
+fn system_prompt_routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route(
+            "/api/v1/system-prompts",
+            get(routes::system_prompts::list_system_prompts)
+                .post(routes::system_prompts::create_system_prompt),
+        )
+        .route(
+            "/api/v1/system-prompts/:name",
+            get(routes::system_prompts::get_system_prompt)
+                .put(routes::system_prompts::update_system_prompt)
+                .delete(routes::system_prompts::delete_system_prompt),
+        )
+}
+
+fn tool_access_routes() -> Router<Arc<AppState>> {
+    Router::new().route(
+        "/api/v1/tool-access",
+        get(routes::tool_access::get_tool_access).put(routes::tool_access::update_tool_access),
+    )
+}
+
+fn worktree_routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route(
+            "/api/v1/worktrees",
+            get(routes::worktrees::list_worktrees).post(routes::worktrees::create_worktree),
+        )
+        .route(
+            "/api/v1/worktrees/:path",
+            delete(routes::worktrees::delete_worktree),
+        )
+}
+
+fn system_status_routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route(
+            "/api/v1/system/status",
+            get(routes::system_status::get_system_status),
+        )
+        .route(
+            "/api/v1/system/auth",
+            get(routes::system_status::get_auth_status),
+        )
+        .route(
+            "/api/v1/system/update",
+            get(routes::system_status::get_update_status),
+        )
+        .route(
+            "/api/v1/system/doctor",
+            get(routes::system_status::get_doctor_result),
+        )
+        .route(
+            "/api/v1/system/ide",
+            get(routes::system_status::get_ide_status),
+        )
+}
+
+fn timeline_routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route("/api/v1/timeline", get(routes::timeline::list_timeline))
+        .route(
+            "/api/v1/timeline/:hash",
+            get(routes::timeline::get_commit_diff),
+        )
+        .route(
+            "/api/v1/timeline/:hash/restore",
+            post(routes::timeline::restore_to_commit),
         )
 }
 
@@ -305,7 +446,15 @@ pub fn create_api_routes() -> Router<Arc<AppState>> {
         .merge(analytics_routes())
         .merge(system_routes())
         .merge(mcp_routes())
+        .merge(agent_routes())
+        .merge(plugin_routes())
+        .merge(launch_profile_routes())
+        .merge(system_prompt_routes())
+        .merge(tool_access_routes())
+        .merge(worktree_routes())
+        .merge(system_status_routes())
         .merge(backup_routes())
+        .merge(timeline_routes())
         .merge(utility_routes())
         .merge(operational_routes())
 }
