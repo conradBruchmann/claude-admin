@@ -32,6 +32,10 @@ fn project_routes() -> Router<Arc<AppState>> {
             get(routes::projects::get_project_profile),
         )
         .route(
+            "/api/v1/projects/:id/effective-config",
+            get(routes::projects::get_effective_config),
+        )
+        .route(
             "/api/v1/projects/:id/advisor",
             get(routes::advisor::get_advisor_report),
         )

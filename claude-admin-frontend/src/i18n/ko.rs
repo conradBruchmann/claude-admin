@@ -167,6 +167,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("project_detail.tab_rules", "규칙");
         m.insert("project_detail.tab_memory", "메모리");
         m.insert("project_detail.tab_permissions", "권한");
+        m.insert("project_detail.tab_effective", "유효 설정");
         m.insert("project_detail.tab_health", "상태");
         m.insert("project_detail.no_claude_md", "CLAUDE.md를 찾을 수 없습니다");
         m.insert("project_detail.no_claude_md_hint", "프로젝트 디렉터리에 CLAUDE.md를 생성하여 Claude Code에 지침을 제공하세요.");
@@ -1100,6 +1101,20 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("timeline.error", "타임라인 로드 실패");
         m.insert("timeline.select_commit", "커밋을 선택하여 변경 사항 보기");
         m.insert("timeline.diff_for", "변경 사항");
+
+        // ── Effective Config ──
+        m.insert("effective.total_rules", "전체 규칙");
+        m.insert("effective.total_skills", "전체 스킬");
+        m.insert("effective.mcp_servers", "MCP 서버");
+        m.insert("effective.hooks", "Hooks");
+        m.insert("effective.memory_files", "메모리 파일");
+        m.insert("effective.inherited", "상속됨");
+        m.insert("effective.own", "고유");
+        m.insert("effective.rules", "규칙");
+        m.insert("effective.skills", "스킬");
+        m.insert("effective.conflicts", "충돌");
+        m.insert("effective.none", "없음");
+        m.insert("effective.invocable", "호출 가능");
 
         // ── 도움말 채팅 ──
         m.insert("help_chat.title", "도움말");

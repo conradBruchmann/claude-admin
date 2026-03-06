@@ -165,6 +165,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("project_detail.tab_rules", "Regras");
         m.insert("project_detail.tab_memory", "Mem\u{f3}ria");
         m.insert("project_detail.tab_permissions", "Permiss\u{f5}es");
+        m.insert("project_detail.tab_effective", "Configuração efetiva");
         m.insert("project_detail.tab_health", "Estado");
         m.insert("project_detail.no_claude_md", "CLAUDE.md n\u{e3}o encontrado");
         m.insert("project_detail.no_claude_md_hint", "Cria um CLAUDE.md no diret\u{f3}rio do teu projeto para dar instru\u{e7}\u{f5}es ao Claude Code.");
@@ -1093,6 +1094,20 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("timeline.error", "Falha ao carregar a linha do tempo");
         m.insert("timeline.select_commit", "Selecione um commit para ver suas alterações");
         m.insert("timeline.diff_for", "Alterações em");
+
+        // ── Effective Config ──
+        m.insert("effective.total_rules", "Total de regras");
+        m.insert("effective.total_skills", "Total de skills");
+        m.insert("effective.mcp_servers", "MCP-Server");
+        m.insert("effective.hooks", "Hooks");
+        m.insert("effective.memory_files", "Arquivos de memória");
+        m.insert("effective.inherited", "Herdado");
+        m.insert("effective.own", "Próprio");
+        m.insert("effective.rules", "Regras");
+        m.insert("effective.skills", "Skills");
+        m.insert("effective.conflicts", "Conflitos");
+        m.insert("effective.none", "Nenhum");
+        m.insert("effective.invocable", "Invocável");
 
         // ── Chat de Ajuda ──
         m.insert("help_chat.title", "Ajuda");

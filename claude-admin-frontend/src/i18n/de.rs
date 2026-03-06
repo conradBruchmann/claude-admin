@@ -178,6 +178,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("project_detail.tab_rules", "Regeln");
         m.insert("project_detail.tab_memory", "Memory");
         m.insert("project_detail.tab_permissions", "Berechtigungen");
+        m.insert("project_detail.tab_effective", "Effektive Konfiguration");
         m.insert("project_detail.tab_health", "Health");
         m.insert("project_detail.no_claude_md", "Keine CLAUDE.md vorhanden");
         m.insert("project_detail.no_claude_md_hint", "Erstelle eine CLAUDE.md in deinem Projektverzeichnis um Claude Code Anweisungen zu geben.");
@@ -1134,6 +1135,20 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("timeline.error", "Zeitleiste konnte nicht geladen werden");
         m.insert("timeline.select_commit", "Wähle einen Eintrag, um die Änderungen zu sehen");
         m.insert("timeline.diff_for", "Änderungen in");
+
+        // ── Effective Config ──
+        m.insert("effective.total_rules", "Regeln gesamt");
+        m.insert("effective.total_skills", "Skills gesamt");
+        m.insert("effective.mcp_servers", "MCP-Server");
+        m.insert("effective.hooks", "Hooks");
+        m.insert("effective.memory_files", "Memory-Dateien");
+        m.insert("effective.inherited", "Geerbt");
+        m.insert("effective.own", "Eigen");
+        m.insert("effective.rules", "Regeln");
+        m.insert("effective.skills", "Skills");
+        m.insert("effective.conflicts", "Konflikte");
+        m.insert("effective.none", "Keine");
+        m.insert("effective.invocable", "Aufrufbar");
 
         // ── Hilfe-Chat ──
         m.insert("help_chat.title", "Hilfe");

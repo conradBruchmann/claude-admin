@@ -608,6 +608,32 @@ pub struct ProjectProfile {
     pub conflicts: Vec<ConflictInfo>,
 }
 
+// === Effective Config ===
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffectiveConfig {
+    pub rules: EffectiveConfigSection<RuleFile>,
+    pub skills: EffectiveConfigSection<SkillFile>,
+    pub mcp_servers: Vec<McpServerDetail>,
+    pub hooks: EffectiveHooksSection,
+    pub has_claude_md: bool,
+    pub memory_files: Vec<String>,
+    pub conflicts: Vec<ConflictInfo>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffectiveConfigSection<T> {
+    pub global: Vec<T>,
+    pub project: Vec<T>,
+    pub effective_count: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffectiveHooksSection {
+    pub global_count: usize,
+    pub effective_hooks: Vec<EffectiveHook>,
+}
+
 // === Health ===
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

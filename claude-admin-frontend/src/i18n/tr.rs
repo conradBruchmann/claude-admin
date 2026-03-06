@@ -167,6 +167,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("project_detail.tab_rules", "Kurallar");
         m.insert("project_detail.tab_memory", "Haf\u{0131}za");
         m.insert("project_detail.tab_permissions", "\u{0130}zinler");
+        m.insert("project_detail.tab_effective", "Ge\u{00e7}erli yap\u{0131}land\u{0131}rma");
         m.insert("project_detail.tab_health", "Sa\u{011f}l\u{0131}k");
         m.insert("project_detail.no_claude_md", "CLAUDE.md bulunamad\u{0131}");
         m.insert("project_detail.no_claude_md_hint", "Claude Code\u{2019}a talimatlar vermek i\u{00e7}in proje dizininizde bir CLAUDE.md olu\u{015f}turun.");
@@ -1100,6 +1101,20 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("timeline.error", "Zaman çizelgesi yüklenemedi");
         m.insert("timeline.select_commit", "Değişikliklerini görmek için bir commit seçin");
         m.insert("timeline.diff_for", "Değişiklikler");
+
+        // ── Effective Config ──
+        m.insert("effective.total_rules", "Toplam kurallar");
+        m.insert("effective.total_skills", "Toplam beceriler");
+        m.insert("effective.mcp_servers", "MCP Sunucuları");
+        m.insert("effective.hooks", "Hooks");
+        m.insert("effective.memory_files", "Bellek dosyaları");
+        m.insert("effective.inherited", "Miras alınan");
+        m.insert("effective.own", "Kendi");
+        m.insert("effective.rules", "Kurallar");
+        m.insert("effective.skills", "Beceriler");
+        m.insert("effective.conflicts", "Çakışmalar");
+        m.insert("effective.none", "Yok");
+        m.insert("effective.invocable", "Çağrılabilir");
 
         // ── Yardım Sohbeti ──
         m.insert("help_chat.title", "Yardım");

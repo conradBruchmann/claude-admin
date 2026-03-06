@@ -7,8 +7,8 @@ use crate::domain::errors::ApiError;
 use crate::domain::extractors::AppJson;
 use crate::services::{audit, config_health, file_ops, fs_scanner, project_resolver};
 use claude_admin_shared::{
-    ClaudeMdContent, ClaudeMdUpdateRequest, ConfigScope, ProjectDetail, ProjectProfile,
-    ProjectStatus, ProjectSummaryLite,
+    ClaudeMdContent, ClaudeMdUpdateRequest, ConfigScope, EffectiveConfig, EffectiveConfigSection,
+    EffectiveHooksSection, ProjectDetail, ProjectProfile, ProjectStatus, ProjectSummaryLite,
 };
 
 /// Instant project list - no filesystem checks.
@@ -113,6 +113,100 @@ pub async fn get_project_profile(
         mcp_servers,
         hooks_count,
         health_score: health.score,
+        conflicts,
+    }))
+}
+
+pub async fn get_effective_config(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> Result<Json<EffectiveConfig>, ApiError> {
+    let project_path = project_resolver::decode_project_id(&id)?;
+
+    // Get project detail (project-level rules, skills, memory)
+    let detail = fs_scanner::scan_project_detail(&state.claude_home, &project_path).await?;
+
+    // Get global rules and skills
+    let global_rules = fs_scanner::scan_rules(&state.claude_home, &ConfigScope::Global)
+        .await
+        .unwrap_or_default();
+    let global_skills = fs_scanner::scan_skills(&state.claude_home, &ConfigScope::Global)
+        .await
+        .unwrap_or_default();
+
+    // MCP servers
+    let mcp_servers = crate::services::mcp::list_mcp_servers(
+        &state.claude_json_path,
+        state.claude_desktop_config_path.as_deref(),
+        &state.claude_home,
+    )
+    .await
+    .unwrap_or_default();
+
+    // Global hooks
+    let settings = fs_scanner::scan_settings(&state.claude_home)
+        .await
+        .unwrap_or_else(|_| claude_admin_shared::SettingsOverview {
+            global_settings: serde_json::Value::Object(serde_json::Map::new()),
+            hooks: claude_admin_shared::HooksConfig::default(),
+        });
+    let global_hook_count = settings.hooks.pre_tool_use.len()
+        + settings.hooks.post_tool_use.len()
+        + settings.hooks.notification.len()
+        + settings.hooks.stop.len()
+        + settings.hooks.user_prompt_submit.len()
+        + settings.hooks.session_start.len();
+
+    // Build effective hooks list
+    let mut effective_hooks = Vec::new();
+    for entry in &settings.hooks.pre_tool_use {
+        for hook in &entry.hooks {
+            effective_hooks.push(claude_admin_shared::EffectiveHook {
+                event: "PreToolUse".to_string(),
+                matcher: Some(entry.matcher.clone()),
+                command: hook.command.clone(),
+                source: "global".to_string(),
+            });
+        }
+    }
+    for entry in &settings.hooks.post_tool_use {
+        for hook in &entry.hooks {
+            effective_hooks.push(claude_admin_shared::EffectiveHook {
+                event: "PostToolUse".to_string(),
+                matcher: Some(entry.matcher.clone()),
+                command: hook.command.clone(),
+                source: "global".to_string(),
+            });
+        }
+    }
+
+    // Conflicts
+    let conflicts = config_health::detect_rule_conflicts(&state.claude_home, &project_path).await;
+
+    // Memory file names
+    let memory_names: Vec<String> = detail.memory_files.iter().map(|m| m.name.clone()).collect();
+
+    let rules_effective = global_rules.len() + detail.rules.len();
+    let skills_effective = global_skills.len() + detail.skills.len();
+
+    Ok(Json(EffectiveConfig {
+        rules: EffectiveConfigSection {
+            global: global_rules,
+            project: detail.rules,
+            effective_count: rules_effective,
+        },
+        skills: EffectiveConfigSection {
+            global: global_skills,
+            project: detail.skills,
+            effective_count: skills_effective,
+        },
+        mcp_servers,
+        hooks: EffectiveHooksSection {
+            global_count: global_hook_count,
+            effective_hooks,
+        },
+        has_claude_md: detail.summary.has_claude_md,
+        memory_files: memory_names,
         conflicts,
     }))
 }

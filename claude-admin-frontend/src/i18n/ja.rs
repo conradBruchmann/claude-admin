@@ -165,6 +165,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("project_detail.tab_rules", "ルール");
         m.insert("project_detail.tab_memory", "メモリ");
         m.insert("project_detail.tab_permissions", "権限");
+        m.insert("project_detail.tab_effective", "有効な設定");
         m.insert("project_detail.tab_health", "ヘルス");
         m.insert("project_detail.no_claude_md", "CLAUDE.md が見つかりません");
         m.insert("project_detail.no_claude_md_hint", "プロジェクトディレクトリに CLAUDE.md を作成して Claude Code に指示を与えましょう。");
@@ -1090,6 +1091,20 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("timeline.error", "タイムラインの読み込みに失敗しました");
         m.insert("timeline.select_commit", "コミットを選択して変更を表示");
         m.insert("timeline.diff_for", "変更内容");
+
+        // ── Effective Config ──
+        m.insert("effective.total_rules", "ルール合計");
+        m.insert("effective.total_skills", "スキル合計");
+        m.insert("effective.mcp_servers", "MCPサーバー");
+        m.insert("effective.hooks", "Hooks");
+        m.insert("effective.memory_files", "メモリファイル");
+        m.insert("effective.inherited", "継承");
+        m.insert("effective.own", "固有");
+        m.insert("effective.rules", "ルール");
+        m.insert("effective.skills", "スキル");
+        m.insert("effective.conflicts", "競合");
+        m.insert("effective.none", "なし");
+        m.insert("effective.invocable", "呼び出し可能");
 
         // ── ヘルプチャット ──
         m.insert("help_chat.title", "ヘルプ");

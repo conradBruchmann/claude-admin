@@ -167,6 +167,7 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("project_detail.tab_rules", "规则");
         m.insert("project_detail.tab_memory", "记忆");
         m.insert("project_detail.tab_permissions", "权限");
+        m.insert("project_detail.tab_effective", "有效配置");
         m.insert("project_detail.tab_health", "健康");
         m.insert("project_detail.no_claude_md", "未找到 CLAUDE.md");
         m.insert("project_detail.no_claude_md_hint", "在项目目录中创建 CLAUDE.md 以向 Claude Code 提供指令。");
@@ -1100,6 +1101,20 @@ pub fn translations() -> &'static HashMap<&'static str, &'static str> {
         m.insert("timeline.error", "加载时间线失败");
         m.insert("timeline.select_commit", "选择一个提交以查看其更改");
         m.insert("timeline.diff_for", "更改内容");
+
+        // ── Effective Config ──
+        m.insert("effective.total_rules", "规则总数");
+        m.insert("effective.total_skills", "技能总数");
+        m.insert("effective.mcp_servers", "MCP 服务器");
+        m.insert("effective.hooks", "Hooks");
+        m.insert("effective.memory_files", "记忆文件");
+        m.insert("effective.inherited", "继承");
+        m.insert("effective.own", "自有");
+        m.insert("effective.rules", "规则");
+        m.insert("effective.skills", "技能");
+        m.insert("effective.conflicts", "冲突");
+        m.insert("effective.none", "无");
+        m.insert("effective.invocable", "可调用");
 
         // ── 帮助聊天 ──
         m.insert("help_chat.title", "帮助");

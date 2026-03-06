@@ -1,6 +1,6 @@
 use claude_admin_shared::{
-    ClaudeMdContent, ClaudeMdUpdateRequest, ConflictType, ProjectDetail, ProjectHealth,
-    ProjectPermissions, ProjectProfile,
+    ClaudeMdContent, ClaudeMdUpdateRequest, ConflictType, EffectiveConfig, ProjectDetail,
+    ProjectHealth, ProjectPermissions, ProjectProfile,
 };
 use leptos::*;
 use leptos_router::*;
@@ -55,6 +55,10 @@ pub fn ProjectDetailPage() -> impl IntoView {
                                 class=move || if active_tab.get() == "memory" { "tab active" } else { "tab" }
                                 on:click=move |_| active_tab.set("memory".to_string())
                             >{t("project_detail.tab_memory")}</button>
+                            <button
+                                class=move || if active_tab.get() == "effective" { "tab active" } else { "tab" }
+                                on:click=move |_| active_tab.set("effective".to_string())
+                            >{t("project_detail.tab_effective")}</button>
                             <button
                                 class=move || if active_tab.get() == "permissions" { "tab active" } else { "tab" }
                                 on:click=move |_| active_tab.set("permissions".to_string())
@@ -248,6 +252,10 @@ pub fn ProjectDetailPage() -> impl IntoView {
                                         }.into_view()
                                     }
                                 }
+                                "effective" => {
+                                    let pid = id();
+                                    view! { <EffectiveConfigTab project_id=pid/> }.into_view()
+                                }
                                 "permissions" => {
                                     let pid = id();
                                     view! { <PermissionsTab project_id=pid/> }.into_view()
@@ -410,6 +418,275 @@ fn ProfileTab(#[prop(into)] project_id: String) -> impl IntoView {
                         <div style="margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
                             <AdvisorTab project_id=pid_for_advisor.get_value()/>
                         </div>
+                    }.into_view()
+                }
+                Err(e) => view! {
+                    <div class="empty-state"><p>{t("common.error_prefix")} {e}</p></div>
+                }.into_view(),
+            })}
+        </Suspense>
+    }
+}
+
+// ─────────────────────────────────────────────
+// Effective Config Tab
+// ─────────────────────────────────────────────
+
+#[component]
+fn EffectiveConfigTab(#[prop(into)] project_id: String) -> impl IntoView {
+    let pid = project_id.clone();
+    let config = create_resource(
+        move || pid.clone(),
+        |id| async move {
+            api::get::<EffectiveConfig>(&format!("/projects/{}/effective-config", id)).await
+        },
+    );
+
+    view! {
+        <Suspense fallback=move || view! { <div class="loading">{t("common.loading")}</div> }>
+            {move || config.get().map(|result| match result {
+                Ok(data) => {
+                    let global_rules = data.rules.global.clone();
+                    let project_rules = data.rules.project.clone();
+                    let global_skills = data.skills.global.clone();
+                    let project_skills = data.skills.project.clone();
+                    let mcp_servers = data.mcp_servers.clone();
+                    let hooks = data.hooks.effective_hooks.clone();
+                    let conflicts = data.conflicts.clone();
+                    let memory = data.memory_files.clone();
+
+                    view! {
+                        // Summary cards
+                        <div class="card-grid">
+                            <div class="card">
+                                <div class="card-value">{data.rules.effective_count}</div>
+                                <div class="card-label">{t("effective.total_rules")}</div>
+                            </div>
+                            <div class="card">
+                                <div class="card-value">{data.skills.effective_count}</div>
+                                <div class="card-label">{t("effective.total_skills")}</div>
+                            </div>
+                            <div class="card">
+                                <div class="card-value">{mcp_servers.len()}</div>
+                                <div class="card-label">{t("effective.mcp_servers")}</div>
+                            </div>
+                            <div class="card">
+                                <div class="card-value">{data.hooks.global_count}</div>
+                                <div class="card-label">{t("effective.hooks")}</div>
+                            </div>
+                            <div class="card">
+                                <div class="card-value">{if data.has_claude_md { t("common.yes").get() } else { t("common.no").get() }}</div>
+                                <div class="card-label">{"CLAUDE.md"}</div>
+                            </div>
+                            <div class="card">
+                                <div class="card-value">{memory.len()}</div>
+                                <div class="card-label">{t("effective.memory_files")}</div>
+                            </div>
+                        </div>
+
+                        // Conflicts warning
+                        {if !conflicts.is_empty() {
+                            let c = conflicts.clone();
+                            view! {
+                                <div class="card" style="margin: 1rem 0; border-left: 3px solid var(--warning); padding: 0.75rem 1rem;">
+                                    <h4 style="color: var(--warning); margin-bottom: 0.5rem;">
+                                        {t("effective.conflicts")} " (" {c.len()} ")"
+                                    </h4>
+                                    {c.into_iter().map(|c| {
+                                        let badge = match c.conflict_type {
+                                            ConflictType::NameCollision => t("rules.conflict_name_collision"),
+                                            ConflictType::ContentOverlap => t("rules.conflict_content_overlap"),
+                                            ConflictType::Contradiction => t("rules.conflict_contradiction"),
+                                        };
+                                        view! {
+                                            <div style="padding: 0.25rem 0; font-size: 0.875rem;">
+                                                <span class="badge badge-warning" style="margin-right: 0.5rem;">{badge}</span>
+                                                {c.description}
+                                            </div>
+                                        }
+                                    }).collect_view()}
+                                </div>
+                            }.into_view()
+                        } else {
+                            view! {}.into_view()
+                        }}
+
+                        // Rules section
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
+                            // Global (inherited) rules
+                            <div>
+                                <h4 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <span class="badge badge-muted">{t("effective.inherited")}</span>
+                                    {t("effective.rules")} " (" {global_rules.len()} ")"
+                                </h4>
+                                {if global_rules.is_empty() {
+                                    view! { <p style="color: var(--text-muted); font-size: 0.875rem;">{t("effective.none")}</p> }.into_view()
+                                } else {
+                                    view! {
+                                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                            {global_rules.into_iter().map(|r| view! {
+                                                <div class="card" style="padding: 0.5rem 0.75rem;">
+                                                    <div style="font-weight: 500; font-size: 0.875rem;">{r.name}</div>
+                                                    <div style="font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                        {r.content.lines().next().unwrap_or("").to_string()}
+                                                    </div>
+                                                </div>
+                                            }).collect_view()}
+                                        </div>
+                                    }.into_view()
+                                }}
+                            </div>
+                            // Project (own) rules
+                            <div>
+                                <h4 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <span class="badge badge-success">{t("effective.own")}</span>
+                                    {t("effective.rules")} " (" {project_rules.len()} ")"
+                                </h4>
+                                {if project_rules.is_empty() {
+                                    view! { <p style="color: var(--text-muted); font-size: 0.875rem;">{t("effective.none")}</p> }.into_view()
+                                } else {
+                                    view! {
+                                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                            {project_rules.into_iter().map(|r| view! {
+                                                <div class="card" style="padding: 0.5rem 0.75rem; border-left: 2px solid var(--success);">
+                                                    <div style="font-weight: 500; font-size: 0.875rem;">{r.name}</div>
+                                                    <div style="font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                        {r.content.lines().next().unwrap_or("").to_string()}
+                                                    </div>
+                                                </div>
+                                            }).collect_view()}
+                                        </div>
+                                    }.into_view()
+                                }}
+                            </div>
+                        </div>
+
+                        // Skills section
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                            <div>
+                                <h4 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <span class="badge badge-muted">{t("effective.inherited")}</span>
+                                    {t("effective.skills")} " (" {global_skills.len()} ")"
+                                </h4>
+                                {if global_skills.is_empty() {
+                                    view! { <p style="color: var(--text-muted); font-size: 0.875rem;">{t("effective.none")}</p> }.into_view()
+                                } else {
+                                    view! {
+                                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                            {global_skills.into_iter().map(|s| view! {
+                                                <div class="card" style="padding: 0.5rem 0.75rem;">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                        <span style="font-weight: 500; font-size: 0.875rem;">{s.name}</span>
+                                                        {if s.frontmatter.user_invocable.unwrap_or(false) {
+                                                            view! { <span class="badge badge-success" style="font-size: 0.65rem;">{t("effective.invocable")}</span> }.into_view()
+                                                        } else {
+                                                            view! {}.into_view()
+                                                        }}
+                                                    </div>
+                                                    {s.frontmatter.description.map(|d| view! {
+                                                        <div style="font-size: 0.75rem; color: var(--text-muted);">{d}</div>
+                                                    })}
+                                                </div>
+                                            }).collect_view()}
+                                        </div>
+                                    }.into_view()
+                                }}
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <span class="badge badge-success">{t("effective.own")}</span>
+                                    {t("effective.skills")} " (" {project_skills.len()} ")"
+                                </h4>
+                                {if project_skills.is_empty() {
+                                    view! { <p style="color: var(--text-muted); font-size: 0.875rem;">{t("effective.none")}</p> }.into_view()
+                                } else {
+                                    view! {
+                                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                            {project_skills.into_iter().map(|s| view! {
+                                                <div class="card" style="padding: 0.5rem 0.75rem; border-left: 2px solid var(--success);">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                        <span style="font-weight: 500; font-size: 0.875rem;">{s.name}</span>
+                                                        {if s.frontmatter.user_invocable.unwrap_or(false) {
+                                                            view! { <span class="badge badge-success" style="font-size: 0.65rem;">{t("effective.invocable")}</span> }.into_view()
+                                                        } else {
+                                                            view! {}.into_view()
+                                                        }}
+                                                    </div>
+                                                    {s.frontmatter.description.map(|d| view! {
+                                                        <div style="font-size: 0.75rem; color: var(--text-muted);">{d}</div>
+                                                    })}
+                                                </div>
+                                            }).collect_view()}
+                                        </div>
+                                    }.into_view()
+                                }}
+                            </div>
+                        </div>
+
+                        // MCP Servers + Hooks
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                            <div>
+                                <h4 style="margin-bottom: 0.5rem;">{t("effective.mcp_servers")} " (" {mcp_servers.len()} ")"</h4>
+                                {if mcp_servers.is_empty() {
+                                    view! { <p style="color: var(--text-muted); font-size: 0.875rem;">{t("effective.none")}</p> }.into_view()
+                                } else {
+                                    view! {
+                                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                            {mcp_servers.into_iter().map(|s| {
+                                                view! {
+                                                    <div class="card" style="padding: 0.5rem 0.75rem;">
+                                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                                            <span class="badge badge-muted" style="font-size: 0.65rem;">{s.source.clone()}</span>
+                                                            <span style="font-weight: 500; font-size: 0.875rem;">{s.name}</span>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            }).collect_view()}
+                                        </div>
+                                    }.into_view()
+                                }}
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom: 0.5rem;">{t("effective.hooks")} " (" {hooks.len()} ")"</h4>
+                                {if hooks.is_empty() {
+                                    view! { <p style="color: var(--text-muted); font-size: 0.875rem;">{t("effective.none")}</p> }.into_view()
+                                } else {
+                                    view! {
+                                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                            {hooks.into_iter().map(|h| view! {
+                                                <div class="card" style="padding: 0.5rem 0.75rem;">
+                                                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                                        <span class="badge badge-muted" style="font-size: 0.65rem;">{h.event}</span>
+                                                        {h.matcher.map(|m| view! {
+                                                            <code style="font-size: 0.75rem;">{m}</code>
+                                                        })}
+                                                    </div>
+                                                    <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace; margin-top: 0.125rem;">
+                                                        {h.command}
+                                                    </div>
+                                                </div>
+                                            }).collect_view()}
+                                        </div>
+                                    }.into_view()
+                                }}
+                            </div>
+                        </div>
+
+                        // Memory files
+                        {if !memory.is_empty() {
+                            view! {
+                                <div style="margin-top: 1.5rem;">
+                                    <h4 style="margin-bottom: 0.5rem;">{t("effective.memory_files")} " (" {memory.len()} ")"</h4>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                        {memory.into_iter().map(|m| view! {
+                                            <span class="badge badge-success">{m}</span>
+                                        }).collect_view()}
+                                    </div>
+                                </div>
+                            }.into_view()
+                        } else {
+                            view! {}.into_view()
+                        }}
                     }.into_view()
                 }
                 Err(e) => view! {
