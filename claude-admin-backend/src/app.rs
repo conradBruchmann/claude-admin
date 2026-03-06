@@ -19,6 +19,7 @@ use crate::services::watcher::FileChangeEvent;
 
 #[derive(Clone)]
 pub struct AppState {
+    #[allow(dead_code)]
     pub config: Config,
     pub claude_home: PathBuf,
     pub claude_json_path: PathBuf,

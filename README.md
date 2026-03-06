@@ -12,19 +12,30 @@ Once you work with more than a handful of projects, keeping track of skills, rul
 
 ## Features
 
-- **Dashboard** — Overview of your global and project-level configuration
-- **Projects** — Browse detected projects, edit CLAUDE.md, manage project-specific rules, skills, and memory
+- **Dashboard** — Overview with stats, recent changes, and project quick-access
+- **Projects** — Browse projects, edit CLAUDE.md, manage rules, skills, memory, and permissions per project
+- **Project Advisor** — AI-powered analysis with one-click actions (create CLAUDE.md, init memory, add rules)
 - **Skills** — Create, edit, and browse global skills (YAML frontmatter + markdown)
 - **Skill Browser** — Discover and install community skills with one click
-- **Rules** — Manage global and project-level rules
+- **Rules** — Manage global and project-level rules with conflict detection
 - **Memory** — View and edit per-project memory files (MEMORY.md + topic files)
-- **MCP Servers** — Full MCP server management: add, edit, delete, and health-check
-- **MCP Browser** — Discover and install popular MCP servers (databases, APIs, tools)
-- **Settings** — Edit global settings and hooks
-- **Permissions** — Review tool permissions and config health
+- **MCP Servers** — Full management with structured form (command/args/env) or raw JSON, health checks, and tool explorer
+- **MCP Browser** — Discover and install popular MCP servers from a curated catalog
+- **Agents** — Define custom Claude agents with specific prompts and tool configurations
+- **Plugins** — Manage installed Claude Code plugins
+- **Launch Profiles** — Reusable CLI configurations (model, effort, tools, budget)
+- **System Prompts** — Create and manage reusable system prompts
+- **Timeline** — Git-based version history of your `~/.claude/` configuration with diff viewer and restore
+- **Settings** — Edit global settings, hooks, API key, storage overview
+- **Permissions** — Review tool permissions, security warnings, and config health
 - **Plans** — Manage plan files
-- **Sessions** — Browse session history
-- **Analytics** — Usage metrics and insights
+- **Sessions** — Browse session history with search
+- **Analytics** — Usage metrics, per-project insights, and CSV/JSON export
+- **Worktrees** — View and manage git worktrees across projects
+- **Search** — Full-text search across skills, rules, and configuration
+- **Help Chat** — Context-aware AI assistant with conversation memory
+- **Backups** — Browse, diff, and restore automatic backups
+- **12 Languages** — Full i18n: English, German, Spanish, French, Italian, Japanese, Korean, Chinese, Dutch, Polish, Portuguese, Turkish
 
 ## Architecture
 
@@ -58,7 +69,11 @@ ClaudeAdmin runs **locally on your machine**. It is designed for single-user use
 
 - Reads and writes only under `~/.claude/` and `~/.claude.json`
 - No telemetry, no analytics, no remote calls (except optional Anthropic API if configured)
-- No authentication — **do not expose to the internet** without a reverse proxy and auth layer
+- **Optional authentication** — set `CLAUDE_ADMIN_TOKEN` to enable Bearer token auth with session management
+- **RBAC** — optional role-based access control via `~/.claude/users.json` (Admin, Editor, Viewer)
+- Security headers: CSP, X-Frame-Options DENY, X-Content-Type-Options nosniff
+- Rate limiting on all API endpoints
+- Path traversal protection
 
 ## Getting Started
 
@@ -129,7 +144,12 @@ ClaudeAdmin reads and writes the standard Claude Code configuration:
 | `~/.claude/rules/`                     | Global rules                    |
 | `~/.claude/plans/`                     | Plan files                      |
 | `~/.claude/projects/<encoded>/memory/` | Per-project memory              |
+| `~/.claude/projects/<encoded>/rules/`  | Per-project rules               |
+| `~/.claude/system-prompts/`            | Reusable system prompts         |
+| `~/.claude/agents/`                    | Custom agent definitions        |
+| `~/.claude/launch-profiles/`           | CLI launch profiles             |
 | `~/.claude/backups/`                   | Automatic backups (timestamped) |
+| `~/.claude/users.json`                 | RBAC user roles (optional)      |
 
 ## License
 

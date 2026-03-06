@@ -12,19 +12,30 @@ Zodra u met meer dan een handvol projecten werkt, wordt het bijhouden van skills
 
 ## Functies
 
-- **Dashboard** — Overzicht van uw globale en projectspecifieke configuratie
-- **Projecten** — Blader door gedetecteerde projecten, bewerk CLAUDE.md en beheer projectspecifieke regels, skills en geheugen
+- **Dashboard** — Overzicht met statistieken, recente wijzigingen en snelle toegang tot projecten
+- **Projecten** — Blader door projecten, bewerk CLAUDE.md, beheer regels, skills, geheugen en machtigingen per project
+- **Projectadviseur** — AI-gestuurde analyse met één-klik-acties (CLAUDE.md aanmaken, geheugen initialiseren, regels toevoegen)
 - **Skills** — Maak globale skills aan, bewerk en blader erdoor (YAML frontmatter + markdown)
 - **Skill Browser** — Ontdek en installeer community-skills met één klik
-- **Regels** — Beheer globale en projectspecifieke regels
+- **Regels** — Beheer globale en projectspecifieke regels met conflictdetectie
 - **Geheugen** — Bekijk en bewerk per-project geheugenbestanden (MEMORY.md + onderwerpbestanden)
-- **MCP-servers** — Volledig MCP-serverbeheer: toevoegen, bewerken, verwijderen en statuscontrole
-- **MCP Browser** — Ontdek en installeer populaire MCP-servers (databases, API's, tools)
-- **Instellingen** — Bewerk globale instellingen en hooks
-- **Machtigingen** — Bekijk toolmachtigingen en configuratiestatus
+- **MCP-servers** — Volledig beheer met gestructureerd formulier (command/args/env) of ruwe JSON, statuscontroles en tool-verkenner
+- **MCP Browser** — Ontdek en installeer populaire MCP-servers vanuit een samengestelde catalogus
+- **Agenten** — Definieer aangepaste Claude-agenten met specifieke prompts en toolconfiguraties
+- **Plugins** — Beheer geïnstalleerde Claude Code-plugins
+- **Startprofielen** — Herbruikbare CLI-configuraties (model, inspanning, tools, budget)
+- **Systeemprompts** — Maak herbruikbare systeemprompts aan en beheer ze
+- **Tijdlijn** — Git-gebaseerde versiegeschiedenis van uw `~/.claude/`-configuratie met diff-viewer en herstel
+- **Instellingen** — Bewerk globale instellingen, hooks, API-sleutel, opslagoverzicht
+- **Machtigingen** — Bekijk toolmachtigingen, beveiligingswaarschuwingen en configuratiestatus
 - **Plannen** — Beheer planbestanden
-- **Sessies** — Blader door sessiegeschiedenis
-- **Analyse** — Gebruiksstatistieken en inzichten
+- **Sessies** — Blader door sessiegeschiedenis met zoekfunctie
+- **Analyse** — Gebruiksstatistieken, inzichten per project en CSV/JSON-export
+- **Worktrees** — Bekijk en beheer git-worktrees over projecten heen
+- **Zoeken** — Volledige tekstzoekopdracht over skills, regels en configuratie
+- **Helpchat** — Contextbewuste AI-assistent met gespreksgeheugen
+- **Back-ups** — Blader door, vergelijk en herstel automatische back-ups
+- **12 talen** — Volledige i18n: Engels, Duits, Spaans, Frans, Italiaans, Japans, Koreaans, Chinees, Nederlands, Pools, Portugees, Turks
 
 ## Architectuur
 
@@ -58,7 +69,11 @@ ClaudeAdmin draait **lokaal op uw machine**. Het is ontworpen voor gebruik door 
 
 - Leest en schrijft uitsluitend onder `~/.claude/` en `~/.claude.json`
 - Geen telemetrie, geen analytics, geen externe aanroepen (behalve de optionele Anthropic API indien geconfigureerd)
-- Geen authenticatie — **stel niet bloot aan internet** zonder een reverse proxy en authenticatielaag
+- **Optionele authenticatie** — stel `CLAUDE_ADMIN_TOKEN` in om Bearer-tokenauthenticatie met sessiebeheer in te schakelen
+- **RBAC** — Optionele op rollen gebaseerde toegangscontrole via `~/.claude/users.json` (Admin, Editor, Viewer)
+- Beveiligingsheaders: CSP, X-Frame-Options DENY, X-Content-Type-Options nosniff
+- Snelheidsbeperking op alle API-eindpunten
+- Bescherming tegen padtraversie
 
 ## Aan de slag
 
@@ -129,7 +144,12 @@ ClaudeAdmin leest en schrijft de standaard Claude Code-configuratie:
 | `~/.claude/rules/`                     | Globale regels                          |
 | `~/.claude/plans/`                     | Planbestanden                           |
 | `~/.claude/projects/<encoded>/memory/` | Per-project geheugen                    |
+| `~/.claude/projects/<encoded>/rules/`  | Per-project regels                      |
+| `~/.claude/system-prompts/`            | Herbruikbare systeemprompts             |
+| `~/.claude/agents/`                    | Aangepaste agentdefinities              |
+| `~/.claude/launch-profiles/`           | CLI-startprofielen                      |
 | `~/.claude/backups/`                   | Automatische back-ups (met tijdstempel) |
+| `~/.claude/users.json`                 | RBAC-gebruikersrollen (optioneel)       |
 
 ## Licentie
 

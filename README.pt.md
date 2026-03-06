@@ -12,19 +12,30 @@ Quando você trabalha com mais do que alguns projetos, acompanhar skills, regras
 
 ## Funcionalidades
 
-- **Dashboard** — Visão geral da sua configuração global e por projeto
-- **Projetos** — Explore projetos detectados, edite o CLAUDE.md, gerencie regras, skills e memória específicas por projeto
+- **Dashboard** — Visão geral com estatísticas, alterações recentes e acesso rápido a projetos
+- **Projetos** — Explore projetos, edite o CLAUDE.md, gerencie regras, skills, memória e permissões por projeto
+- **Consultor de Projeto** — Análise impulsionada por IA com ações de um clique (criar CLAUDE.md, inicializar memória, adicionar regras)
 - **Skills** — Crie, edite e explore skills globais (YAML frontmatter + markdown)
 - **Navegador de Skills** — Descubra e instale skills da comunidade com um clique
-- **Regras** — Gerencie regras globais e por projeto
+- **Regras** — Gerencie regras globais e por projeto com detecção de conflitos
 - **Memória** — Visualize e edite arquivos de memória por projeto (MEMORY.md + arquivos de tópicos)
-- **Servidores MCP** — Gerenciamento completo de servidores MCP: adicionar, editar, excluir e verificar saúde
-- **Navegador MCP** — Descubra e instale servidores MCP populares (bancos de dados, APIs, ferramentas)
-- **Configurações** — Edite configurações globais e hooks
-- **Permissões** — Revise permissões de ferramentas e a saúde da configuração
+- **Servidores MCP** — Gerenciamento completo com formulário estruturado (command/args/env) ou JSON bruto, verificações de saúde e explorador de ferramentas
+- **Navegador MCP** — Descubra e instale servidores MCP populares de um catálogo curado
+- **Agentes** — Defina agentes Claude personalizados com prompts e configurações de ferramentas específicas
+- **Plugins** — Gerencie plugins do Claude Code instalados
+- **Perfis de Lançamento** — Configurações CLI reutilizáveis (modelo, esforço, ferramentas, orçamento)
+- **Prompts de Sistema** — Crie e gerencie prompts de sistema reutilizáveis
+- **Linha do Tempo** — Histórico de versões baseado em Git da sua configuração `~/.claude/` com visualizador de diferenças e restauração
+- **Configurações** — Edite configurações globais, hooks, chave de API, visão geral de armazenamento
+- **Permissões** — Revise permissões de ferramentas, avisos de segurança e saúde da configuração
 - **Planos** — Gerencie arquivos de planos
-- **Sessões** — Explore o histórico de sessões
-- **Analytics** — Métricas de uso e insights
+- **Sessões** — Explore o histórico de sessões com busca
+- **Analytics** — Métricas de uso, insights por projeto e exportação CSV/JSON
+- **Worktrees** — Visualize e gerencie worktrees Git entre projetos
+- **Busca** — Busca de texto completo em skills, regras e configuração
+- **Chat de Ajuda** — Assistente IA contextual com memória de conversação
+- **Backups** — Explore, compare e restaure backups automáticos
+- **12 Idiomas** — Internacionalização completa: inglês, alemão, espanhol, francês, italiano, japonês, coreano, chinês, holandês, polonês, português, turco
 
 ## Arquitetura
 
@@ -58,7 +69,11 @@ O ClaudeAdmin é executado **localmente na sua máquina**. Ele foi projetado par
 
 - Lê e grava apenas em `~/.claude/` e `~/.claude.json`
 - Sem telemetria, sem analytics, sem chamadas remotas (exceto a API Anthropic opcional, se configurada)
-- Sem autenticação — **não exponha à internet** sem um proxy reverso e uma camada de autenticação
+- **Autenticação opcional** — defina `CLAUDE_ADMIN_TOKEN` para habilitar autenticação com token Bearer e gerenciamento de sessões
+- **RBAC** — Controle de acesso baseado em papéis opcional via `~/.claude/users.json` (Admin, Editor, Viewer)
+- Cabeçalhos de segurança: CSP, X-Frame-Options DENY, X-Content-Type-Options nosniff
+- Limitação de taxa em todos os endpoints da API
+- Proteção contra path traversal
 
 ## Primeiros Passos
 
@@ -129,7 +144,12 @@ O ClaudeAdmin lê e grava na configuração padrão do Claude Code:
 | `~/.claude/rules/`                     | Regras globais                       |
 | `~/.claude/plans/`                     | Arquivos de planos                   |
 | `~/.claude/projects/<encoded>/memory/` | Memória por projeto                  |
+| `~/.claude/projects/<encoded>/rules/`  | Regras por projeto                   |
+| `~/.claude/system-prompts/`            | Prompts de sistema reutilizáveis     |
+| `~/.claude/agents/`                    | Definições de agentes personalizados |
+| `~/.claude/launch-profiles/`           | Perfis de lançamento CLI             |
 | `~/.claude/backups/`                   | Backups automáticos (com timestamp)  |
+| `~/.claude/users.json`                 | Papéis de usuário RBAC (opcional)    |
 
 ## Licença
 

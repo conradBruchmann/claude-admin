@@ -12,19 +12,30 @@ Dès que vous travaillez sur plus d'une poignée de projets, suivre les compéte
 
 ## Fonctionnalités
 
-- **Tableau de bord** — Vue d'ensemble de votre configuration globale et par projet
-- **Projets** — Parcourir les projets détectés, éditer CLAUDE.md, gérer les règles, compétences et mémoires spécifiques au projet
+- **Tableau de bord** — Vue d'ensemble avec statistiques, changements récents et accès rapide aux projets
+- **Projets** — Parcourir les projets, éditer CLAUDE.md, gérer les règles, compétences, mémoire et permissions par projet
+- **Conseiller de projet** — Analyse assistée par IA avec actions en un clic (créer CLAUDE.md, initialiser la mémoire, ajouter des règles)
 - **Compétences** — Créer, éditer et parcourir les compétences globales (YAML frontmatter + markdown)
 - **Navigateur de compétences** — Découvrir et installer des compétences communautaires en un clic
-- **Règles** — Gérer les règles globales et par projet
+- **Règles** — Gérer les règles globales et par projet avec détection de conflits
 - **Mémoire** — Consulter et éditer les fichiers mémoire par projet (MEMORY.md + fichiers thématiques)
-- **Serveurs MCP** — Gestion complète des serveurs MCP : ajout, édition, suppression et vérification de l'état
-- **Navigateur MCP** — Découvrir et installer des serveurs MCP populaires (bases de données, API, outils)
-- **Paramètres** — Éditer les paramètres globaux et les hooks
-- **Permissions** — Consulter les permissions des outils et l'état de la configuration
+- **Serveurs MCP** — Gestion complète avec formulaire structuré (commande/args/env) ou JSON brut, vérifications de santé et explorateur d'outils
+- **Navigateur MCP** — Découvrir et installer des serveurs MCP populaires depuis un catalogue organisé
+- **Agents** — Définir des agents Claude personnalisés avec des prompts et configurations d'outils spécifiques
+- **Plugins** — Gérer les plugins Claude Code installés
+- **Profils de lancement** — Configurations CLI réutilisables (modèle, effort, outils, budget)
+- **Prompts système** — Créer et gérer des prompts système réutilisables
+- **Chronologie** — Historique des versions basé sur Git de votre configuration `~/.claude/` avec visualiseur de différences et restauration
+- **Paramètres** — Éditer les paramètres globaux, hooks, clé API, aperçu du stockage
+- **Permissions** — Consulter les permissions des outils, avertissements de sécurité et état de la configuration
 - **Plans** — Gérer les fichiers de plans
-- **Sessions** — Parcourir l'historique des sessions
-- **Analytiques** — Métriques d'utilisation et insights
+- **Sessions** — Parcourir l'historique des sessions avec recherche
+- **Analytiques** — Métriques d'utilisation, aperçus par projet et export CSV/JSON
+- **Worktrees** — Afficher et gérer les worktrees Git à travers les projets
+- **Recherche** — Recherche plein texte dans les compétences, règles et configuration
+- **Chat d'aide** — Assistant IA contextuel avec mémoire de conversation
+- **Sauvegardes** — Parcourir, comparer et restaurer les sauvegardes automatiques
+- **12 langues** — Internationalisation complète : anglais, allemand, espagnol, français, italien, japonais, coréen, chinois, néerlandais, polonais, portugais, turc
 
 ## Architecture
 
@@ -58,7 +69,11 @@ ClaudeAdmin s'exécute **localement sur votre machine**. Il est conçu pour un u
 
 - Lecture et écriture uniquement sous `~/.claude/` et `~/.claude.json`
 - Aucune télémétrie, aucune analytique, aucun appel distant (sauf l'API Anthropic optionnelle si configurée)
-- Pas d'authentification — **n'exposez pas ce service sur internet** sans un reverse proxy et une couche d'authentification
+- **Authentification optionnelle** — définissez `CLAUDE_ADMIN_TOKEN` pour activer l'authentification par jeton Bearer avec gestion de session
+- **RBAC** — Contrôle d'accès basé sur les rôles optionnel via `~/.claude/users.json` (Admin, Éditeur, Lecteur)
+- En-têtes de sécurité : CSP, X-Frame-Options DENY, X-Content-Type-Options nosniff
+- Limitation de débit sur tous les points de terminaison de l'API
+- Protection contre le parcours de chemin (path traversal)
 
 ## Démarrage
 
@@ -129,7 +144,12 @@ ClaudeAdmin lit et écrit la configuration standard de Claude Code :
 | `~/.claude/rules/`                     | Règles globales                       |
 | `~/.claude/plans/`                     | Fichiers de plans                     |
 | `~/.claude/projects/<encoded>/memory/` | Mémoire par projet                    |
+| `~/.claude/projects/<encoded>/rules/`  | Règles par projet                     |
+| `~/.claude/system-prompts/`            | Prompts système réutilisables         |
+| `~/.claude/agents/`                    | Définitions d'agents personnalisés    |
+| `~/.claude/launch-profiles/`           | Profils de lancement CLI              |
 | `~/.claude/backups/`                   | Sauvegardes automatiques (horodatées) |
+| `~/.claude/users.json`                 | Rôles utilisateur RBAC (optionnel)    |
 
 ## Licence
 
